@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Escala 02 del Taller de Visualización Interactiva (Braulio, Bernardita y Benjamín): cuatro micrófonos en el patio central de la universidad y los textos que surgen de ellos.">
+  <title>Patio Sonoro · Escala 02</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <header class="bar">
+    <div>
+      <h1>Patio Central</h1>
+      <p class="eyebrow">Taller de Visualización Interactiva</p>
+      <p class="eyebrow">Escala 02</p>
+    </div>
+    <button id="btn-pausa" type="button">Pausar</button>
+  </header>
+
+  <main class="plano-wrap">
+    <aside class="simbologia" aria-labelledby="simbologia-titulo">
+      <h2 id="simbologia-titulo">Simbología</h2>
+
+      <h3>Tono</h3>
+      <ul class="items">
+        <li>
+          <span class="muestra" id="muestra-graves" aria-hidden="true"></span>
+          <span><strong>Graves</strong><br>colores cálidos · palabras más grandes y lentas</span>
+        </li>
+        <li>
+          <span class="muestra" id="muestra-agudos" aria-hidden="true"></span>
+          <span><strong>Agudos</strong><br>colores fríos · palabras más chicas y rápidas</span>
+        </li>
+      </ul>
+
+      <h3>Elementos</h3>
+      <ul class="items">
+        <li>
+          <svg class="icono" viewBox="-24 -24 48 48" aria-hidden="true">
+            <circle class="mic-bg" r="22"></circle>
+            <rect class="mic-body" x="-6" y="-14" width="12" height="18" rx="6"></rect>
+            <path class="mic-stand" d="M -10 -2 a 10 10 0 0 0 20 0 M 0 8 V 13 M -6 13 H 6"></path>
+          </svg>
+          <span>Micrófono</span>
+        </li>
+        <li>
+          <span class="icono icono-texto" aria-hidden="true">noche</span>
+          <span>Palabra de Pizarnik</span>
+        </li>
+        <li>
+          <span class="icono icono-texto titulo" aria-hidden="true">Árbol</span>
+          <span>Título de un libro</span>
+        </li>
+      </ul>
+    </aside>
+
+    <svg id="plano" viewBox="0 0 1400 1000" role="img"
+         aria-label="Plano del patio central con cuatro micrófonos de los que brotan hileras de palabras"></svg>
+  </main>
+
+  <footer class="creditos">
+    <p>Estudiantes: Braulio, Bernardita y Benjamín</p>
+  </footer>
+</body>
+</html>

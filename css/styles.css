@@ -1,0 +1,278 @@
+/* ---------- Tokens ---------- */
+:root {
+  --bg: #f3f3f2;
+  --surface: #ffffff;
+  --ink: #111111;
+  --muted: #8a8a8a;
+  --line: #9a9a9a;
+  --patio-fill: #fdeef2;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ---------- Base ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+}
+
+/* ---------- Barra superior ---------- */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 16px;
+}
+
+.bar h1 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+button:focus-visible,
+.mic:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* ---------- Pie ---------- */
+.creditos {
+  padding: 0 16px 16px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.creditos p {
+  margin: 0;
+}
+
+/* ---------- Plano ---------- */
+.plano-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 16px;
+  padding: 0 16px 16px;
+}
+
+#plano {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+/* ---------- Simbología ---------- */
+.simbologia {
+  flex: 0 0 220px;
+  align-self: flex-start;
+  padding: 16px 0 0;
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.simbologia h2 {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.simbologia h3 {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.items {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.items li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.muestra {
+  flex: 0 0 28px;
+  height: 28px;
+}
+
+.icono {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+}
+
+.icono-texto {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  flex-basis: auto;
+  min-width: 28px;
+  font-size: 0.8rem;
+}
+
+.icono-texto.titulo {
+  font-style: italic;
+}
+
+@media (max-width: 760px) {
+  .plano-wrap {
+    flex-direction: column;
+  }
+
+  .simbologia {
+    flex: none;
+    align-self: stretch;
+  }
+
+  #plano {
+    flex: 1;
+    min-height: 320px;
+  }
+}
+
+.patio {
+  fill: var(--patio-fill);
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.patio-label {
+  fill: var(--muted);
+  font-size: 16px;
+  letter-spacing: 0.3em;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* ---------- Micrófonos ---------- */
+.mic {
+  cursor: pointer;
+  outline: none;
+}
+
+.mic-bg {
+  fill: var(--surface);
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.mic-body {
+  fill: var(--ink);
+}
+
+.mic-stand {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.mic-label {
+  fill: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.pulse {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pulse 2.4s ease-out infinite;
+}
+
+.pulse:nth-of-type(2) {
+  animation-delay: 1.2s;
+}
+
+@keyframes pulse {
+  from {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+/* ---------- Hileras de palabras ---------- */
+.stream {
+  fill: var(--ink);
+  dominant-baseline: central;
+  pointer-events: none;
+  user-select: none;
+}
+
+.stream.title {
+  font-style: italic;
+}
+
+#plano.is-paused .pulse {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse {
+    animation: none;
+  }
+}
