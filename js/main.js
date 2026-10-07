@@ -36,7 +36,8 @@ const SEMANAS = {
 };
 
 const STEP = 3; // distancia mínima entre puntos del trazo
-const WALL = 14; // margen interior donde las hileras rebotan contra el borde del rectángulo
+// Margen interior donde las hileras rebotan: media palabra grande, para que choquen con el borde sin cortarse.
+const WALL = SIZE.max / 2 + 4;
 
 const svg = document.querySelector('#plano');
 const pauseButton = document.querySelector('#btn-pausa');
@@ -133,7 +134,10 @@ function drawMic() {
 drawPatio();
 // Trazos invisibles (guías de las hileras) y texto van entre el patio y el micrófono.
 const guides = el('defs', {}, svg);
-const layer = el('g', { class: 'streams' }, svg);
+// Recorte con la forma del rectángulo: ninguna palabra se dibuja fuera de él.
+const clip = el('clipPath', { id: 'recorte-patio' }, guides);
+el('rect', { ...PATIO }, clip);
+const layer = el('g', { class: 'streams', 'clip-path': 'url(#recorte-patio)' }, svg);
 drawMic();
 
 /* ---------- Hileras de palabras ---------- */
