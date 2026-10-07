@@ -14,10 +14,10 @@ const MIC = { x: CENTER.x, y: CENTER.y, phase: Math.random() * Math.PI * 2 };
 const EMIT = {
   interval: [0.5, 1.2], // segundos entre hileras
   words: [3, 6], // palabras por hilera
-  speed: [45, 80], // velocidad de avance (unidades del viewBox por segundo)
-  curl: 1.6, // curvatura base: tendencia a enroscarse en espiral
-  flex: 1.4, // cuánto se flecta la curva hacia un lado y otro
-  life: [9, 15], // segundos que avanza una hilera antes de desvanecerse
+  speed: [60, 100], // velocidad de avance (unidades del viewBox por segundo)
+  curl: 0.6, // curvatura base: tendencia a enroscarse en espiral (solo cerca del micrófono)
+  flex: 0.45, // cuánto se flecta la curva hacia un lado y otro
+  life: [16, 24], // segundos que avanza una hilera antes de desvanecerse: alcanza a llegar al borde y rebotar
   fade: 1.5, // segundos de desvanecimiento
   titleChance: 0.06, // probabilidad de que la hilera sea un título de libro
   titleSize: 18,
@@ -36,6 +36,7 @@ const SEMANAS = {
 };
 
 const STEP = 3; // distancia mínima entre puntos del trazo
+const WALL = 14; // margen interior donde las hileras rebotan contra el borde del rectángulo
 
 const svg = document.querySelector('#plano');
 const pauseButton = document.querySelector('#btn-pausa');
@@ -99,7 +100,7 @@ function el(name, attrs = {}, parent) {
 function drawPatio() {
   el('rect', { class: 'patio', ...PATIO }, svg);
   const label = el('text', { class: 'patio-label', x: PATIO.x + 24, y: PATIO.y + 24 }, svg);
-  label.textContent = 'PATIO CENTRAL';
+  label.textContent = 'ENTRADA FAAD';
 }
 
 function drawMic() {
@@ -193,15 +194,33 @@ function spawn(angleOffset = 0) {
   });
 }
 
+/** Rebote contra los bordes del rectángulo: refleja la dirección como una pelota. */
+function bounce(s) {
+  const left = PATIO.x + WALL;
+  const right = PATIO.x + PATIO.width - WALL;
+  const top = PATIO.y + WALL;
+  const bottom = PATIO.y + PATIO.height - WALL;
+
+  if (s.head.x < left || s.head.x > right) {
+    s.heading = Math.PI - s.heading;
+    s.head.x = Math.min(Math.max(s.head.x, left), right);
+  }
+  if (s.head.y < top || s.head.y > bottom) {
+    s.heading = -s.heading;
+    s.head.y = Math.min(Math.max(s.head.y, top), bottom);
+  }
+}
+
 function advance(s, dt) {
   const distance = Math.hypot(s.head.x - MIC.x, s.head.y - MIC.y);
   // Curvatura: se enrosca alrededor del micrófono (más suave al alejarse) y se flecta con una onda.
-  const curl = (s.turn * EMIT.curl) / (1 + distance / 120);
+  const curl = (s.turn * EMIT.curl) / (1 + distance / 60);
   const flex = Math.sin(s.age * s.flexFreq + s.flexPhase) * EMIT.flex;
   s.heading += (curl + flex) * dt;
 
   s.head.x += Math.cos(s.heading) * s.speed * dt;
   s.head.y += Math.sin(s.heading) * s.speed * dt;
+  bounce(s);
 
   const lastPoint = s.points.at(-1);
   const segment = Math.hypot(s.head.x - lastPoint.x, s.head.y - lastPoint.y);

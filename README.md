@@ -2,8 +2,8 @@
 
 **Escala 02 · Taller de Visualización Interactiva** — Braulio, Bernardita y Benjamín.
 
-Maqueta del patio central de la universidad: un micrófono del que brotan palabras
-en hileras, una detrás de otra, que se flectan y enredan, tomadas del vocabulario de Alejandra Pizarnik.
+Maqueta de la entrada de la FAAD: un micrófono del que brotan palabras
+en hileras, una detrás de otra, que se flectan, enredan y rebotan en los bordes, tomadas del vocabulario de Alejandra Pizarnik.
 El tamaño indica cuántas veces se nombró la palabra (por ahora, conteos simulados) y el color la semana:
 rojo la anterior, azul la actual.
 Sin dependencias ni paso de compilación: HTML, CSS, JavaScript (módulos ES) y SVG.
