@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Escala 02 del Taller de Visualización Interactiva (Braulio, Bernardita y Benjamín): cuatro micrófonos en el patio central de la universidad y los textos que surgen de ellos.">
+  <meta name="description" content="Escala 02 del Taller de Visualización Interactiva (Braulio, Bernardita y Benjamín): un micrófono en el patio central de la universidad y las palabras que surgen de él.">
   <title>Patio Sonoro · Escala 02</title>
   <link rel="stylesheet" href="css/styles.css">
   <script type="module" src="js/main.js"></script>
@@ -22,15 +22,27 @@
     <aside class="simbologia" aria-labelledby="simbologia-titulo">
       <h2 id="simbologia-titulo">Simbología</h2>
 
-      <h3>Tono</h3>
+      <h3>Semana</h3>
       <ul class="items">
         <li>
-          <span class="muestra" id="muestra-graves" aria-hidden="true"></span>
-          <span><strong>Graves</strong><br>colores cálidos · palabras más grandes y lentas</span>
+          <span class="muestra" id="muestra-anterior" aria-hidden="true"></span>
+          <span><strong>Rojo</strong><br>semana anterior</span>
         </li>
         <li>
-          <span class="muestra" id="muestra-agudos" aria-hidden="true"></span>
-          <span><strong>Agudos</strong><br>colores fríos · palabras más chicas y rápidas</span>
+          <span class="muestra" id="muestra-actual" aria-hidden="true"></span>
+          <span><strong>Azul</strong><br>semana actual</span>
+        </li>
+      </ul>
+
+      <h3>Tamaño</h3>
+      <ul class="items">
+        <li>
+          <span class="icono icono-texto tamano-grande" aria-hidden="true">noche</span>
+          <span>Más nombrada</span>
+        </li>
+        <li>
+          <span class="icono icono-texto tamano-chico" aria-hidden="true">noche</span>
+          <span>Menos nombrada</span>
         </li>
       </ul>
 
@@ -44,22 +56,24 @@
           </svg>
           <span>Micrófono</span>
         </li>
-        <li>
-          <span class="icono icono-texto" aria-hidden="true">noche</span>
-          <span>Palabra de Pizarnik</span>
-        </li>
-        <li>
-          <span class="icono icono-texto titulo" aria-hidden="true">Árbol</span>
-          <span>Título de un libro</span>
-        </li>
       </ul>
     </aside>
 
     <svg id="plano" viewBox="0 0 1400 1000" role="img"
-         aria-label="Plano del patio central con cuatro micrófonos de los que brotan hileras de palabras"></svg>
+         aria-label="Plano del patio central con un micrófono del que brotan hileras de palabras"></svg>
   </main>
 
   <footer class="creditos">
+    <ul class="items items-pie">
+      <li>
+        <span class="icono icono-texto" aria-hidden="true">noche</span>
+        <span>Palabra de Pizarnik</span>
+      </li>
+      <li>
+        <span class="icono icono-texto titulo" aria-hidden="true">Árbol</span>
+        <span>Título de un libro</span>
+      </li>
+    </ul>
     <p>Estudiantes: Braulio, Bernardita y Benjamín</p>
   </footer>
 </body>

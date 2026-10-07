@@ -5,38 +5,34 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 // Coordenadas en unidades del viewBox (1400 × 1000).
 const PATIO = { x: 150, y: 120, width: 1100, height: 760 };
 const CENTER = { x: PATIO.x + PATIO.width / 2, y: PATIO.y + PATIO.height / 2 };
-const INSET = 50; // distancia de cada micrófono al borde del patio
 
-// turn: sentido de giro (alternado para que las hileras de micrófonos vecinos se crucen).
-const MICS = [
-  { id: 'M1', turn: 1, x: CENTER.x, y: PATIO.y + INSET, label: [0, 40] },
-  { id: 'M2', turn: -1, x: PATIO.x + PATIO.width - INSET, y: CENTER.y, label: [-42, 0] },
-  { id: 'M3', turn: 1, x: CENTER.x, y: PATIO.y + PATIO.height - INSET, label: [0, -40] },
-  { id: 'M4', turn: -1, x: PATIO.x + INSET, y: CENTER.y, label: [42, 0] },
-];
+// Un solo micrófono, al centro del patio.
+const MIC = { x: CENTER.x, y: CENTER.y, phase: Math.random() * Math.PI * 2 };
 
-// Cada micrófono suelta hileras de palabras. La "cabeza" de la hilera avanza curvándose
+// El micrófono suelta hileras de palabras. La "cabeza" de la hilera avanza curvándose
 // y las palabras la siguen por el mismo trazo, doblándose con él.
 const EMIT = {
-  interval: [1.2, 2.6], // segundos entre hileras de un micrófono
-  words: [4, 8], // palabras por hilera
-  speed: [45, 75], // velocidad de avance (unidades del viewBox por segundo)
+  interval: [0.5, 1.2], // segundos entre hileras
+  words: [3, 6], // palabras por hilera
+  speed: [45, 80], // velocidad de avance (unidades del viewBox por segundo)
   curl: 1.6, // curvatura base: tendencia a enroscarse en espiral
   flex: 1.4, // cuánto se flecta la curva hacia un lado y otro
   life: [9, 15], // segundos que avanza una hilera antes de desvanecerse
   fade: 1.5, // segundos de desvanecimiento
-  size: [13, 24], // tamaño de fuente: los graves más grandes, los agudos más chicos
-  titleChance: 0.08, // probabilidad de que la hilera sea un título de libro
-  armSpin: 0.7, // radianes/s que rota la dirección de salida de cada micrófono
-  burst: 5, // hileras extra al hacer clic en un micrófono
-  max: 45, // tope de hileras simultáneas
+  titleChance: 0.06, // probabilidad de que la hilera sea un título de libro
+  titleSize: 18,
+  armSpin: 0.7, // radianes/s que rota la dirección de salida
+  burst: 6, // hileras extra al hacer clic en el micrófono
+  max: 50, // tope de hileras simultáneas
 };
 
-// Cada hilera tiene un tono al azar entre grave (0) y agudo (1), que define su color.
-const PITCH = {
-  warm: [0, 35], // matiz (hue) de los graves: rojos y naranjos, del más grave al menos grave
-  cool: [185, 255], // matiz de los agudos: celestes, azules e índigos, del menos agudo al más agudo
-  speedBoost: 0.3, // los agudos avanzan hasta un 30 % más rápido que los graves
+// Tamaño según cuántas veces se nombró la palabra en su semana.
+const SIZE = { min: 11, max: 40, boldFrom: 0.7 };
+
+// Cada hilera pertenece a una semana, que define su color.
+const SEMANAS = {
+  anterior: { hue: [348, 362], saturation: 75, lightness: [40, 50] }, // rojos
+  actual: { hue: [205, 228], saturation: 75, lightness: [38, 48] }, // azules
 };
 
 const STEP = 3; // distancia mínima entre puntos del trazo
@@ -49,18 +45,46 @@ const pauseButton = document.querySelector('#btn-pausa');
 const between = ([min, max]) => min + Math.random() * (max - min);
 const randInt = ([min, max]) => Math.floor(between([min, max + 1]));
 const pickFrom = (list) => list[randInt([0, list.length - 1])];
-const lerp = ([a, b], t) => a + (b - a) * t;
+const lerp = (a, b, t) => a + (b - a) * t;
 
-/** Graves → colores cálidos; agudos → colores fríos. */
-function pitchColor(pitch) {
-  if (pitch < 0.5) return `hsl(${lerp(PITCH.warm, pitch * 2).toFixed(0)} 80% 45%)`;
-  return `hsl(${lerp(PITCH.cool, (pitch - 0.5) * 2).toFixed(0)} 75% 42%)`;
+function weekColor(week) {
+  const { hue, saturation, lightness } = SEMANAS[week];
+  return `hsl(${(between(hue) % 360).toFixed(0)} ${saturation}% ${between(lightness).toFixed(0)}%)`;
 }
 
-function randomPhrase() {
-  if (Math.random() < EMIT.titleChance) return { text: pickFrom(TITULOS), isTitle: true };
-  const words = Array.from({ length: randInt(EMIT.words) }, () => pickFrom(PALABRAS));
-  return { text: words.join('  '), isTitle: false };
+/* ---------- Conteo simulado de menciones ---------- */
+
+/**
+ * Para la maqueta, cada semana tiene un conteo inventado de cuántas veces se nombró cada palabra.
+ * Sigue una distribución tipo Zipf: pocas palabras muy nombradas y muchas poco nombradas.
+ */
+function simulateCounts() {
+  const shuffled = [...PALABRAS].sort(() => Math.random() - 0.5);
+  const counts = shuffled.map((word, rank) => ({
+    word,
+    count: Math.max(1, Math.round(60 / (rank + 1) ** 0.9 + between([-1, 1]))),
+  }));
+  const total = counts.reduce((sum, { count }) => sum + count, 0);
+  const max = counts[0].count;
+  return { counts, total, max };
+}
+
+const CONTEOS = { anterior: simulateCounts(), actual: simulateCounts() };
+
+/** Elige una palabra con probabilidad proporcional a sus menciones. */
+function pickWeighted(week) {
+  const { counts, total } = CONTEOS[week];
+  let roll = Math.random() * total;
+  for (const entry of counts) {
+    roll -= entry.count;
+    if (roll <= 0) return entry;
+  }
+  return counts.at(-1);
+}
+
+/** 0 = la menos nombrada, 1 = la más nombrada (escala logarítmica). */
+function prominence(count, week) {
+  return Math.log(count) / Math.log(CONTEOS[week].max);
 }
 
 /* ---------- Dibujo estático ---------- */
@@ -74,18 +98,17 @@ function el(name, attrs = {}, parent) {
 
 function drawPatio() {
   el('rect', { class: 'patio', ...PATIO }, svg);
-  const label = el('text', { class: 'patio-label', x: CENTER.x, y: CENTER.y }, svg);
+  const label = el('text', { class: 'patio-label', x: PATIO.x + 24, y: PATIO.y + 24 }, svg);
   label.textContent = 'PATIO CENTRAL';
 }
 
-function drawMic(mic) {
-  const [lx, ly] = mic.label;
+function drawMic() {
   const g = el('g', {
     class: 'mic',
-    transform: `translate(${mic.x} ${mic.y})`,
+    transform: `translate(${MIC.x} ${MIC.y})`,
     role: 'button',
     tabindex: 0,
-    'aria-label': `Micrófono ${mic.id}: soltar una ráfaga de palabras`,
+    'aria-label': 'Micrófono: soltar una ráfaga de palabras',
   }, svg);
 
   el('circle', { class: 'pulse', r: 22 }, g);
@@ -93,11 +116,9 @@ function drawMic(mic) {
   el('circle', { class: 'mic-bg', r: 22 }, g);
   el('rect', { class: 'mic-body', x: -6, y: -14, width: 12, height: 18, rx: 6 }, g);
   el('path', { class: 'mic-stand', d: 'M -10 -2 a 10 10 0 0 0 20 0 M 0 8 V 13 M -6 13 H 6' }, g);
-  const label = el('text', { class: 'mic-label', x: lx, y: ly }, g);
-  label.textContent = mic.id;
 
   const burst = () => {
-    for (let i = 0; i < EMIT.burst; i++) spawn(mic, (i / EMIT.burst) * Math.PI * 2);
+    for (let i = 0; i < EMIT.burst; i++) spawn((i / EMIT.burst) * Math.PI * 2);
   };
   g.addEventListener('click', burst);
   g.addEventListener('keydown', (event) => {
@@ -109,39 +130,52 @@ function drawMic(mic) {
 }
 
 drawPatio();
-// Trazos invisibles (guías de las hileras) y texto van entre el patio y los micrófonos.
+// Trazos invisibles (guías de las hileras) y texto van entre el patio y el micrófono.
 const guides = el('defs', {}, svg);
 const layer = el('g', { class: 'streams' }, svg);
-MICS.forEach(drawMic);
+drawMic();
 
 /* ---------- Hileras de palabras ---------- */
 
 const streams = [];
 let nextId = 0;
 
-function spawn(mic, angleOffset = 0) {
+/** Llena el textPath: cada palabra con su propio tamaño según sus menciones. */
+function fillRow(textPath, week) {
+  if (Math.random() < EMIT.titleChance) {
+    const title = el('tspan', { class: 'title', 'font-size': EMIT.titleSize }, textPath);
+    title.textContent = pickFrom(TITULOS);
+    return;
+  }
+  const length = randInt(EMIT.words);
+  for (let i = 0; i < length; i++) {
+    const { word, count } = pickWeighted(week);
+    const t = prominence(count, week);
+    const tspan = el('tspan', {
+      'font-size': lerp(SIZE.min, SIZE.max, t).toFixed(1),
+      'font-weight': t >= SIZE.boldFrom ? 600 : 400,
+    }, textPath);
+    // Espacios duros para que el separador no se colapse entre tspans.
+    tspan.textContent = i < length - 1 ? `${word}  ` : word;
+  }
+}
+
+function spawn(angleOffset = 0) {
   if (streams.length >= EMIT.max) return;
   const id = `hilera-${nextId++}`;
-  const { text, isTitle } = randomPhrase();
-  const heading = mic.phase + angleOffset + between([-0.3, 0.3]);
-  const pitch = Math.random();
+  const week = Math.random() < 0.5 ? 'anterior' : 'actual';
+  const heading = MIC.phase + angleOffset + between([-0.3, 0.3]);
 
   const path = el('path', { id }, guides);
-  const textNode = el('text', {
-    class: isTitle ? 'stream title' : 'stream',
-    'font-size': lerp(EMIT.size, 1 - pitch).toFixed(1),
-    'font-weight': Math.random() < 0.35 ? 600 : 400,
-    style: `fill: ${pitchColor(pitch)}`,
-  }, layer);
+  const textNode = el('text', { class: 'stream', style: `fill: ${weekColor(week)}` }, layer);
   const textPath = el('textPath', { href: `#${id}` }, textNode);
-  textPath.textContent = text;
+  fillRow(textPath, week);
   const textLength = textNode.getComputedTextLength();
 
   // Arranca en el borde del ícono, no en su centro.
-  const start = { x: mic.x + Math.cos(heading) * 24, y: mic.y + Math.sin(heading) * 24 };
+  const start = { x: MIC.x + Math.cos(heading) * 24, y: MIC.y + Math.sin(heading) * 24 };
 
   streams.push({
-    mic,
     path,
     textNode,
     textPath,
@@ -150,7 +184,8 @@ function spawn(mic, angleOffset = 0) {
     lengths: [0], // distancia acumulada desde el origen hasta cada punto
     head: { ...start },
     heading,
-    speed: between(EMIT.speed) * (1 + pitch * PITCH.speedBoost),
+    turn: Math.random() < 0.5 ? 1 : -1, // sentido de giro: mezclados para que se enreden
+    speed: between(EMIT.speed),
     flexFreq: between([0.4, 1.1]),
     flexPhase: Math.random() * Math.PI * 2,
     age: 0,
@@ -159,10 +194,9 @@ function spawn(mic, angleOffset = 0) {
 }
 
 function advance(s, dt) {
-  const { mic } = s;
-  const distance = Math.hypot(s.head.x - mic.x, s.head.y - mic.y);
+  const distance = Math.hypot(s.head.x - MIC.x, s.head.y - MIC.y);
   // Curvatura: se enrosca alrededor del micrófono (más suave al alejarse) y se flecta con una onda.
-  const curl = (mic.turn * EMIT.curl) / (1 + distance / 120);
+  const curl = (s.turn * EMIT.curl) / (1 + distance / 120);
   const flex = Math.sin(s.age * s.flexFreq + s.flexPhase) * EMIT.flex;
   s.heading += (curl + flex) * dt;
 
@@ -212,8 +246,7 @@ function update(dt) {
 
 /* ---------- Bucle ---------- */
 
-const timers = MICS.map(() => between([0, 1]));
-MICS.forEach((mic) => (mic.phase = Math.random() * Math.PI * 2));
+let timer = 0;
 let paused = false;
 let last = performance.now();
 
@@ -223,14 +256,12 @@ function frame(now) {
   last = now;
 
   if (!paused) {
-    MICS.forEach((mic, i) => {
-      mic.phase += mic.turn * EMIT.armSpin * dt;
-      timers[i] -= dt;
-      if (timers[i] <= 0) {
-        spawn(mic);
-        timers[i] = between(EMIT.interval);
-      }
-    });
+    MIC.phase += EMIT.armSpin * dt;
+    timer -= dt;
+    if (timer <= 0) {
+      spawn();
+      timer = between(EMIT.interval);
+    }
     update(dt);
   }
   requestAnimationFrame(frame);
@@ -240,13 +271,13 @@ requestAnimationFrame(frame);
 
 /* ---------- Simbología: colores generados con la misma función que las hileras ---------- */
 
-function gradient(from, to, steps = 6) {
-  const stops = Array.from({ length: steps }, (_, i) => pitchColor(from + ((to - from) * i) / (steps - 1)));
+function swatch(week, steps = 5) {
+  const stops = Array.from({ length: steps }, () => weekColor(week));
   return `linear-gradient(to right, ${stops.join(', ')})`;
 }
 
-document.querySelector('#muestra-graves').style.background = gradient(0, 0.49);
-document.querySelector('#muestra-agudos').style.background = gradient(0.5, 1);
+document.querySelector('#muestra-anterior').style.background = swatch('anterior');
+document.querySelector('#muestra-actual').style.background = swatch('actual');
 
 pauseButton.addEventListener('click', () => {
   paused = !paused;

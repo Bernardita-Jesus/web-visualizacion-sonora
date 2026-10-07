@@ -89,6 +89,18 @@ button:focus-visible,
   margin: 0;
 }
 
+.items-pie {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--ink);
+}
+
+.items-pie .icono-texto {
+  min-width: 0;
+}
+
 /* ---------- Plano ---------- */
 .plano-wrap {
   flex: 1;
@@ -170,6 +182,15 @@ button:focus-visible,
   font-style: italic;
 }
 
+.icono-texto.tamano-grande {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.icono-texto.tamano-chico {
+  font-size: 0.7rem;
+}
+
 @media (max-width: 760px) {
   .plano-wrap {
     flex-direction: column;
@@ -196,8 +217,7 @@ button:focus-visible,
   fill: var(--muted);
   font-size: 16px;
   letter-spacing: 0.3em;
-  text-anchor: middle;
-  dominant-baseline: central;
+  dominant-baseline: hanging;
 }
 
 /* ---------- Micrófonos ---------- */
@@ -221,14 +241,6 @@ button:focus-visible,
   stroke: var(--ink);
   stroke-width: 2;
   stroke-linecap: round;
-}
-
-.mic-label {
-  fill: var(--ink);
-  font-size: 13px;
-  font-weight: 600;
-  text-anchor: middle;
-  dominant-baseline: central;
 }
 
 .pulse {
@@ -263,7 +275,7 @@ button:focus-visible,
   user-select: none;
 }
 
-.stream.title {
+.stream .title {
   font-style: italic;
 }
 

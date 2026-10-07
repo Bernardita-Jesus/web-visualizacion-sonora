@@ -2,8 +2,10 @@
 
 **Escala 02 · Taller de Visualización Interactiva** — Braulio, Bernardita y Benjamín.
 
-Maqueta del patio central de la universidad: cuatro micrófonos de los que brotan palabras
+Maqueta del patio central de la universidad: un micrófono del que brotan palabras
 en hileras, una detrás de otra, que se flectan y enredan, tomadas del vocabulario de Alejandra Pizarnik.
+El tamaño indica cuántas veces se nombró la palabra (por ahora, conteos simulados) y el color la semana:
+rojo la anterior, azul la actual.
 Sin dependencias ni paso de compilación: HTML, CSS, JavaScript (módulos ES) y SVG.
 
 ## Ejecutar en local
@@ -21,7 +23,7 @@ Luego abre <http://localhost:8000>.
 ```
 index.html          Página y contenedor del plano (SVG)
 css/styles.css      Estilos y animaciones
-js/main.js          Patio, micrófonos y animación de las palabras
+js/main.js          Patio, micrófono, conteos simulados y animación de las palabras
 js/palabras.js      Vocabulario de Pizarnik y títulos de sus libros (editable)
 js/audio.js         AudioEngine (micrófono / análisis); aún no se usa, queda para conectar audio real
 assets/             Imágenes, audios de ejemplo, fuentes
@@ -30,7 +32,7 @@ assets/             Imágenes, audios de ejemplo, fuentes
 ## Uso
 
 - **Pausar / Reanudar**: congela o retoma la emisión de palabras.
-- **Clic en un micrófono**: suelta varias hileras de palabras a la vez.
-- Posiciones del patio y micrófonos: constantes `PATIO` y `MICS` en `js/main.js`.
+- **Clic en el micrófono**: suelta varias hileras de palabras a la vez.
+- Posición del patio y del micrófono: constantes `PATIO` y `MIC` en `js/main.js`.
 - Velocidad, frecuencia, tamaño y duración de las palabras: constante `EMIT` en `js/main.js`.
-- Colores por tono (graves cálidos, agudos fríos): constante `PITCH` en `js/main.js`.
+- Colores por semana: constante `SEMANAS`; tamaños por menciones: constante `SIZE` (ambas en `js/main.js`).
