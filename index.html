@@ -3,78 +3,128 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Escala 02 del Taller de Visualización Interactiva (Braulio, Bernardita y Benjamín): un micrófono en la entrada de la FAAD y las palabras que surgen de él.">
-  <title>Entrada FAAD · Escala 02</title>
+  <meta name="description" content="Taller de Visualización Interactiva (Braulio, Bernardita y Benjamín): ¿cuál es tu motivación para asistir hoy al Diseño Abierto? Las respuestas viajan hacia estudiantes, funcionarios y externos.">
+  <title>¿Cuál es tu motivación? · Diseño Abierto</title>
   <link rel="stylesheet" href="css/styles.css">
-  <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/app.js"></script>
 </head>
 <body>
-  <header class="bar">
-    <div>
-      <h1>Entrada FAAD</h1>
+  <!-- ---------- Barra superior: la pregunta, el contexto y los nombres ---------- -->
+  <header class="cabecera">
+    <h1 id="pregunta" class="pregunta">¿Cuál es tu motivación para asistir hoy al Diseño Abierto?</h1>
+    <div class="cabecera-info">
+      <p class="eyebrow">Diseño Abierto</p>
       <p class="eyebrow">Taller de Visualización Interactiva</p>
-      <p class="eyebrow">Escala 02</p>
+      <p class="nombres">Braulio, Bernardita y Benjamín</p>
     </div>
-    <button id="btn-pausa" type="button">Pausar</button>
   </header>
 
-  <main class="plano-wrap">
-    <aside class="simbologia" aria-labelledby="simbologia-titulo">
-      <h2 id="simbologia-titulo">Simbología</h2>
+  <!-- Registro (mitad izquierda) y visualización (mitad derecha) comparten escenario. -->
+  <div class="escenario">
+  <!-- ---------- Registro ---------- -->
+  <section id="vista-registro" class="vista vista-registro">
+    <header class="bar">
+      <h2 class="modo">Modo registro</h2>
+    </header>
+    <form id="form-registro" class="registro" novalidate>
 
-      <h3>Semana</h3>
-      <ul class="items">
-        <li>
-          <span class="muestra" id="muestra-anterior" aria-hidden="true"></span>
-          <span><strong>Rojo</strong><br>semana anterior</span>
-        </li>
-        <li>
-          <span class="muestra" id="muestra-actual" aria-hidden="true"></span>
-          <span><strong>Azul</strong><br>semana actual</span>
-        </li>
-      </ul>
+      <fieldset class="grupos">
+        <legend>Soy…</legend>
+        <label><input type="radio" name="grupo" value="estudiantes"> Estudiante</label>
+        <label><input type="radio" name="grupo" value="funcionarios"> Funcionario/a</label>
+        <label><input type="radio" name="grupo" value="externos"> Externo/a</label>
+      </fieldset>
 
-      <h3>Tamaño</h3>
-      <ul class="items">
-        <li>
-          <span class="icono icono-texto tamano-grande" aria-hidden="true">noche</span>
-          <span>Más nombrada</span>
-        </li>
-        <li>
-          <span class="icono icono-texto tamano-chico" aria-hidden="true">noche</span>
-          <span>Menos nombrada</span>
-        </li>
-      </ul>
-
-      <h3>Elementos</h3>
-      <ul class="items">
-        <li>
-          <svg class="icono" viewBox="-24 -24 48 48" aria-hidden="true">
-            <circle class="mic-bg" r="22"></circle>
-            <rect class="mic-body" x="-6" y="-14" width="12" height="18" rx="6"></rect>
-            <path class="mic-stand" d="M -10 -2 a 10 10 0 0 0 20 0 M 0 8 V 13 M -6 13 H 6"></path>
+      <div class="dictado">
+        <button id="btn-dictar" class="boton-dictar" type="button" aria-pressed="false" disabled>
+          <svg viewBox="-24 -24 48 48" aria-hidden="true">
+            <rect x="-6" y="-14" width="12" height="18" rx="6"></rect>
+            <path d="M -10 -2 a 10 10 0 0 0 20 0 M 0 8 V 13 M -6 13 H 6"></path>
           </svg>
-          <span>Micrófono</span>
-        </li>
-      </ul>
-    </aside>
+          <span id="btn-dictar-texto">Dictar respuesta</span>
+        </button>
+        <p id="dictado-estado" class="dictado-estado"></p>
+      </div>
 
-    <svg id="plano" viewBox="0 0 1400 1000" role="img"
-         aria-label="Plano de la entrada de la FAAD con un micrófono del que brotan hileras de palabras que rebotan en los bordes"></svg>
-  </main>
+      <textarea id="respuesta" name="respuesta" aria-labelledby="pregunta" rows="3" maxlength="280" placeholder="Tu respuesta aparecerá aquí… también puedes escribirla"></textarea>
 
-  <footer class="creditos">
-    <ul class="items items-pie">
-      <li>
-        <span class="icono icono-texto" aria-hidden="true">noche</span>
-        <span>Palabra de Pizarnik</span>
-      </li>
-      <li>
-        <span class="icono icono-texto titulo" aria-hidden="true">Árbol</span>
-        <span>Título de un libro</span>
-      </li>
-    </ul>
-    <p>Estudiantes: Braulio, Bernardita y Benjamín</p>
-  </footer>
+      <button class="boton-modo" type="submit">Enviar</button>
+      <p id="registro-aviso" class="registro-aviso" role="status"></p>
+    </form>
+  </section>
+
+  <!-- ---------- Visualización ---------- -->
+  <section id="vista-visualizacion" class="vista vista-visualizacion">
+    <header class="bar">
+      <h2 class="modo">Modo visualización</h2>
+      <button id="btn-pausa" type="button">Pausar</button>
+    </header>
+
+    <main class="plano-wrap">
+      <aside class="simbologia" aria-labelledby="simbologia-titulo">
+        <h2 id="simbologia-titulo">Simbología</h2>
+
+        <div class="simbologia-grupo simbologia-hora">
+          <h3>Hora del día <span class="escala-nota">cálidos → fríos</span></h3>
+          <div class="escala-hora" id="escala-hora" aria-hidden="true">
+            <span class="escala-marca" id="escala-marca"></span>
+          </div>
+          <div class="escala-horas" aria-hidden="true">
+            <span style="left: 0.0%">08:00</span>
+            <span style="left: 28.6%">12:00</span>
+            <span style="left: 50.0%">15:00</span>
+            <span style="left: 71.4%">18:00</span>
+            <span style="left: 100.0%">22:00</span>
+          </div>
+        </div>
+
+        <div class="simbologia-grupo">
+          <h3>Tamaño</h3>
+          <ul class="items">
+            <li><span class="icono icono-texto tamano-grande" aria-hidden="true">noche</span><span>Más nombrada</span></li>
+            <li><span class="icono icono-texto tamano-chico" aria-hidden="true">noche</span><span>Menos nombrada</span></li>
+          </ul>
+        </div>
+
+        <div class="simbologia-grupo">
+          <h3>Elementos</h3>
+          <ul class="items">
+            <li>
+              <svg class="icono" viewBox="-24 -24 48 48" aria-hidden="true">
+                <circle class="mic-bg" r="22"></circle>
+                <rect class="mic-body" x="-6" y="-14" width="12" height="18" rx="6"></rect>
+                <path class="mic-stand" d="M -10 -2 a 10 10 0 0 0 20 0 M 0 8 V 13 M -6 13 H 6"></path>
+              </svg>
+              <span>Micrófono</span>
+            </li>
+            <li>
+              <svg class="icono" viewBox="-24 -24 48 48" aria-hidden="true">
+                <circle class="grupo-circulo" r="21"></circle>
+              </svg>
+              <span>Grupo (clic para ver sus palabras)</span>
+            </li>
+          </ul>
+        </div>
+      </aside>
+
+      <svg id="plano" viewBox="140 110 1120 780" role="img"
+           aria-label="Plano con un micrófono del que brotan hileras de palabras que viajan hacia tres grupos: estudiantes, funcionarios y externos"></svg>
+    </main>
+
+    <dialog id="grupo-dialogo" class="grupo-dialogo" aria-labelledby="grupo-dialogo-titulo">
+      <div class="grupo-dialogo-contenido">
+        <header>
+          <div>
+            <h2 id="grupo-dialogo-titulo"></h2>
+            <p id="grupo-dialogo-resumen"></p>
+          </div>
+          <button id="grupo-dialogo-cerrar" type="button" aria-label="Cerrar">Cerrar</button>
+        </header>
+        <ul id="grupo-dialogo-palabras" class="grupo-dialogo-palabras"></ul>
+      </div>
+    </dialog>
+
+  </section>
+  </div>
 </body>
 </html>

@@ -1,11 +1,13 @@
 # web-visualizacion-sonora
 
-**Escala 02 · Taller de Visualización Interactiva** — Braulio, Bernardita y Benjamín.
+**Taller de Visualización Interactiva** — Braulio, Bernardita y Benjamín.
 
-Maqueta de la entrada de la FAAD: un micrófono del que brotan palabras
+Maqueta para el Diseño Abierto: un micrófono del que brotan palabras
 en hileras, una detrás de otra, que se flectan, enredan y rebotan en los bordes, tomadas del vocabulario de Alejandra Pizarnik.
-El tamaño indica cuántas veces se nombró la palabra (por ahora, conteos simulados) y el color la semana:
-rojo la anterior, azul la actual.
+Cada hilera viaja hacia uno de tres grupos —estudiantes, funcionarios y externos— y al entrar suma
+sus palabras al contador del grupo. El tamaño indica cuántas veces nombró ese grupo la palabra
+(por ahora, conteos simulados) y el color la hora del día: un reloj simulado recorre la jornada
+de 08:00 a 22:00 y las palabras salen cálidas en la mañana y se van enfriando con las horas.
 Sin dependencias ni paso de compilación: HTML, CSS, JavaScript (módulos ES) y SVG.
 
 ## Ejecutar en local
@@ -23,7 +25,9 @@ Luego abre <http://localhost:8000>.
 ```
 index.html          Página y contenedor del plano (SVG)
 css/styles.css      Estilos y animaciones
-js/main.js          Patio, micrófono, conteos simulados y animación de las palabras
+js/app.js           Registro: formulario y dictado por voz
+js/main.js          Visualización: micrófono, grupos, reloj y animación de las palabras
+js/respuestas.js    Guarda y lee las respuestas del registro (localStorage)
 js/palabras.js      Vocabulario de Pizarnik y títulos de sus libros (editable)
 js/audio.js         AudioEngine (micrófono / análisis); aún no se usa, queda para conectar audio real
 assets/             Imágenes, audios de ejemplo, fuentes
@@ -31,8 +35,21 @@ assets/             Imágenes, audios de ejemplo, fuentes
 
 ## Uso
 
+La página es una sola pantalla dividida en dos mitades:
+
+- **Izquierda, registro:** la pregunta *¿Cuál es tu motivación para asistir hoy al Diseño Abierto?*,
+  la elección de grupo (estudiante, funcionario/a o externo/a) y el dictado por voz (se graba
+  apretando el botón, que se habilita al elegir el rol; también se puede escribir). Lo dictado queda en el campo hasta presionar Enviar.
+  El dictado usa la Web Speech API (Chrome, Edge, Safari) y necesita internet.
+- **Derecha, visualización:** simbología (con una barra de colores por hora que marca la hora del reloj)
+  y el plano, donde cada respuesta viaja hacia su grupo mezclada con el vocabulario de Pizarnik.
+
+Las respuestas se guardan en el navegador: solo aparecen en la visualización abierta en el mismo equipo.
+
+En la visualización:
+
 - **Pausar / Reanudar**: congela o retoma la emisión de palabras.
 - **Clic en el micrófono**: suelta varias hileras de palabras a la vez.
 - Posición del patio y del micrófono: constantes `PATIO` y `MIC` en `js/main.js`.
 - Velocidad, frecuencia, tamaño y duración de las palabras: constante `EMIT` en `js/main.js`.
-- Colores por semana: constante `SEMANAS`; tamaños por menciones: constante `SIZE` (ambas en `js/main.js`).
+- Grupos: constante `GROUPS`; reloj y colores por hora: constante `DAY`; tamaños: constante `SIZE` (todas en `js/main.js`).
