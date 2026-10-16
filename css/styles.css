@@ -599,10 +599,6 @@ button:focus-visible,
   pointer-events: none;
 }
 
-.orbita-texto .title {
-  font-style: italic;
-}
-
 /* ---------- Ventana de un grupo ---------- */
 .grupo-dialogo {
   width: min(680px, calc(100vw - 32px));
@@ -653,10 +649,6 @@ button:focus-visible,
   line-height: 1.2;
 }
 
-.grupo-dialogo-palabras .title {
-  font-style: italic;
-}
-
 .grupo-nombre {
   fill: var(--ink);
   font-size: 17px;
@@ -670,6 +662,13 @@ button:focus-visible,
 .grupo-contador {
   fill: var(--muted);
   font-size: 13px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.aviso-vacio {
+  fill: var(--muted);
+  font-size: 18px;
   text-anchor: middle;
   dominant-baseline: central;
 }
@@ -735,10 +734,6 @@ button:focus-visible,
   dominant-baseline: central;
   pointer-events: none;
   user-select: none;
-}
-
-.stream .title {
-  font-style: italic;
 }
 
 #plano.is-paused .pulse {

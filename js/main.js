@@ -1,4 +1,3 @@
-import { PALABRAS, TITULOS } from './palabras.js';
 import { cargarRespuestas, horaDe, palabrasDe } from './respuestas.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -13,8 +12,7 @@ const MIC = { x: CENTER.x, y: CENTER.y, phase: Math.random() * Math.PI * 2 };
 // El micrófono suelta hileras de palabras. La "cabeza" de la hilera avanza curvándose
 // y las palabras la siguen por el mismo trazo, doblándose con él.
 const EMIT = {
-  interval: [0.5, 1.2], // segundos entre hileras
-  words: [3, 6], // palabras por hilera
+  interval: [1.2, 2.5], // segundos entre hileras (cada una repite una respuesta registrada)
   speed: [60, 100], // velocidad de avance (unidades del viewBox por segundo)
   curl: 0.6, // curvatura base: tendencia a enroscarse en espiral (solo cerca del micrófono)
   flex: 0.45, // cuánto se flecta la curva hacia un lado y otro
@@ -23,18 +21,14 @@ const EMIT = {
   life: 30, // segundos máximos de una hilera (por si no llega a su grupo)
   fade: 1.5, // segundos de desvanecimiento
   absorb: 0.9, // segundos que tarda en desvanecerse al entrar a su grupo
-  titleChance: 0.06, // probabilidad de que la hilera sea un título de libro
-  titleSize: 18,
-  responseChance: 0.05, // probabilidad por respuesta registrada de que una hilera sea una respuesta…
-  responseMax: 0.5, // …hasta este máximo (así pocas respuestas no se repiten sin parar)
   responseWords: 8, // máximo de palabras de una respuesta por hilera
   armSpin: 0.7, // radianes/s que rota la dirección de salida
   burst: 6, // hileras extra al hacer clic en el micrófono
   max: 50, // tope de hileras simultáneas
 };
 
-// Tamaño según cuántas veces nombró la palabra su grupo.
-const SIZE = { min: 11, max: 40, boldFrom: 0.7 };
+// Tamaño según en cuántas respuestas del grupo aparece la palabra.
+const SIZE = { min: 16, max: 40, boldFrom: 0.7 };
 
 // Tres grupos sobre el micrófono: cada hilera viaja hacia uno de ellos.
 const GROUP_RADIUS = 85;
@@ -82,41 +76,6 @@ function formatHour(hour) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-/* ---------- Conteo simulado de menciones ---------- */
-
-/**
- * Para la maqueta, cada grupo tiene un conteo inventado de cuántas veces se nombró cada palabra.
- * Sigue una distribución tipo Zipf: pocas palabras muy nombradas y muchas poco nombradas.
- */
-function simulateCounts() {
-  const shuffled = [...PALABRAS].sort(() => Math.random() - 0.5);
-  const counts = shuffled.map((word, rank) => ({
-    word,
-    count: Math.max(1, Math.round(60 / (rank + 1) ** 0.9 + between([-1, 1]))),
-  }));
-  const total = counts.reduce((sum, { count }) => sum + count, 0);
-  const max = counts[0].count;
-  return { counts, total, max };
-}
-
-const CONTEOS = Object.fromEntries(GROUPS.map((group) => [group.id, simulateCounts()]));
-
-/** Elige una palabra con probabilidad proporcional a sus menciones. */
-function pickWeighted(groupId) {
-  const { counts, total } = CONTEOS[groupId];
-  let roll = Math.random() * total;
-  for (const entry of counts) {
-    roll -= entry.count;
-    if (roll <= 0) return entry;
-  }
-  return counts.at(-1);
-}
-
-/** 0 = la menos nombrada, 1 = la más nombrada (escala logarítmica). */
-function prominence(count, groupId) {
-  return Math.log(count) / Math.log(CONTEOS[groupId].max);
-}
-
 /* ---------- Dibujo estático ---------- */
 
 function el(name, attrs = {}, parent) {
@@ -151,7 +110,6 @@ function drawGroups(defs) {
     const name = el('text', { class: 'grupo-nombre', y: -8 }, g);
     name.textContent = group.name;
     group.counter = el('text', { class: 'grupo-contador', y: 14 }, g);
-    group.counter.textContent = '0 palabras';
 
     // Trazo circular (centrado en el grupo) sobre el que giran las palabras recibidas.
     const r = ORBIT.radius;
@@ -165,9 +123,9 @@ function drawGroups(defs) {
     group.orbitAngle = Math.random() * 360;
     group.orbitTurn = index % 2 === 0 ? 1 : -1; // grupos vecinos giran en sentidos opuestos
 
-    group.received = 0;
-    group.recent = []; // últimas palabras, para el anillo
-    group.tally = new Map(); // todas las palabras recibidas: texto → { count, color, isTitle }
+    group.recent = []; // últimas palabras que llegaron, para el anillo
+    group.tally = new Map(); // palabras de las respuestas del grupo: texto → { count, color }
+    group.responses = 0;
 
     const open = () => openGroup(group);
     g.addEventListener('click', open);
@@ -178,6 +136,13 @@ function drawGroups(defs) {
       }
     });
   });
+}
+
+// Aviso mientras todavía no hay respuestas registradas.
+function drawEmptyHint() {
+  const hint = el('text', { class: 'aviso-vacio', x: MIC.x, y: MIC.y + 70 }, svg);
+  hint.textContent = 'Aún no hay respuestas: responde en el modo registro';
+  return hint;
 }
 
 function drawClock() {
@@ -217,6 +182,7 @@ drawPatio();
 const guides = el('defs', {}, svg);
 drawGroups(guides);
 const clock = drawClock();
+const emptyHint = drawEmptyHint();
 // Recorte con la forma del rectángulo: ninguna palabra se dibuja fuera de él.
 const clip = el('clipPath', { id: 'recorte-patio' }, guides);
 el('rect', { ...PATIO }, clip);
@@ -227,18 +193,6 @@ drawMic();
 
 const streams = [];
 let nextId = 0;
-
-/** Hilera de vocabulario de Pizarnik: cada palabra con su tamaño según cuánto la nombró el grupo. */
-function pizarnikRow(group) {
-  if (Math.random() < EMIT.titleChance) {
-    return [{ text: pickFrom(TITULOS), isTitle: true, size: EMIT.titleSize, weight: 400 }];
-  }
-  return Array.from({ length: randInt(EMIT.words) }, () => {
-    const { word, count } = pickWeighted(group.id);
-    const t = prominence(count, group.id);
-    return { text: word, isTitle: false, size: lerp(SIZE.min, SIZE.max, t), weight: t >= SIZE.boldFrom ? 600 : 400 };
-  });
-}
 
 /**
  * Hilera con una respuesta del modo registro: viaja a su grupo, con el color de la hora en que se registró.
@@ -261,8 +215,7 @@ function responseRow(respuestas, respuesta = pickFrom(respuestas)) {
     color: hourColor(horaDe(respuesta)),
     items: words.map((word) => {
       const t = Math.log(counts.get(word) ?? 1) / Math.log(max);
-      // Las respuestas reales parten un poco más grandes que las palabras simuladas.
-      return { text: word, isTitle: false, size: lerp(SIZE.min + 8, SIZE.max, t), weight: 600 };
+      return { text: word, size: lerp(SIZE.min, SIZE.max, t), weight: t >= SIZE.boldFrom ? 600 : 400 };
     }),
   };
 }
@@ -271,28 +224,26 @@ function responseRow(respuestas, respuesta = pickFrom(respuestas)) {
 function fillRow(textPath, items) {
   items.forEach((item, i) => {
     const tspan = el('tspan', { 'font-size': item.size.toFixed(1), 'font-weight': item.weight }, textPath);
-    if (item.isTitle) tspan.setAttribute('class', 'title');
     // Espacios duros para que el separador no se colapse entre tspans.
     tspan.textContent = i < items.length - 1 ? `${item.text}\u00a0\u00a0` : item.text;
   });
-  return items.map(({ text, isTitle }) => ({ text, isTitle }));
+  return items.map(({ text }) => text);
 }
 
 function spawn(angleOffset = 0, forcedRow = null) {
   if (streams.length >= EMIT.max && !forcedRow) return;
+  // Solo salen palabras de las respuestas registradas: sin respuestas, no sale nada.
+  const respuestas = cargarRespuestas();
+  const row = forcedRow ?? (respuestas.length > 0 ? responseRow(respuestas) : null);
+  if (!row) return;
+  const { group, color } = row;
+
   const id = `hilera-${nextId++}`;
   const heading = MIC.phase + angleOffset + between([-0.3, 0.3]);
-
-  const respuestas = cargarRespuestas();
-  const chance = Math.min(respuestas.length * EMIT.responseChance, EMIT.responseMax);
-  const row = forcedRow ?? (respuestas.length > 0 && Math.random() < chance ? responseRow(respuestas) : null);
-  const group = row?.group ?? pickFrom(GROUPS);
-  const color = row?.color ?? hourColor(clockHour());
-
   const path = el('path', { id }, guides);
   const textNode = el('text', { class: 'stream', style: `fill: ${color}` }, layer);
   const textPath = el('textPath', { href: `#${id}` }, textNode);
-  const words = fillRow(textPath, row?.items ?? pizarnikRow(group));
+  const words = fillRow(textPath, row.items);
   const textLength = textNode.getComputedTextLength();
 
   // Arranca en el borde del ícono, no en su centro.
@@ -358,7 +309,7 @@ function advance(s, dt) {
   s.head.y += Math.sin(s.heading) * s.speed * dt;
   bounce(s);
 
-  // Al entrar al círculo, la hilera se absorbe y suma sus palabras al contador del grupo.
+  // Al entrar al círculo, la hilera se absorbe y sus palabras pasan al anillo del grupo.
   if (s.arrivedAt === null && Math.hypot(s.head.x - s.group.x, s.head.y - s.group.y) < GROUP_RADIUS * 0.8) {
     s.arrivedAt = s.age;
     receive(s.group, s.words, s.color);
@@ -409,18 +360,8 @@ function update(dt) {
 }
 
 function receive(group, words, color) {
-  group.received += words.length;
-  group.counter.textContent = `${group.received} palabras`;
-
-  for (const { text, isTitle } of words) {
-    const entry = group.tally.get(text) ?? { count: 0, isTitle };
-    entry.count += 1;
-    entry.color = color; // color de la última vez que se nombró
-    group.tally.set(text, entry);
-    group.recent.unshift({ text, isTitle, color });
-  }
+  for (const text of words) group.recent.unshift({ text, color });
   group.recent.length = Math.min(group.recent.length, 40);
-  if (dialog.open && dialog.dataset.group === group.id) fillDialog(group);
   renderOrbit(group);
   // Pulso breve del círculo al recibir palabras.
   group.ring.classList.remove('recibe');
@@ -432,9 +373,8 @@ function receive(group, words, color) {
 function renderOrbit(group) {
   const limit = 2 * Math.PI * ORBIT.radius * 0.96;
   group.orbitPath.replaceChildren();
-  for (const { text, isTitle, color } of group.recent) {
+  for (const { text, color } of group.recent) {
     const tspan = el('tspan', { style: `fill: ${color}` }, group.orbitPath);
-    if (isTitle) tspan.setAttribute('class', 'title');
     tspan.textContent = `${text}  `;
     if (group.orbitText.getComputedTextLength() > limit) {
       tspan.remove();
@@ -450,6 +390,44 @@ function spinOrbits(dt) {
   }
 }
 
+/* ---------- Conteo real de las respuestas de cada grupo ---------- */
+
+/** Recalcula contadores, palabras y anillos a partir de las respuestas guardadas. */
+function refreshGroups() {
+  const respuestas = cargarRespuestas();
+  emptyHint.style.display = respuestas.length ? 'none' : '';
+
+  for (const group of GROUPS) {
+    const propias = respuestas.filter((r) => r.grupo === group.id);
+    group.responses = propias.length;
+    group.counter.textContent = `${propias.length} ${propias.length === 1 ? 'respuesta' : 'respuestas'}`;
+
+    group.tally = new Map();
+    for (const respuesta of propias) {
+      const color = hourColor(horaDe(respuesta));
+      for (const palabra of palabrasDe(respuesta.texto)) {
+        const entry = group.tally.get(palabra) ?? { count: 0 };
+        entry.count += 1;
+        entry.color = color; // color de la última vez que se dijo
+        group.tally.set(palabra, entry);
+      }
+    }
+
+    // Al abrir la página, el anillo parte con las palabras de las respuestas más recientes.
+    if (group.recent.length === 0) {
+      group.recent = propias.slice().reverse().flatMap((r) => {
+        const color = hourColor(horaDe(r));
+        return palabrasDe(r.texto).map((text) => ({ text, color }));
+      }).slice(0, 40);
+      renderOrbit(group);
+    }
+    if (dialog.open && dialog.dataset.group === group.id) fillDialog(group);
+  }
+}
+
+// Si se registran respuestas en otra pestaña del mismo navegador, se actualiza.
+window.addEventListener('storage', refreshGroups);
+
 /* ---------- Ventana con todas las palabras de un grupo ---------- */
 
 const dialog = document.querySelector('#grupo-dialogo');
@@ -461,17 +439,16 @@ function fillDialog(group) {
   dialogTitle.textContent = group.name;
   const entries = [...group.tally.entries()].sort((a, b) => b[1].count - a[1].count);
   dialogSummary.textContent = entries.length
-    ? `${group.received} palabras recibidas · ${entries.length} distintas`
-    : 'Todavía no llegan palabras a este grupo.';
+    ? `${group.responses} ${group.responses === 1 ? 'respuesta' : 'respuestas'} · ${entries.length} palabras distintas`
+    : 'Todavía no hay respuestas de este grupo.';
 
   const max = entries[0]?.[1].count ?? 1;
-  dialogWords.replaceChildren(...entries.map(([text, { count, color, isTitle }]) => {
+  dialogWords.replaceChildren(...entries.map(([text, { count, color }]) => {
     const item = document.createElement('li');
     item.textContent = text;
     item.title = `${count} ${count === 1 ? 'vez' : 'veces'}`;
     item.style.color = color;
     item.style.fontSize = `${lerp(0.85, 2.1, Math.log(count) / Math.log(Math.max(max, 2))).toFixed(2)}rem`;
-    if (isTitle) item.classList.add('title');
     return item;
   }));
 }
@@ -546,6 +523,7 @@ export function activarVisualizacion(visible) {
 
 /** Lanza de inmediato una respuesta recién registrada, para verla viajar a su grupo. */
 export function lanzarRespuesta(respuesta) {
+  refreshGroups();
   const row = responseRow(cargarRespuestas(), respuesta);
   if (row) spawn(0, row);
 }
@@ -569,6 +547,7 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
+refreshGroups();
 requestAnimationFrame(frame);
 
 /* ---------- Simbología: colores generados con la misma función que las hileras ---------- */

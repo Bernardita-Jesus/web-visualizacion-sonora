@@ -2,7 +2,14 @@
  * Respuestas del modo registro. Por ahora se guardan en el navegador (localStorage):
  * solo se ven en la visualización abierta en el mismo computador o tablet.
  */
-const KEY = 'entrada-faad:respuestas';
+const KEY = 'diseno-abierto:respuestas';
+
+// Borra las respuestas de prueba guardadas antes con la clave anterior.
+try {
+  localStorage.removeItem('entrada-faad:respuestas');
+} catch {
+  // Sin acceso al almacenamiento: no hay nada que borrar.
+}
 
 // Palabras demasiado comunes para mostrarse solas.
 const VACIAS = new Set(`

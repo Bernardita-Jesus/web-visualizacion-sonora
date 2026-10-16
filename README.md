@@ -2,12 +2,11 @@
 
 **Taller de Visualización Interactiva** — Braulio, Bernardita y Benjamín.
 
-Maqueta para el Diseño Abierto: un micrófono del que brotan palabras
-en hileras, una detrás de otra, que se flectan, enredan y rebotan en los bordes, tomadas del vocabulario de Alejandra Pizarnik.
-Cada hilera viaja hacia uno de tres grupos —estudiantes, funcionarios y externos— y al entrar suma
-sus palabras al contador del grupo. El tamaño indica cuántas veces nombró ese grupo la palabra
-(por ahora, conteos simulados) y el color la hora del día: un reloj simulado recorre la jornada
-de 08:00 a 22:00 y las palabras salen cálidas en la mañana y se van enfriando con las horas.
+Maqueta para el Diseño Abierto: las respuestas a *¿Cuál es tu motivación para asistir hoy al Diseño Abierto?*
+brotan de un micrófono en hileras, una detrás de otra, que se flectan, enredan y rebotan en los bordes.
+Solo aparecen las palabras de las respuestas registradas. Cada hilera viaja hacia su grupo —estudiantes,
+funcionarios o externos— y queda girando en el anillo del círculo. El tamaño indica en cuántas respuestas
+del grupo aparece la palabra, y el color la hora en que se respondió: cálido en la mañana, frío en la noche.
 Sin dependencias ni paso de compilación: HTML, CSS, JavaScript (módulos ES) y SVG.
 
 ## Ejecutar en local
@@ -28,7 +27,6 @@ css/styles.css      Estilos y animaciones
 js/app.js           Registro: formulario y dictado por voz
 js/main.js          Visualización: micrófono, grupos, reloj y animación de las palabras
 js/respuestas.js    Guarda y lee las respuestas del registro (localStorage)
-js/palabras.js      Vocabulario de Pizarnik y títulos de sus libros (editable)
 js/audio.js         AudioEngine (micrófono / análisis); aún no se usa, queda para conectar audio real
 assets/             Imágenes, audios de ejemplo, fuentes
 ```
@@ -42,7 +40,7 @@ La página es una sola pantalla dividida en dos mitades:
   apretando el botón, que se habilita al elegir el rol; también se puede escribir). Lo dictado queda en el campo hasta presionar Enviar.
   El dictado usa la Web Speech API (Chrome, Edge, Safari) y necesita internet.
 - **Derecha, visualización:** simbología (con una barra de colores por hora que marca la hora del reloj)
-  y el plano, donde cada respuesta viaja hacia su grupo mezclada con el vocabulario de Pizarnik.
+  y el plano, donde cada respuesta viaja hacia su grupo. Sin respuestas registradas, el plano queda vacío.
 
 Las respuestas se guardan en el navegador: solo aparecen en la visualización abierta en el mismo equipo.
 
