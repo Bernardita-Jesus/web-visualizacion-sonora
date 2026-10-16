@@ -37,7 +37,8 @@ La página es una sola pantalla dividida en dos mitades:
 
 - **Izquierda, registro:** la pregunta *¿Cuál es tu motivación para asistir hoy al Diseño Abierto?*,
   la elección de grupo (estudiante, funcionario/a o externo/a) y el dictado por voz (se graba
-  apretando el botón, que se habilita al elegir el rol; también se puede escribir). Lo dictado queda en el campo hasta presionar Enviar.
+  apretando el botón, que se habilita al elegir el rol). La respuesta solo se agrega con voz: el campo no se
+  puede escribir. Lo dictado queda en el campo hasta presionar Enviar, o se borra con Eliminar respuesta.
   El dictado usa la Web Speech API (Chrome, Edge, Safari) y necesita internet.
 - **Derecha, visualización:** simbología (con una barra de colores por hora que marca la hora del reloj)
   y el plano, donde cada respuesta viaja hacia su grupo. Sin respuestas registradas, el plano queda vacío.

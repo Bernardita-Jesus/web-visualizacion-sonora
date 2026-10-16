@@ -45,8 +45,10 @@ const DAY = {
   start: 8, // hora de inicio
   end: 22, // hora de término
   duration: 120, // segundos reales que dura la jornada completa
-  hue: [38, -140], // de naranjo (mañana) pasando por rojo, magenta y violeta, hasta azul (noche)
-  lightness: [48, 38],
+  // Tonos de la portada: de terracota (mañana) pasando por rosa y ciruela apagados, hasta azul pizarra (noche).
+  hue: [20, -148],
+  saturation: [58, 40],
+  lightness: [50, 38],
 };
 
 const STEP = 3; // distancia mínima entre puntos del trazo
@@ -67,13 +69,16 @@ const lerp = (a, b, t) => a + (b - a) * t;
 export function hourColor(hour) {
   const t = Math.min(Math.max((hour - DAY.start) / (DAY.end - DAY.start), 0), 1);
   const hue = (lerp(DAY.hue[0], DAY.hue[1], t) + 360) % 360;
-  return `hsl(${hue.toFixed(0)} 80% ${lerp(DAY.lightness[0], DAY.lightness[1], t).toFixed(0)}%)`;
+  const saturation = lerp(DAY.saturation[0], DAY.saturation[1], t);
+  return `hsl(${hue.toFixed(0)} ${saturation.toFixed(0)}% ${lerp(DAY.lightness[0], DAY.lightness[1], t).toFixed(0)}%)`;
 }
 
+/** Hora en formato de 12 horas con AM / PM, por ejemplo "3:30 PM". */
 function formatHour(hour) {
   const h = Math.floor(hour);
   const m = Math.floor((hour - h) * 60);
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  const h12 = h % 12 || 12;
+  return `${h12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
 }
 
 /* ---------- Dibujo estático ---------- */
@@ -89,6 +94,15 @@ function drawPatio() {
   const patio = el('rect', { class: 'patio', ...PATIO }, svg);
   el('title', {}, patio).textContent = 'Clic para ver en pantalla completa';
   patio.addEventListener('click', toggleFullscreen);
+}
+
+/** Anillos concéntricos tenues alrededor del micrófono y de los grupos, como ondas de voz. */
+function drawRipples() {
+  const g = el('g', { class: 'ondas', 'clip-path': 'url(#recorte-patio)' }, svg);
+  for (const r of [50, 95, 150, 215, 290, 375]) el('circle', { cx: MIC.x, cy: MIC.y, r }, g);
+  for (const group of GROUPS) {
+    for (const r of [GROUP_RADIUS + 38, GROUP_RADIUS + 62]) el('circle', { cx: group.x, cy: group.y, r }, g);
+  }
 }
 
 function drawGroups(defs) {
@@ -180,6 +194,7 @@ function drawMic() {
 drawPatio();
 // Trazos invisibles (guías de las hileras y órbitas) y texto van entre el patio y el micrófono.
 const guides = el('defs', {}, svg);
+drawRipples();
 drawGroups(guides);
 const clock = drawClock();
 const emptyHint = drawEmptyHint();

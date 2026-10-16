@@ -1,12 +1,16 @@
 /* ---------- Tokens ---------- */
 :root {
-  --bg: #f3f3f2;
-  --surface: #ffffff;
-  --ink: #111111;
-  --muted: #8a8a8a;
-  --line: #9a9a9a;
-  --patio-fill: #fdeef2;
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Tonos de la portada "Bitácora de voces": gris azulado, pizarra y terracota. */
+  --bg: #eef1f4;
+  --surface: #f9fafb;
+  --ink: #2f3742;
+  --muted: #7b8591;
+  --line: #a9b3bf;
+  --accent: #c4673f;
+  --title: #b04e22; /* naranjo oscuro del título */
+  --patio-fill: #e3e8ee;
+  --font: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
 }
 
 /* ---------- Base ---------- */
@@ -68,14 +72,19 @@ body {
 
 .pregunta {
   margin: 0;
+  color: var(--title);
   font-size: clamp(1.5rem, 2.6vw, 2.5rem);
-  font-weight: 600;
+  font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.01em;
 }
 
 .cabecera-info .eyebrow {
   margin: 0;
+}
+
+.cabecera-info {
+  font-style: italic;
 }
 
 .nombres {
@@ -196,6 +205,10 @@ body {
   resize: vertical;
 }
 
+.registro textarea[readonly] {
+  cursor: default;
+}
+
 .registro textarea:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
@@ -230,7 +243,8 @@ body {
 }
 
 .grupos label:has(input:checked) {
-  background: var(--ink);
+  border-color: var(--accent);
+  background: var(--accent);
   color: var(--surface);
 }
 
@@ -238,8 +252,25 @@ body {
   accent-color: var(--ink);
 }
 
-.registro .boton-modo {
-  align-self: flex-start;
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.boton-secundario {
+  border-color: var(--muted);
+  color: var(--muted);
+}
+
+.boton-modo:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.boton-modo:disabled:hover {
+  background: var(--surface);
+  color: inherit;
 }
 
 /* ---------- Dictado ---------- */
@@ -293,7 +324,8 @@ body {
 }
 
 .boton-dictar.escuchando {
-  background: var(--ink);
+  border-color: var(--accent);
+  background: var(--accent);
   color: var(--surface);
 }
 
@@ -385,7 +417,7 @@ button:focus-visible,
 }
 
 /* ---------- Simbología ---------- */
-/* Simbología en una franja sobre el plano. */
+/* Simbología en una franja debajo del plano. */
 .simbologia {
   display: flex;
   flex: none;
@@ -437,6 +469,7 @@ button:focus-visible,
 
 .escala-horas span {
   position: absolute;
+  white-space: nowrap;
   transform: translateX(-50%);
 }
 
@@ -542,6 +575,12 @@ button:focus-visible,
   cursor: zoom-in;
 }
 
+.ondas circle {
+  fill: none;
+  stroke: rgb(47 55 66 / 0.12);
+  stroke-width: 1.2;
+}
+
 /* Visualización ampliada a toda la pantalla (clic en el rectángulo del plano). */
 .plano-wrap:fullscreen,
 .plano-wrap.ampliado {
@@ -563,7 +602,7 @@ button:focus-visible,
 /* ---------- Grupos y reloj ---------- */
 .grupo-circulo {
   fill: url(#difuminado-grupo);
-  stroke: rgb(17 17 17 / 0.18);
+  stroke: rgb(47 55 66 / 0.18);
   stroke-width: 1;
   transform-box: fill-box;
   transform-origin: center;
@@ -576,7 +615,7 @@ button:focus-visible,
 @keyframes recibe {
   40% {
     transform: scale(1.06);
-    stroke: rgb(17 17 17 / 0.4);
+    stroke: rgb(47 55 66 / 0.4);
   }
 }
 
@@ -586,7 +625,7 @@ button:focus-visible,
 }
 
 .grupo:hover .grupo-circulo {
-  stroke: rgb(17 17 17 / 0.4);
+  stroke: rgb(47 55 66 / 0.4);
 }
 
 .grupo:focus-visible .grupo-circulo {
@@ -595,6 +634,7 @@ button:focus-visible,
 }
 
 .orbita-texto {
+  font-family: var(--font-serif);
   dominant-baseline: central;
   pointer-events: none;
 }
@@ -731,6 +771,7 @@ button:focus-visible,
 /* ---------- Hileras de palabras ---------- */
 .stream {
   fill: var(--ink);
+  font-family: var(--font-serif);
   dominant-baseline: central;
   pointer-events: none;
   user-select: none;

@@ -19,7 +19,7 @@ function enviar() {
   const grupo = grupoElegido();
 
   if (!texto || !grupo) {
-    aviso.textContent = !texto ? 'Dicta o escribe tu respuesta antes de enviar.' : 'Elige si eres estudiante, funcionario/a o externo/a.';
+    aviso.textContent = !texto ? 'Dicta tu respuesta antes de enviar.' : 'Elige si eres estudiante, funcionario/a o externo/a.';
     return;
   }
 
@@ -35,6 +35,7 @@ function enviar() {
   detenerDictado();
   // Recién al enviar se limpia lo dictado, para la siguiente persona.
   form.reset();
+  actualizarBorrar();
   actualizarBotonDictar(); // la siguiente persona vuelve a elegir rol antes de grabar
   aviso.textContent = '¡Gracias! Mira tu respuesta viajar hacia tu grupo →';
   setTimeout(() => (aviso.textContent = ''), 5000);
@@ -87,17 +88,18 @@ function iniciarDictado() {
     }
     // Lo dictado se suma a lo que ya había en el campo; nunca lo reemplaza por un resultado vacío.
     if (final || parcial) campo.value = [textoPrevio, final, parcial].filter(Boolean).join(' ').trim();
+    actualizarBorrar();
   };
 
   reconocimiento.onerror = (event) => {
     const mensajes = {
       'not-allowed': 'Permite el uso del micrófono en el navegador para dictar.',
-      'service-not-allowed': 'Este navegador no permite dictar aquí. Escribe tu respuesta.',
+      'service-not-allowed': 'Este navegador no permite dictar aquí.',
       'no-speech': 'No te escuché. Toca el micrófono e intenta de nuevo.',
       'audio-capture': 'No se encontró un micrófono.',
       network: 'Sin conexión: el dictado necesita internet.',
     };
-    estado.textContent = mensajes[event.error] ?? 'No se pudo dictar. Intenta de nuevo o escribe tu respuesta.';
+    estado.textContent = mensajes[event.error] ?? 'No se pudo dictar. Intenta de nuevo.';
   };
 
   reconocimiento.onend = () => {
@@ -122,8 +124,27 @@ if (Reconocimiento) {
   botonDictar.addEventListener('click', () => (escuchando ? detenerDictado() : iniciarDictado()));
 } else {
   botonDictar.hidden = true;
-  estado.textContent = 'Este navegador no permite dictar. Escribe tu respuesta (el dictado funciona en Chrome, Edge y Safari).';
+  estado.textContent = 'Este navegador no permite dictar. Abre la página en Chrome, Edge o Safari.';
 }
+
+/* ---------- Eliminar la respuesta dictada (antes de enviarla) ---------- */
+
+const botonBorrar = document.querySelector('#btn-borrar');
+
+function actualizarBorrar() {
+  botonBorrar.disabled = !campo.value.trim();
+}
+
+botonBorrar.addEventListener('click', () => {
+  // Deja de escuchar sin que un resultado tardío vuelva a escribir lo borrado.
+  if (reconocimiento) reconocimiento.onresult = null;
+  detenerDictado();
+  campo.value = '';
+  actualizarBorrar();
+  actualizarBotonDictar();
+  aviso.textContent = 'Respuesta eliminada. Puedes volver a dictarla.';
+  setTimeout(() => (aviso.textContent = ''), 3000);
+});
 
 /* ---------- El texto de la respuesta toma el color de la hora actual ---------- */
 
