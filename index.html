@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Taller de Visualización Interactiva (Braulio, Bernardita y Benjamín): ¿qué tienes pendiente? Las respuestas viajan hacia estudiantes, funcionarios y externos.">
+  <meta name="description" content="Taller de Visualización Interactiva (Braulio, Bernardita y Benjamín): ¿qué tienes pendiente? Relatos anónimos que viajan hacia su temática.">
   <title>¿Qué tienes pendiente? · Diseño Abierto</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,30 +30,27 @@
       <h2 class="modo">Modo registro</h2>
     </header>
     <form id="form-registro" class="registro" novalidate>
-
-      <fieldset class="grupos">
-        <legend>Soy…</legend>
-        <label><input type="radio" name="grupo" value="estudiantes"> Estudiante</label>
-        <label><input type="radio" name="grupo" value="funcionarios"> Funcionario/a</label>
-        <label><input type="radio" name="grupo" value="externos"> Externo/a</label>
-      </fieldset>
+      <p class="anonimo">
+        <strong>Todos los relatos son anónimos.</strong>
+        No registramos quién eres ni guardamos tu voz: solo el texto de tu pendiente y la hora.
+      </p>
 
       <div class="dictado">
-        <button id="btn-dictar" class="boton-dictar" type="button" aria-pressed="false" disabled>
+        <button id="btn-dictar" class="boton-dictar" type="button" aria-pressed="false">
           <svg viewBox="-24 -24 48 48" aria-hidden="true">
             <rect x="-6" y="-14" width="12" height="18" rx="6"></rect>
             <path d="M -10 -2 a 10 10 0 0 0 20 0 M 0 8 V 13 M -6 13 H 6"></path>
           </svg>
-          <span id="btn-dictar-texto">Dictar respuesta</span>
+          <span id="btn-dictar-texto">Dictar pendiente</span>
         </button>
         <p id="dictado-estado" class="dictado-estado"></p>
       </div>
 
-      <textarea id="respuesta" name="respuesta" aria-labelledby="pregunta" rows="3" readonly placeholder="Tu respuesta aparecerá aquí cuando la dictes"></textarea>
+      <textarea id="respuesta" name="respuesta" aria-labelledby="pregunta" rows="3" readonly placeholder="Tu pendiente aparecerá aquí cuando lo dictes"></textarea>
 
       <div class="acciones">
         <button class="boton-modo" type="submit">Enviar</button>
-        <button id="btn-borrar" class="boton-modo boton-secundario" type="button" disabled>Eliminar respuesta</button>
+        <button id="btn-borrar" class="boton-modo boton-secundario" type="button" disabled>Eliminar pendiente</button>
       </div>
       <p id="registro-aviso" class="registro-aviso" role="status"></p>
     </form>
@@ -69,7 +66,7 @@
     <main class="plano-wrap">
 
       <svg id="plano" viewBox="140 110 1120 780" role="img"
-           aria-label="Plano con un micrófono del que brotan hileras de palabras que viajan hacia tres grupos: estudiantes, funcionarios y externos"></svg>
+           aria-label="Plano con un micrófono del que brotan hileras de palabras que forman una nube por temática"></svg>
 
       <aside class="simbologia" aria-labelledby="simbologia-titulo">
         <h2 id="simbologia-titulo">Simbología</h2>
@@ -108,10 +105,8 @@
               <span>Micrófono</span>
             </li>
             <li>
-              <svg class="icono" viewBox="-24 -24 48 48" aria-hidden="true">
-                <circle class="grupo-circulo" r="21"></circle>
-              </svg>
-              <span>Grupo (clic para ver sus palabras)</span>
+              <span class="icono icono-nube" aria-hidden="true"><b>tesis</b> pega <i>amigo</i></span>
+              <span>Nube de una temática (clic para ver sus pendientes)</span>
             </li>
           </ul>
         </div>

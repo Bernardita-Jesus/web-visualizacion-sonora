@@ -205,6 +205,19 @@ body {
   resize: vertical;
 }
 
+.anonimo {
+  margin: 0;
+  padding: 0.9rem 1.1rem;
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  font-size: 1.05rem;
+  line-height: 1.4;
+}
+
+.anonimo strong {
+  color: var(--title);
+}
+
 .registro textarea[readonly] {
   cursor: default;
 }
@@ -214,43 +227,10 @@ body {
   outline-offset: 2px;
 }
 
-.grupos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin: 0;
-  padding: 0;
-  border: none;
-}
 
-.grupos legend {
-  width: 100%;
-  margin-bottom: 0.75rem;
-  font-size: 1rem;
-  color: var(--muted);
-}
 
-.grupos label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  border: 1.5px solid var(--ink);
-  border-radius: 999px;
-  background: var(--surface);
-  font-size: 1.1rem;
-  cursor: pointer;
-}
 
-.grupos label:has(input:checked) {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: var(--surface);
-}
 
-.grupos input {
-  accent-color: var(--ink);
-}
 
 .acciones {
   display: flex;
@@ -494,7 +474,8 @@ button:focus-visible,
   height: 22px;
 }
 
-.simbologia .icono-texto {
+.simbologia .icono-texto,
+.simbologia .icono-nube {
   width: auto;
   height: auto;
   flex-basis: auto;
@@ -553,6 +534,27 @@ button:focus-visible,
   font-size: 0.8rem;
 }
 
+.icono-nube {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  width: auto;
+  height: auto;
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.icono-nube b {
+  font-size: 1rem;
+  color: var(--accent);
+}
+
+.icono-nube i {
+  font-style: normal;
+  color: #4b5d84;
+}
+
 .icono-texto.tamano-grande {
   font-size: 1.25rem;
   font-weight: 600;
@@ -600,44 +602,16 @@ button:focus-visible,
 }
 
 /* ---------- Grupos y reloj ---------- */
-.grupo-circulo {
-  fill: url(#difuminado-grupo);
-  stroke: rgb(47 55 66 / 0.18);
-  stroke-width: 1;
-  transform-box: fill-box;
-  transform-origin: center;
-}
 
-.grupo-circulo.recibe {
-  animation: recibe 0.5s ease-out;
-}
 
-@keyframes recibe {
-  40% {
-    transform: scale(1.06);
-    stroke: rgb(47 55 66 / 0.4);
-  }
-}
 
 .grupo {
   cursor: pointer;
   outline: none;
 }
 
-.grupo:hover .grupo-circulo {
-  stroke: rgb(47 55 66 / 0.4);
-}
 
-.grupo:focus-visible .grupo-circulo {
-  stroke: var(--ink);
-  stroke-width: 2;
-}
 
-.orbita-texto {
-  font-family: var(--font-serif);
-  dominant-baseline: central;
-  pointer-events: none;
-}
 
 /* ---------- Ventana de un grupo ---------- */
 .grupo-dialogo {
@@ -689,9 +663,41 @@ button:focus-visible,
   line-height: 1.2;
 }
 
+/* ---------- Nubes de palabras por temática ---------- */
+.nube-zona {
+  fill: transparent;
+  stroke: transparent;
+  stroke-dasharray: 3 5;
+}
+
+.grupo:hover .nube-zona,
+.grupo:focus-visible .nube-zona {
+  stroke: rgb(47 55 66 / 0.3);
+}
+
+.nube-palabra {
+  font-family: var(--font-serif);
+  text-anchor: middle;
+  dominant-baseline: central;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Palabra que acaba de llegar: aparece creciendo. */
+.nube-palabra.nueva {
+  animation: llega 0.6s ease-out both;
+}
+
+@keyframes llega {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+
 .grupo-nombre {
   fill: var(--ink);
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-anchor: middle;
@@ -701,7 +707,7 @@ button:focus-visible,
 
 .grupo-contador {
   fill: var(--muted);
-  font-size: 13px;
+  font-size: 11px;
   text-anchor: middle;
   dominant-baseline: central;
 }
@@ -782,6 +788,7 @@ button:focus-visible,
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .nube-palabra.nueva,
   .boton-dictar.escuchando svg,
   .pulse {
     animation: none;

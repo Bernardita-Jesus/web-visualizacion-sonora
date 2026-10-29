@@ -10,22 +10,17 @@ const form = document.querySelector('#form-registro');
 const campo = document.querySelector('#respuesta');
 const aviso = document.querySelector('#registro-aviso');
 
-function grupoElegido() {
-  return form.querySelector('input[name="grupo"]:checked')?.value ?? null;
-}
-
 function enviar() {
   const texto = campo.value.trim();
-  const grupo = grupoElegido();
-
-  if (!texto || !grupo) {
-    aviso.textContent = !texto ? 'Dicta tu respuesta antes de enviar.' : 'Elige si eres estudiante, funcionario/a o externo/a.';
+  if (!texto) {
+    aviso.textContent = 'Dicta tu pendiente antes de enviar.';
     return;
   }
 
-  const respuesta = guardarRespuesta(texto, grupo);
+  // Anónimo: solo se guarda el texto y la hora, nunca quién habla.
+  const respuesta = guardarRespuesta(texto);
   if (!respuesta) {
-    aviso.textContent = 'No se pudo guardar la respuesta en este navegador.';
+    aviso.textContent = 'No se pudo guardar el pendiente en este navegador.';
     return;
   }
 
@@ -36,8 +31,8 @@ function enviar() {
   // Recién al enviar se limpia lo dictado, para la siguiente persona.
   form.reset();
   actualizarBorrar();
-  actualizarBotonDictar(); // la siguiente persona vuelve a elegir rol antes de grabar
-  aviso.textContent = '¡Gracias! Mira tu respuesta viajar hacia tu grupo →';
+  estado.textContent = 'Aprieta el botón y cuenta tu pendiente.';
+  aviso.textContent = '¡Gracias! Mira tu pendiente viajar hacia su temática →';
   setTimeout(() => (aviso.textContent = ''), 5000);
 }
 
@@ -60,11 +55,11 @@ function mostrarEscucha(activo) {
   escuchando = activo;
   botonDictar.classList.toggle('escuchando', activo);
   botonDictar.setAttribute('aria-pressed', String(activo));
-  textoBoton.textContent = activo ? 'Escuchando… toca para terminar' : 'Dictar respuesta';
+  textoBoton.textContent = activo ? 'Escuchando… toca para terminar' : 'Dictar pendiente';
 }
 
 function iniciarDictado() {
-  if (!Reconocimiento || escuchando || !grupoElegido()) return;
+  if (!Reconocimiento || escuchando) return;
 
   reconocimiento = new Reconocimiento();
   reconocimiento.lang = 'es-CL';
@@ -76,7 +71,7 @@ function iniciarDictado() {
 
   reconocimiento.onstart = () => {
     mostrarEscucha(true);
-    estado.textContent = 'Habla ahora: tu respuesta se escribirá abajo. Puedes dictar varias veces antes de enviar.';
+    estado.textContent = 'Habla ahora: tu pendiente se escribirá abajo. Puedes dictar varias veces antes de enviar.';
   };
 
   reconocimiento.onresult = (event) => {
@@ -106,7 +101,7 @@ function iniciarDictado() {
     mostrarEscucha(false);
     reconocimiento = null;
     // El texto queda en el campo hasta que se presione Enviar.
-    if (campo.value.trim()) estado.textContent = 'Revisa tu respuesta y presiona Enviar. Puedes volver a grabar para agregar más.';
+    if (campo.value.trim()) estado.textContent = 'Revisa tu pendiente y presiona Enviar. Puedes volver a grabar para agregar más.';
   };
 
   try {
@@ -127,7 +122,7 @@ if (Reconocimiento) {
   estado.textContent = 'Este navegador no permite dictar. Abre la página en Chrome, Edge o Safari.';
 }
 
-/* ---------- Eliminar la respuesta dictada (antes de enviarla) ---------- */
+/* ---------- Eliminar el pendiente dictado (antes de enviarlo) ---------- */
 
 const botonBorrar = document.querySelector('#btn-borrar');
 
@@ -141,14 +136,14 @@ botonBorrar.addEventListener('click', () => {
   detenerDictado();
   campo.value = '';
   actualizarBorrar();
-  actualizarBotonDictar();
-  aviso.textContent = 'Respuesta eliminada. Puedes volver a dictarla.';
+  estado.textContent = 'Aprieta el botón y cuenta tu pendiente.';
+  aviso.textContent = 'Pendiente eliminado. Puedes volver a dictarlo.';
   setTimeout(() => (aviso.textContent = ''), 3000);
 });
 
-/* ---------- El texto de la respuesta toma el color de la hora actual ---------- */
+/* ---------- El texto del pendiente toma el color de la hora actual ---------- */
 
-// Es el mismo color con que la respuesta viajará en la visualización (hora real del registro).
+// Es el mismo color con que el pendiente viajará en la visualización (hora real del registro).
 function colorearSegunHora() {
   const ahora = new Date();
   const color = hourColor(ahora.getHours() + ahora.getMinutes() / 60);
@@ -159,18 +154,4 @@ function colorearSegunHora() {
 colorearSegunHora();
 setInterval(colorearSegunHora, 60 * 1000);
 
-/* ---------- El botón de grabar se habilita solo después de elegir un rol ---------- */
-
-function actualizarBotonDictar() {
-  const hayRol = grupoElegido() !== null;
-  botonDictar.disabled = !hayRol;
-  if (!escuchando && Reconocimiento) {
-    estado.textContent = hayRol ? 'Aprieta el botón y di tu respuesta.' : 'Primero elige tu rol para poder grabar.';
-  }
-}
-
-form.addEventListener('change', (event) => {
-  if (event.target.name === 'grupo') actualizarBotonDictar();
-});
-
-actualizarBotonDictar();
+if (Reconocimiento) estado.textContent = 'Aprieta el botón y cuenta tu pendiente.';

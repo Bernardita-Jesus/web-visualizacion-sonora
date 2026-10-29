@@ -1,4 +1,4 @@
-import { cargarRespuestas, horaDe, palabrasDe } from './respuestas.js';
+import { cargarRespuestas, horaDe, palabrasDe, tematicaDe } from './respuestas.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -27,18 +27,28 @@ const EMIT = {
   max: 50, // tope de hileras simultáneas
 };
 
-// Tamaño según en cuántas respuestas del grupo aparece la palabra.
+// Tamaño según en cuántos pendientes de la temática aparece la palabra.
 const SIZE = { min: 16, max: 40, boldFrom: 0.7 };
 
-// Tres grupos sobre el micrófono: cada hilera viaja hacia uno de ellos.
-const GROUP_RADIUS = 85;
-// Anillo de palabras recibidas que gira alrededor de cada círculo.
-const ORBIT = { radius: GROUP_RADIUS + 16, fontSize: 14, speed: 0.25 }; // speed en radianes/s
+// Una nube de palabras por temática (bitácora, Escala 02), repartidas en un óvalo alrededor del
+// micrófono: cada pendiente viaja hacia su temática y sus palabras se suman a esa nube.
+const ARRIVE_RADIUS = 45; // distancia al centro de la nube a la que una hilera se considera llegada
+// Nube: área (elipse) donde caben sus palabras, tope de palabras visibles y tamaños de letra.
+const CLOUD = { rx: 140, ry: 90, maxWords: 30, size: [14, 34], boldFrom: 0.6, pad: 3 };
+const GROUP_LAYOUT = { rx: 420, ry: 270 }; // radios del óvalo donde se ubican las nubes
 const GROUPS = [
-  { id: 'estudiantes', name: 'Estudiantes', x: CENTER.x - 330, y: PATIO.y + 190 },
-  { id: 'funcionarios', name: 'Funcionarios', x: CENTER.x, y: PATIO.y + 190 },
-  { id: 'externos', name: 'Externos', x: CENTER.x + 330, y: PATIO.y + 190 },
-];
+  { id: 'estudios', name: 'Estudios', lines: ['Estudios'] },
+  { id: 'trabajo', name: 'Trabajo', lines: ['Trabajo'] },
+  { id: 'vinculos', name: 'Vínculos', lines: ['Vínculos'] },
+  { id: 'familia', name: 'Familia', lines: ['Familia'] },
+  { id: 'uno-mismo', name: 'Uno mismo', lines: ['Uno', 'mismo'] },
+  { id: 'salud', name: 'Salud y cuerpo', lines: ['Salud y', 'cuerpo'] },
+  { id: 'suenos', name: 'Sueños y proyectos', lines: ['Sueños y', 'proyectos'] },
+  { id: 'otros', name: 'Otros', lines: ['Otros'] },
+].map((group, i, all) => {
+  const angle = -Math.PI / 2 + (i / all.length) * Math.PI * 2; // el primero arriba, en sentido horario
+  return { ...group, x: MIC.x + Math.cos(angle) * GROUP_LAYOUT.rx, y: MIC.y + Math.sin(angle) * GROUP_LAYOUT.ry };
+});
 
 // Reloj simulado: recorre la jornada y el color de las palabras se enfría con las horas.
 const DAY = {
@@ -96,49 +106,36 @@ function drawPatio() {
   patio.addEventListener('click', toggleFullscreen);
 }
 
-/** Anillos concéntricos tenues alrededor del micrófono y de los grupos, como ondas de voz. */
+/** Anillos concéntricos tenues alrededor del micrófono, como ondas de voz. */
 function drawRipples() {
   const g = el('g', { class: 'ondas', 'clip-path': 'url(#recorte-patio)' }, svg);
   for (const r of [50, 95, 150, 215, 290, 375]) el('circle', { cx: MIC.x, cy: MIC.y, r }, g);
-  for (const group of GROUPS) {
-    for (const r of [GROUP_RADIUS + 38, GROUP_RADIUS + 62]) el('circle', { cx: group.x, cy: group.y, r }, g);
-  }
 }
 
-function drawGroups(defs) {
-  // Blanco al centro que se funde con el fondo hacia el borde del círculo.
-  const fade = el('radialGradient', { id: 'difuminado-grupo' }, defs);
-  el('stop', { offset: '0%', 'stop-color': '#ffffff', 'stop-opacity': 0.85 }, fade);
-  el('stop', { offset: '60%', 'stop-color': '#ffffff', 'stop-opacity': 0.5 }, fade);
-  el('stop', { offset: '100%', 'stop-color': '#ffffff', 'stop-opacity': 0 }, fade);
-
-  GROUPS.forEach((group, index) => {
+function drawGroups() {
+  for (const group of GROUPS) {
     const g = el('g', {
       class: 'grupo',
       transform: `translate(${group.x} ${group.y})`,
       role: 'button',
       tabindex: 0,
-      'aria-label': `${group.name}: ver todas las palabras recibidas`,
+      'aria-label': `${group.name}: ver todos sus pendientes`,
     }, svg);
-    group.ring = el('circle', { class: 'grupo-circulo', r: GROUP_RADIUS }, g);
-    const name = el('text', { class: 'grupo-nombre', y: -8 }, g);
-    name.textContent = group.name;
-    group.counter = el('text', { class: 'grupo-contador', y: 14 }, g);
+    // Zona invisible para hacer clic en la nube (se insinúa al pasar el mouse).
+    el('ellipse', { class: 'nube-zona', rx: CLOUD.rx, ry: CLOUD.ry }, g);
+    // Nombre de la temática al centro, en una o dos líneas, con el contador debajo.
+    const label = el('g', { class: 'nube-etiqueta' }, g);
+    const top = -6 - (group.lines.length - 1) * 7;
+    group.lines.forEach((line, i) => {
+      el('text', { class: 'grupo-nombre', y: top + i * 14 }, label).textContent = line;
+    });
+    group.counter = el('text', { class: 'grupo-contador', y: top + group.lines.length * 14 + 2 }, label);
+    group.label = label;
+    group.wordsLayer = el('g', { class: 'nube-palabras' }, g);
 
-    // Trazo circular (centrado en el grupo) sobre el que giran las palabras recibidas.
-    const r = ORBIT.radius;
-    el('path', {
-      id: `orbita-${group.id}`,
-      d: `M 0 ${-r} A ${r} ${r} 0 1 1 0 ${r} A ${r} ${r} 0 1 1 0 ${-r}`,
-    }, defs);
-    group.orbit = el('g', { class: 'orbita' }, g);
-    group.orbitText = el('text', { class: 'orbita-texto', 'font-size': ORBIT.fontSize }, group.orbit);
-    group.orbitPath = el('textPath', { href: `#orbita-${group.id}` }, group.orbitText);
-    group.orbitAngle = Math.random() * 360;
-    group.orbitTurn = index % 2 === 0 ? 1 : -1; // grupos vecinos giran en sentidos opuestos
-
-    group.recent = []; // últimas palabras que llegaron, para el anillo
-    group.tally = new Map(); // palabras de las respuestas del grupo: texto → { count, color }
+    group.cloud = new Map(); // palabras dibujadas: texto → { node, box, size }
+    group.arrived = new Set(); // palabras que ya llegaron a la nube
+    group.tally = new Map(); // palabras de los pendientes de la temática: texto → { count, color }
     group.responses = 0;
 
     const open = () => openGroup(group);
@@ -149,13 +146,13 @@ function drawGroups(defs) {
         open();
       }
     });
-  });
+  }
 }
 
 // Aviso mientras todavía no hay respuestas registradas.
 function drawEmptyHint() {
   const hint = el('text', { class: 'aviso-vacio', x: MIC.x, y: MIC.y + 70 }, svg);
-  hint.textContent = 'Aún no hay respuestas: responde en el modo registro';
+  hint.textContent = 'Aún no hay pendientes: cuenta el tuyo en el modo registro';
   return hint;
 }
 
@@ -195,7 +192,7 @@ drawPatio();
 // Trazos invisibles (guías de las hileras y órbitas) y texto van entre el patio y el micrófono.
 const guides = el('defs', {}, svg);
 drawRipples();
-drawGroups(guides);
+drawGroups();
 const clock = drawClock();
 const emptyHint = drawEmptyHint();
 // Recorte con la forma del rectángulo: ninguna palabra se dibuja fuera de él.
@@ -214,13 +211,13 @@ let nextId = 0;
  * El tamaño depende de cuántas respuestas de ese grupo usan la misma palabra.
  */
 function responseRow(respuestas, respuesta = pickFrom(respuestas)) {
-  const group = GROUPS.find(({ id }) => id === respuesta.grupo);
+  const group = GROUPS.find(({ id }) => id === tematicaDe(respuesta.texto));
   const words = palabrasDe(respuesta.texto).slice(0, EMIT.responseWords);
   if (!group || words.length === 0) return null;
 
   const counts = new Map();
   for (const otra of respuestas) {
-    if (otra.grupo !== group.id) continue;
+    if (tematicaDe(otra.texto) !== group.id) continue;
     for (const palabra of new Set(palabrasDe(otra.texto))) counts.set(palabra, (counts.get(palabra) ?? 0) + 1);
   }
   const max = Math.max(...counts.values(), 2);
@@ -324,8 +321,8 @@ function advance(s, dt) {
   s.head.y += Math.sin(s.heading) * s.speed * dt;
   bounce(s);
 
-  // Al entrar al círculo, la hilera se absorbe y sus palabras pasan al anillo del grupo.
-  if (s.arrivedAt === null && Math.hypot(s.head.x - s.group.x, s.head.y - s.group.y) < GROUP_RADIUS * 0.8) {
+  // Al llegar a su nube, la hilera se absorbe y sus palabras se suman a la nube.
+  if (s.arrivedAt === null && Math.hypot(s.head.x - s.group.x, s.head.y - s.group.y) < ARRIVE_RADIUS) {
     s.arrivedAt = s.age;
     receive(s.group, s.words, s.color);
   }
@@ -374,48 +371,102 @@ function update(dt) {
   }
 }
 
-function receive(group, words, color) {
-  for (const text of words) group.recent.unshift({ text, color });
-  group.recent.length = Math.min(group.recent.length, 40);
-  renderOrbit(group);
-  // Pulso breve del círculo al recibir palabras.
-  group.ring.classList.remove('recibe');
-  void group.ring.getBoundingClientRect(); // fuerza el reinicio de la animación
-  group.ring.classList.add('recibe');
+function receive(group, words) {
+  const nuevas = new Set(words.filter((word) => !group.arrived.has(word)));
+  for (const word of words) group.arrived.add(word);
+  renderCloud(group, nuevas);
 }
 
-/** Llena el anillo con las palabras más recientes que caben en la circunferencia. */
-function renderOrbit(group) {
-  const limit = 2 * Math.PI * ORBIT.radius * 0.96;
-  group.orbitPath.replaceChildren();
-  for (const { text, color } of group.recent) {
-    const tspan = el('tspan', { style: `fill: ${color}` }, group.orbitPath);
-    tspan.textContent = `${text}  `;
-    if (group.orbitText.getComputedTextLength() > limit) {
-      tspan.remove();
-      break;
+/* ---------- Nube de palabras ---------- */
+
+const overlaps = (a, b) =>
+  a.x < b.x + b.w + CLOUD.pad && b.x < a.x + a.w + CLOUD.pad && a.y < b.y + b.h + CLOUD.pad && b.y < a.y + a.h + CLOUD.pad;
+
+/** Caja de un elemento centrado en (cx, cy), a partir de su tamaño medido. */
+const boxAt = (bbox, cx, cy) => ({ x: bbox.x + cx, y: bbox.y + cy, w: bbox.width, h: bbox.height });
+
+/**
+ * Dibuja la nube de una temática. Las palabras que ya estaban no se mueven (la nube se va formando);
+ * las nuevas, o las que cambiaron de tamaño, buscan lugar en espiral desde el centro hacia afuera.
+ */
+function renderCloud(group, nuevas = new Set()) {
+  // Las más nombradas primero; solo las que ya llegaron, hasta el tope de la nube.
+  const visibles = [...group.arrived]
+    .filter((word) => group.tally.has(word))
+    .sort((a, b) => group.tally.get(b).count - group.tally.get(a).count)
+    .slice(0, CLOUD.maxWords);
+  const max = Math.max(...visibles.map((word) => group.tally.get(word).count), 2);
+
+  const sizeOf = (word) => {
+    const t = Math.log(group.tally.get(word).count) / Math.log(max);
+    return { size: lerp(CLOUD.size[0], CLOUD.size[1], t), bold: t >= CLOUD.boldFrom };
+  };
+
+  // Quita las que salieron de la nube o cambiaron de tamaño (se vuelven a ubicar).
+  for (const [word, placed] of group.cloud) {
+    if (!visibles.includes(word) || Math.abs(sizeOf(word).size - placed.size) > 0.5) {
+      placed.node.remove();
+      group.cloud.delete(word);
     }
   }
-}
 
-function spinOrbits(dt) {
-  for (const group of GROUPS) {
-    group.orbitAngle = (group.orbitAngle + group.orbitTurn * ORBIT.speed * dt * (180 / Math.PI)) % 360;
-    group.orbit.setAttribute('transform', `rotate(${group.orbitAngle.toFixed(2)})`);
+  const ocupadas = [boxAt(group.label.getBBox(), 0, 0), ...[...group.cloud.values()].map((p) => p.box)];
+
+  for (const word of visibles) {
+    const { color } = group.tally.get(word);
+    const placed = group.cloud.get(word);
+    if (placed) {
+      placed.node.style.fill = color;
+      continue;
+    }
+
+    const { size, bold } = sizeOf(word);
+    const node = el('text', {
+      class: nuevas.has(word) ? 'nube-palabra nueva' : 'nube-palabra',
+      'font-size': size.toFixed(1),
+      'font-weight': bold ? 600 : 400,
+      style: `fill: ${color}`,
+    }, group.wordsLayer);
+    node.textContent = word;
+    const bbox = node.getBBox();
+
+    // Espiral (más ancha que alta) desde el centro: primer lugar libre dentro de la nube.
+    let lugar = null;
+    for (let step = 0; step < 600 && !lugar; step++) {
+      const angle = step * 0.45;
+      const radius = step * 0.55;
+      const cx = Math.cos(angle) * radius * 1.6;
+      const cy = Math.sin(angle) * radius;
+      const box = boxAt(bbox, cx, cy);
+      const dentro = ((box.x + box.w / 2) / CLOUD.rx) ** 2 + ((box.y + box.h / 2) / CLOUD.ry) ** 2 <= 1
+        && Math.abs(cx) + box.w / 2 <= CLOUD.rx + 10;
+      if (dentro && !ocupadas.some((other) => overlaps(box, other))) lugar = { cx, cy, box };
+    }
+
+    if (!lugar) {
+      node.remove(); // no cabe: sigue disponible en la ventana de la temática
+      continue;
+    }
+    node.setAttribute('x', lugar.cx.toFixed(1));
+    node.setAttribute('y', lugar.cy.toFixed(1));
+    ocupadas.push(lugar.box);
+    group.cloud.set(word, { node, box: lugar.box, size });
   }
 }
 
 /* ---------- Conteo real de las respuestas de cada grupo ---------- */
 
-/** Recalcula contadores, palabras y anillos a partir de las respuestas guardadas. */
+let cloudsReady = false;
+
+/** Recalcula contadores y palabras a partir de los pendientes guardados. */
 function refreshGroups() {
   const respuestas = cargarRespuestas();
   emptyHint.style.display = respuestas.length ? 'none' : '';
 
   for (const group of GROUPS) {
-    const propias = respuestas.filter((r) => r.grupo === group.id);
+    const propias = respuestas.filter((r) => tematicaDe(r.texto) === group.id);
     group.responses = propias.length;
-    group.counter.textContent = `${propias.length} ${propias.length === 1 ? 'respuesta' : 'respuestas'}`;
+    group.counter.textContent = `${propias.length} ${propias.length === 1 ? 'pendiente' : 'pendientes'}`;
 
     group.tally = new Map();
     for (const respuesta of propias) {
@@ -428,16 +479,14 @@ function refreshGroups() {
       }
     }
 
-    // Al abrir la página, el anillo parte con las palabras de las respuestas más recientes.
-    if (group.recent.length === 0) {
-      group.recent = propias.slice().reverse().flatMap((r) => {
-        const color = hourColor(horaDe(r));
-        return palabrasDe(r.texto).map((text) => ({ text, color }));
-      }).slice(0, 40);
-      renderOrbit(group);
+    // Al abrir la página, la nube parte con las palabras de los pendientes ya guardados.
+    if (!cloudsReady) {
+      for (const word of group.tally.keys()) group.arrived.add(word);
+      renderCloud(group);
     }
     if (dialog.open && dialog.dataset.group === group.id) fillDialog(group);
   }
+  cloudsReady = true;
 }
 
 // Si se registran respuestas en otra pestaña del mismo navegador, se actualiza.
@@ -454,8 +503,8 @@ function fillDialog(group) {
   dialogTitle.textContent = group.name;
   const entries = [...group.tally.entries()].sort((a, b) => b[1].count - a[1].count);
   dialogSummary.textContent = entries.length
-    ? `${group.responses} ${group.responses === 1 ? 'respuesta' : 'respuestas'} · ${entries.length} palabras distintas`
-    : 'Todavía no hay respuestas de este grupo.';
+    ? `${group.responses} ${group.responses === 1 ? 'pendiente' : 'pendientes'} · ${entries.length} palabras distintas`
+    : 'Todavía no hay pendientes de esta temática.';
 
   const max = entries[0]?.[1].count ?? 1;
   dialogWords.replaceChildren(...entries.map(([text, { count, color }]) => {
@@ -550,7 +599,6 @@ function frame(now) {
 
   if (active && !paused) {
     tickClock(dt);
-    spinOrbits(dt);
     MIC.phase += EMIT.armSpin * dt;
     timer -= dt;
     if (timer <= 0) {
