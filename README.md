@@ -2,7 +2,7 @@
 
 **Taller de Visualización Interactiva** — Braulio, Bernardita y Benjamín.
 
-Maqueta para el Diseño Abierto: las respuestas a *¿Cuál es tu motivación para asistir hoy al Diseño Abierto?*
+Maqueta para el Diseño Abierto: las respuestas a *¿Qué tienes pendiente?*
 brotan de un micrófono en hileras, una detrás de otra, que se flectan, enredan y rebotan en los bordes.
 Solo aparecen las palabras de las respuestas registradas. Cada hilera viaja hacia su grupo —estudiantes,
 funcionarios o externos— y queda girando en el anillo del círculo. El tamaño indica en cuántas respuestas
@@ -35,7 +35,7 @@ assets/             Imágenes, audios de ejemplo, fuentes
 
 La página es una sola pantalla dividida en dos mitades:
 
-- **Izquierda, registro:** la pregunta *¿Cuál es tu motivación para asistir hoy al Diseño Abierto?*,
+- **Izquierda, registro:** la pregunta *¿Qué tienes pendiente?*,
   la elección de grupo (estudiante, funcionario/a o externo/a) y el dictado por voz (se graba
   apretando el botón, que se habilita al elegir el rol). La respuesta solo se agrega con voz: el campo no se
   puede escribir. Lo dictado queda en el campo hasta presionar Enviar, o se borra con Eliminar respuesta.
