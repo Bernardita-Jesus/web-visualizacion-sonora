@@ -5,7 +5,8 @@
 Maqueta para el Diseño Abierto: las respuestas a *¿Qué tienes pendiente?* se tejen en un **telar**.
 Cada media hora de la jornada es una franja (8:00 arriba, 19:00 abajo, la última); su alto depende solo de cuánto se dijo en ella.
 Una costura blanca marca cada cambio de hora: con registros reales se traza en el momento en que cambia la hora
-(solo se ven las de las horas que ya empezaron); simulando, se ven las de todo el día. Lo dicho en esa media hora es un
+(solo se ven las de las horas que ya empezaron); simulando, se ven las de todo el día. Cuando las frases que van
+pasando cruzan a otra hora, su costura se descose y se vuelve a coser. Lo dicho en esa media hora es un
 **hilo**, siempre del mismo grosor, que cruza el telar de lado a lado y ondula entre una urdimbre de hilos
 verticales. Cada pendiente es un tramo del hilo, del color de su temática (estudios, trabajo, familia,
 vínculos, uno mismo, salud y cuerpo, sueños y proyectos u otros, detectada por palabras clave) y del largo
@@ -48,7 +49,8 @@ La página es una sola pantalla dividida en dos mitades:
   Un reloj muestra la hora real y la franja del telar donde se tejerá el pendiente (según la hora en que se envía).
   El pendiente solo se agrega con voz: el campo no se puede escribir.
   Lo dictado se va sumando y se guarda como borrador: no se pierde hasta presionar Enviar o Eliminar pendiente.
-  Al enviar se muestra en qué temática quedó, con la opción de corregirla a mano. Lo dictado queda en el campo hasta presionar Enviar, o se borra con Eliminar pendiente.
+  Antes de enviar se muestra en qué temática se registrará; solo si no es la correcta se elige otra a mano
+  (no hace falta tocar nada más: basta con Enviar). Lo dictado queda en el campo hasta presionar Enviar, o se borra con Eliminar pendiente.
   El dictado usa la Web Speech API (Chrome, Edge, Safari) y necesita internet.
   Se dicta en español de Chile (`es-CL`). Al guardar se quitan las muletillas ("eh", "o sea", "cachai", "po"…),
   y la temática reconoce palabras del habla chilena (pega, pituto, pololo, tata, guagua, carrete, la u, solemne…).

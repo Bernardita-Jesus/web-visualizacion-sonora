@@ -61,22 +61,21 @@
       </div>
 
       <textarea id="respuesta" name="respuesta" aria-labelledby="pregunta" rows="3" readonly placeholder="Tu pendiente aparecerá aquí cuando lo dictes"></textarea>
-      <p id="tema-detectado" class="tema-detectado" aria-live="polite"></p>
+      <!-- Antes de enviar: en qué temática se registrará. Solo si no es la correcta, se elige otra a mano;
+           si no, basta con Enviar. -->
+      <div id="tema-previo" class="tema-previo" hidden>
+        <p aria-live="polite">Se registrará en la temática <strong id="tema-previo-nombre"></strong>.</p>
+        <button id="btn-otra-tema" class="boton-otra-tema" type="button" aria-expanded="false" aria-controls="elegir-tema">
+          ¿No es esa? Seleccionar manualmente
+        </button>
+        <div id="elegir-tema" class="elegir-tema" role="group" aria-label="Elegir la temática" hidden></div>
+      </div>
 
       <div class="acciones">
         <button class="boton-modo" type="submit">Enviar</button>
         <button id="btn-borrar" class="boton-modo boton-secundario" type="button" disabled>Eliminar pendiente</button>
       </div>
       <p id="registro-aviso" class="registro-aviso" role="status"></p>
-
-      <!-- Después de enviar: en qué temática quedó el testimonio, y la opción de corregirla a mano. -->
-      <div id="confirmacion" class="confirmacion" hidden>
-        <p>Tu testimonio está registrado en la temática <strong id="confirmacion-tema"></strong>.</p>
-        <button id="btn-otra-tema" class="boton-otra-tema" type="button" aria-expanded="false" aria-controls="elegir-tema">
-          Esa no era la categoría · seleccionar manualmente
-        </button>
-        <div id="elegir-tema" class="elegir-tema" role="group" aria-label="Elegir la temática" hidden></div>
-      </div>
     </form>
     </div>
   </section>

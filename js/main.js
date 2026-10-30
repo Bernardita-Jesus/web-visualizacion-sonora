@@ -37,12 +37,14 @@ const TELAR = {
 // Cómo pasan las frases: una se escribe letra a letra sobre su trazo, se queda un momento, vuelve a
 // ser línea y recién entonces pasa la siguiente (en orden de hora, en ciclo).
 const TEJIDO = {
-  charsPerSecond: 60, // velocidad de escritura
-  maxWrite: 2.6, // segundos máximos que tarda en escribirse una frase (las largas se escriben más rápido)
-  hold: 4, // segundos que la frase queda escrita antes de volver a ser línea
-  sewCharsPerSecond: 70, // velocidad con que la frase se cose (se convierte en hilo, de izquierda a derecha)
-  maxSew: 2.5, // segundos máximos que tarda en coserse una frase
+  charsPerSecond: 28, // velocidad de escritura (letras por segundo)
+  maxWrite: 6, // segundos máximos que tarda en escribirse una frase (las largas se escriben más rápido)
+  hold: 8, // segundos que la frase queda escrita antes de volver a ser línea
+  sewCharsPerSecond: 45, // velocidad con que la frase se cose (se convierte en hilo, de izquierda a derecha)
+  maxSew: 3.5, // segundos máximos que tarda en coserse una frase
   pause: 0.6, // respiro antes de la siguiente frase
+  seam: 7, // segundos en que la costura de un cambio de hora se descose y se vuelve a coser al pasar a otra hora
+  turn: 0.4, // segundos en que se cose la vuelta del hilo en el borde (junto a su línea de arriba)
 };
 
 const ROWS = Math.round((DAY.end - DAY.start) / DAY.step);
@@ -308,8 +310,8 @@ function distribuir() {
     if (!simular) costurasTrazadas.add(hora); // simulando no cuentan: son de todo el día, no del reloj
     const yc = (franja.top - 0.5).toFixed(1);
     const clase = nueva ? ' trazandose' : '';
-    el('line', { class: `costura-sombra${clase}`, x1: TELAR.left - 8, x2: TELAR.right + 8, y1: yc, y2: yc }, costuras);
-    el('line', { class: `costura${clase}`, x1: TELAR.left - 8, x2: TELAR.right + 8, y1: yc, y2: yc }, costuras);
+    el('line', { class: `costura-sombra${clase}`, 'data-row': row, x1: TELAR.left - 8, x2: TELAR.right + 8, y1: yc, y2: yc }, costuras);
+    el('line', { class: `costura${clase}`, 'data-row': row, x1: TELAR.left - 8, x2: TELAR.right + 8, y1: yc, y2: yc }, costuras);
   });
   // Desde la primera vez quedan registradas: solo las que aparezcan después (al cambiar la hora) se animan.
   costurasTrazadas.add(DAY.start);
@@ -360,6 +362,7 @@ function dibujarFranja(row) {
       el('title', {}, nodo).textContent = titulo;
       if (p.oculto) nodo.classList.add('oculta');
       p.nodos.push(nodo);
+      return nodo;
     };
 
     for (let linea = Math.floor(t0 / porLinea); linea < lineas && linea * porLinea < t1; linea++) {
@@ -369,8 +372,9 @@ function dibujarFranja(row) {
       const xa = xDe(linea, a);
       const xb = xDe(linea, b);
       const y = yDe(linea);
-      trazo(onda(xa, xb, y, linea, amplitud), 'hebra');
-      p.piezas.push({ hasta: b - t0, x: Math.min(xa, xb), ancho: Math.abs(xb - xa), y });
+      const nodo = trazo(onda(xa, xb, y, linea, amplitud), 'hebra');
+      const pieza = { hasta: b - t0, x: Math.min(xa, xb), ancho: Math.abs(xb - xa), y, nodo };
+      p.piezas.push(pieza);
 
       // Si el hilo de este pendiente sigue en la línea siguiente, da la vuelta en el borde.
       const fin = (linea + 1) * porLinea;
@@ -378,7 +382,8 @@ function dibujarFranja(row) {
         const borde = linea % 2 === 0 ? TELAR.right : TELAR.left;
         const giro = linea % 2 === 0 ? 1 : 0;
         const r = (separacion / 2).toFixed(2);
-        trazo(`M ${borde} ${y.toFixed(2)} A ${r} ${r} 0 0 ${giro} ${borde} ${(y + separacion).toFixed(2)}`, 'hebra vuelta');
+        // La vuelta va con su línea de arriba: al coserse la frase, aparece junto con ella.
+        pieza.vuelta = trazo(`M ${borde} ${y.toFixed(2)} A ${r} ${r} 0 0 ${giro} ${borde} ${(y + separacion).toFixed(2)}`, 'hebra vuelta');
       }
     }
 
@@ -479,7 +484,7 @@ async function pasarFrase(pendiente) {
     // Las partes se escriben una tras otra, siguiendo el hilo.
     const segundos = Math.min(pieza.trozo.length / TEJIDO.charsPerSecond, TEJIDO.maxWrite);
     escrito.style.setProperty('--dur', `${segundos.toFixed(2)}s`);
-    partes.push({ grupo, escrito });
+    partes.push({ grupo, escrito, pieza });
     escritosEnCurso.add(grupo);
     await esperar(segundos);
     if (!vigente()) return;
@@ -487,30 +492,61 @@ async function pasarFrase(pendiente) {
   await esperar(TEJIDO.hold);
   if (!vigente()) return;
 
-  // Se cose: de izquierda a derecha las letras desaparecen y en su lugar vuelve su hilo en puntadas;
-  // al terminar, el hilo se tensa y queda continuo.
+  // Se cose línea por línea, siguiendo el hilo: en cada tramo las letras desaparecen de izquierda a
+  // derecha y en su lugar vuelve su hilo en puntadas; si el hilo da vuelta en el borde, la vuelta se
+  // cose junto a su línea de arriba y recién entonces sigue la línea de abajo. Al terminar, cada tramo
+  // se tensa y queda continuo.
   const largoTotal = piezas.reduce((suma, pieza) => suma + (pieza.trozo?.length ?? 0), 0);
-  const coser = `${Math.min(largoTotal / TEJIDO.sewCharsPerSecond, TEJIDO.maxSew).toFixed(2)}s`;
-  for (const { escrito } of partes) {
-    escrito.style.setProperty('--coser', coser);
-    escrito.classList.add('cosiendose');
-  }
-  for (const nodo of nodos) {
-    nodo.style.setProperty('--coser', coser);
+  const coserTotal = Math.min(largoTotal / TEJIDO.sewCharsPerSecond, TEJIDO.maxSew);
+  const coserNodo = async (nodo, segundos) => {
+    nodo.style.setProperty('--coser', `${segundos.toFixed(2)}s`);
     nodo.classList.remove('leyendose');
     nodo.classList.add('cosiendo');
-  }
-  await esperar(parseFloat(coser));
-  if (!vigente()) return;
-  for (const nodo of nodos) {
+    await esperar(segundos);
     nodo.classList.remove('cosiendo');
     nodo.classList.add('cosida');
+  };
+  for (const pieza of piezas) {
+    const segundos = largoTotal ? coserTotal * ((pieza.trozo?.length ?? 0) / largoTotal) : 0;
+    const parte = partes.find((otra) => otra.pieza === pieza);
+    if (parte) {
+      parte.escrito.style.setProperty('--coser', `${segundos.toFixed(2)}s`);
+      parte.escrito.classList.add('cosiendose');
+    }
+    await coserNodo(pieza.nodo, Math.max(segundos, 0.05));
+    if (!vigente()) return;
+    if (pieza.vuelta) {
+      await coserNodo(pieza.vuelta, TEJIDO.turn);
+      if (!vigente()) return;
+    }
   }
   partes.forEach(({ grupo }) => {
     grupo.remove();
     escritosEnCurso.delete(grupo);
   });
   await esperar(TEJIDO.pause);
+}
+
+/* ---------- Al pasar a otra hora, su costura se descose y se vuelve a coser ---------- */
+
+/**
+ * Entre una frase y la siguiente, por cada cambio de hora que se cruza (de la franja `desde` a la franja
+ * `hasta`), su costura blanca se descose de izquierda a derecha y se vuelve a coser. Las costuras se
+ * ven siempre; esto solo marca, en la animación, que el telar pasó a otra hora.
+ */
+async function recoserCambiosDeHora(desde, hasta, vigente) {
+  for (let row = desde + 1; row <= hasta; row++) {
+    const lineas = costuras.querySelectorAll(`[data-row="${row}"]`);
+    if (!lineas.length) continue; // no es cambio de hora, o la hora todavía no empieza
+    for (const linea of lineas) {
+      linea.style.setProperty('--trazo', `${TEJIDO.seam}s`);
+      linea.classList.remove('trazandose', 'recosiendo');
+      linea.getBBox(); // reinicia la animación aunque la costura ya se hubiera recosido antes
+      linea.classList.add('recosiendo');
+    }
+    await esperar(TEJIDO.seam);
+    if (!vigente()) return;
+  }
 }
 
 /* ---------- Las frases pasan de a una, en ciclo ---------- */
@@ -525,14 +561,19 @@ async function ciclo() {
   enCiclo = true;
   let anterior = null;
   for (;;) {
+    const miVuelta = vuelta;
+    const vigente = () => miVuelta === vuelta;
     if (urgentes.length) {
       await pasarFrase(urgentes.shift());
     } else if (tejidos.length) {
       // El siguiente se busca a partir del anterior (no por posición): así, si llega un pendiente
       // nuevo y cambia la lista, el orden no se salta ni se repite.
       const i = anterior ? tejidos.indexOf(anterior) + 1 : 0;
-      anterior = tejidos[i % tejidos.length];
-      await pasarFrase(anterior);
+      const siguiente = tejidos[i % tejidos.length];
+      // Si entre la frase anterior y la siguiente hay un cambio de hora, su costura se recose.
+      if (i > 0 && i < tejidos.length) await recoserCambiosDeHora(anterior.row, siguiente.row, vigente);
+      anterior = siguiente;
+      if (vigente()) await pasarFrase(anterior);
     } else {
       await esperar(1);
     }
@@ -618,11 +659,6 @@ document.querySelector('#btn-borrar-registros').addEventListener('click', () => 
 /** Un pendiente recién registrado se suma al telar y su frase es la próxima en pasar. */
 export function lanzarRespuesta(respuesta) {
   urgentes.push(colocar({ texto: respuesta.texto, hora: horaDe(respuesta), tema: temaDeRespuesta(respuesta) }, true));
-}
-
-/** Vuelve a tejer el telar (por ejemplo, después de corregir a mano la temática de un registro). */
-export function retejer() {
-  tejerDia();
 }
 
 // Se mide el largo de cada frase para ubicarla: hay que esperar a que cargue la tipografía de las frases,

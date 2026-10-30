@@ -1,15 +1,5 @@
-import { DAY, lanzarRespuesta, retejer } from './main.js';
-import {
-  TEMATICAS,
-  cambiarTema,
-  guardarBorrador,
-  guardarRespuesta,
-  leerBorrador,
-  limpiarDictado,
-  temaDeRespuesta,
-  temaPorId,
-  tematicaDe,
-} from './respuestas.js';
+import { DAY, lanzarRespuesta } from './main.js';
+import { TEMATICAS, guardarBorrador, guardarRespuesta, leerBorrador, limpiarDictado, temaPorId, tematicaDe } from './respuestas.js';
 
 // Una sola pantalla: registro a la izquierda y visualización (el telar) a la derecha.
 
@@ -27,8 +17,8 @@ function enviar() {
     return;
   }
 
-  // Anónimo: solo se guarda el texto y la hora, nunca quién habla.
-  const respuesta = guardarRespuesta(texto);
+  // Anónimo: solo se guarda el texto y la hora, nunca quién habla. La temática va solo si se eligió a mano.
+  const respuesta = guardarRespuesta(texto, temaManual);
   if (!respuesta) {
     aviso.textContent = 'No se pudo guardar el pendiente en este navegador.';
     return;
@@ -39,16 +29,17 @@ function enviar() {
   if (reconocimiento) reconocimiento.onresult = null;
   detenerDictado();
   // Recién al enviar (ya registrado) se limpia lo dictado, para la siguiente persona.
+  const tema = temaPorId(temaManual ?? tematicaDe(texto));
   limpiarCampo();
   estado.textContent = 'Aprieta el botón y cuenta tu pendiente.';
-  aviso.textContent = '¡Gracias! Mira tu pendiente tejerse en el telar →';
-  mostrarConfirmacion(respuesta);
+  aviso.textContent = `¡Gracias! Tu testimonio quedó en ${tema.nombre}. Mira cómo se teje en el telar →`;
 }
 
-/** Vacía el campo y su borrador (solo al enviar o al presionar Eliminar). */
+/** Vacía el campo, su borrador y la temática elegida (solo al enviar o al presionar Eliminar). */
 function limpiarCampo() {
   campo.value = '';
   guardarBorrador('');
+  elegirTemaManual(null);
   actualizarBorrar();
   colorearSegunTema();
 }
@@ -92,7 +83,6 @@ function iniciarDictado() {
 
   reconocimiento.onstart = () => {
     mostrarEscucha(true);
-    ocultarConfirmacion(); // empieza otra persona: se cierra la confirmación anterior
     estado.textContent = 'Habla ahora: tu pendiente se escribirá abajo. Puedes dictar varias veces antes de enviar.';
   };
 
@@ -178,64 +168,56 @@ botonBorrar.addEventListener('click', () => {
   setTimeout(() => (aviso.textContent = ''), 3000);
 });
 
-/* ---------- El texto del pendiente toma el color de su temática ---------- */
+/* ---------- Temática: se muestra antes de enviar, y solo si no es la correcta se elige a mano ---------- */
 
-const temaDetectado = document.querySelector('#tema-detectado');
+const temaPrevio = document.querySelector('#tema-previo');
+const temaPrevioNombre = document.querySelector('#tema-previo-nombre');
+const botonOtraTema = document.querySelector('#btn-otra-tema');
+const elegirTema = document.querySelector('#elegir-tema');
+const CLAVE_TEMA_MANUAL = 'diseno-abierto:borrador-tema';
 
-// Es el mismo color con que el pendiente se tejerá en el telar.
+// Temática elegida a mano para el pendiente que se está dictando (null: la detectada en el texto).
+let temaManual = null;
+try {
+  temaManual = localStorage.getItem(CLAVE_TEMA_MANUAL) || null;
+} catch {
+  // Sin almacenamiento.
+}
+
+function elegirTemaManual(temaId) {
+  temaManual = temaId;
+  try {
+    if (temaId) localStorage.setItem(CLAVE_TEMA_MANUAL, temaId);
+    else localStorage.removeItem(CLAVE_TEMA_MANUAL);
+  } catch {
+    // Sin almacenamiento: la elección vale igual mientras no se recargue la página.
+  }
+  elegirTema.hidden = true;
+  botonOtraTema.setAttribute('aria-expanded', 'false');
+  colorearSegunTema();
+}
+
+// El texto toma el color de su temática (el mismo con que se tejerá) y se muestra en cuál quedará.
 function colorearSegunTema() {
   const texto = campo.value.trim();
   if (!texto) {
     campo.style.color = '';
     campo.style.caretColor = '';
-    temaDetectado.textContent = '';
+    temaPrevio.hidden = true;
     return;
   }
-  const tema = temaPorId(tematicaDe(texto));
+  const tema = temaPorId(temaManual ?? tematicaDe(texto));
   campo.style.color = tema.color;
   campo.style.caretColor = tema.color;
-  temaDetectado.textContent = `Temática: ${tema.nombre}`;
-  temaDetectado.style.color = tema.color;
-}
-
-// Si había un borrador sin enviar (por ejemplo, se recargó la página), vuelve al campo.
-campo.value = leerBorrador();
-actualizarBorrar();
-colorearSegunTema();
-
-if (Reconocimiento) estado.textContent = campo.value ? 'Tu pendiente sigue aquí: revísalo y presiona Enviar.' : 'Aprieta el botón y cuenta tu pendiente.';
-
-/* ---------- Confirmación: en qué temática quedó, y corregirla a mano ---------- */
-
-const confirmacion = document.querySelector('#confirmacion');
-const confirmacionTema = document.querySelector('#confirmacion-tema');
-const botonOtraTema = document.querySelector('#btn-otra-tema');
-const elegirTema = document.querySelector('#elegir-tema');
-let ultimaRespuesta = null;
-
-function pintarConfirmacion(temaId) {
-  const tema = temaPorId(temaId);
-  confirmacionTema.textContent = tema.nombre;
-  confirmacionTema.style.color = tema.color;
+  temaPrevioNombre.textContent = tema.nombre + (temaManual ? ' (elegida por ti)' : '');
+  temaPrevioNombre.style.color = tema.color;
   for (const boton of elegirTema.querySelectorAll('button')) {
     boton.setAttribute('aria-pressed', String(boton.dataset.tema === tema.id));
   }
+  temaPrevio.hidden = false;
 }
 
-function mostrarConfirmacion(respuesta) {
-  ultimaRespuesta = respuesta;
-  pintarConfirmacion(temaDeRespuesta(respuesta));
-  elegirTema.hidden = true;
-  botonOtraTema.setAttribute('aria-expanded', 'false');
-  confirmacion.hidden = false;
-}
-
-function ocultarConfirmacion() {
-  confirmacion.hidden = true;
-  elegirTema.hidden = true;
-}
-
-// Botones de temáticas para elegir a mano.
+// Botones de temáticas para elegir a mano (solo se muestran si se pide).
 for (const tema of TEMATICAS) {
   const boton = document.createElement('button');
   boton.type = 'button';
@@ -245,20 +227,8 @@ for (const tema of TEMATICAS) {
   muestra.className = 'tema-color';
   muestra.style.background = tema.color;
   boton.append(muestra, tema.nombre);
-  boton.addEventListener('click', () => {
-    if (!ultimaRespuesta) return;
-    const corregida = cambiarTema(ultimaRespuesta.id, tema.id);
-    if (!corregida) {
-      aviso.textContent = 'No se pudo cambiar la temática.';
-      return;
-    }
-    ultimaRespuesta = corregida;
-    pintarConfirmacion(tema.id);
-    elegirTema.hidden = true;
-    botonOtraTema.setAttribute('aria-expanded', 'false');
-    aviso.textContent = `Listo: tu testimonio quedó en ${tema.nombre}.`;
-    retejer(); // el telar se vuelve a tejer con la temática corregida
-  });
+  // Si se elige la misma que se detectó, no queda como "elegida a mano".
+  boton.addEventListener('click', () => elegirTemaManual(tema.id === tematicaDe(campo.value) ? null : tema.id));
   elegirTema.append(boton);
 }
 
@@ -266,6 +236,13 @@ botonOtraTema.addEventListener('click', () => {
   elegirTema.hidden = !elegirTema.hidden;
   botonOtraTema.setAttribute('aria-expanded', String(!elegirTema.hidden));
 });
+
+// Si había un borrador sin enviar (por ejemplo, se recargó la página), vuelve al campo.
+campo.value = leerBorrador();
+actualizarBorrar();
+colorearSegunTema();
+
+if (Reconocimiento) estado.textContent = campo.value ? 'Tu pendiente sigue aquí: revísalo y presiona Enviar.' : 'Aprieta el botón y cuenta tu pendiente.';
 
 /* ---------- Pestaña: el modo registro se puede ocultar ---------- */
 

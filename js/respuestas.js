@@ -20,28 +20,13 @@ export function cargarRespuestas() {
   }
 }
 
-export function guardarRespuesta(texto) {
+/** Guarda un registro. `tema` solo se pasa si se eligió a mano (si no, se detecta del texto). */
+export function guardarRespuesta(texto, tema = null) {
   const respuestas = cargarRespuestas();
   const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const respuesta = { id, texto, fecha: new Date().toISOString() };
+  if (tema) respuesta.tema = tema;
   respuestas.push(respuesta);
-  try {
-    localStorage.setItem(KEY, JSON.stringify(respuestas));
-    return respuesta;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Corrige a mano la temática de un registro (cuando la detectada por palabras clave no era la correcta).
- * Devuelve el registro actualizado, o null si no se encontró.
- */
-export function cambiarTema(id, temaId) {
-  const respuestas = cargarRespuestas();
-  const respuesta = respuestas.find((r) => r.id === id);
-  if (!respuesta) return null;
-  respuesta.tema = temaId;
   try {
     localStorage.setItem(KEY, JSON.stringify(respuestas));
     return respuesta;

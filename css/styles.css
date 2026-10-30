@@ -358,22 +358,25 @@ body {
   color: inherit;
 }
 
-/* ---------- Confirmación de la temática ---------- */
-.confirmacion {
+/* ---------- Temática antes de enviar ---------- */
+.tema-previo {
   display: grid;
-  gap: 0.6rem;
-  padding: 0.9rem 1.1rem;
-  border-left: 3px solid var(--azul);
-  font-size: 1.05rem;
+  gap: 0.5rem;
+  margin-top: -0.6rem;
+  font-size: 1rem;
 }
 
-.confirmacion[hidden],
+.tema-previo[hidden],
 .elegir-tema[hidden] {
   display: none;
 }
 
-.confirmacion p {
+.tema-previo p {
   margin: 0;
+}
+
+.tema-previo strong {
+  font-weight: 700;
 }
 
 .boton-otra-tema {
@@ -807,6 +810,27 @@ button:focus-visible {
   animation: trazar-costura 2.5s ease-in-out both;
 }
 
+/* Al pasar las frases a otra hora, su costura se descose de izquierda a derecha y se vuelve a coser. */
+.costura.recosiendo,
+.costura-sombra.recosiendo {
+  animation: recoser-costura var(--trazo, 7s) ease-in-out both;
+}
+
+@keyframes recoser-costura {
+  0% {
+    clip-path: inset(-50% 0 -50% 0);
+  }
+  40% {
+    clip-path: inset(-50% 0 -50% 100%);
+  }
+  55% {
+    clip-path: inset(-50% 100% -50% 0);
+  }
+  100% {
+    clip-path: inset(-50% 0 -50% 0);
+  }
+}
+
 @keyframes trazar-costura {
   from {
     clip-path: inset(-50% 100% -50% 0);
@@ -1035,16 +1059,12 @@ button:focus-visible {
   border-radius: 50%;
 }
 
-/* Temática detectada mientras se dicta. */
-.tema-detectado {
-  min-height: 1.3em;
-  margin: -0.75rem 0 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .hebra,
+  .costura.trazandose,
+  .costura-sombra.trazandose,
+  .costura.recosiendo,
+  .costura-sombra.recosiendo,
   .boton-dictar.escuchando svg {
     animation: none;
   }
