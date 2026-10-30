@@ -2,13 +2,15 @@
 
 **Taller de Visualización Interactiva** — Braulio, Bernardita y Benjamín.
 
-Maqueta para el Diseño Abierto: las respuestas a *¿Qué tienes pendiente?*
-brotan de un micrófono en hileras, una detrás de otra, que se flectan, enredan y rebotan en los bordes.
+Maqueta para el Diseño Abierto: las respuestas a *¿Qué tienes pendiente?* se tejen en un **telar**.
+Cada media hora de la jornada es una franja (8:00 arriba, 20:00 abajo). Lo dicho en esa media hora es un
+**hilo**, siempre del mismo grosor, que cruza el telar de lado a lado y ondula entre una urdimbre de hilos
+verticales. Cada pendiente es un tramo del hilo, del color de su temática (estudios, trabajo, familia,
+vínculos, uno mismo, salud y cuerpo, sueños y proyectos u otros, detectada por palabras clave) y del largo
+de su frase. Las medias horas sin pendientes quedan vacías. Sobre el tejido van pasando las frases de a una,
+en orden de hora: cada una se escribe sobre su tramo —con las letras más apegadas si se habló mucho y no
+cabe— y vuelve a ser hilo.
 Todos los relatos son anónimos: solo se guarda el texto y la hora, nunca quién habla ni su voz.
-Cada hilera viaja hacia la nube de su temática (estudios, trabajo, vínculos, familia, uno mismo,
-salud y cuerpo, sueños y proyectos u otros), detectada por palabras clave, y sus palabras se suman a esa
-nube, que se va formando durante la jornada. El tamaño indica en cuántos pendientes de la temática aparece la palabra, y el color la hora en que se
-contó: cálido en la mañana, frío en la noche.
 Sin dependencias ni paso de compilación: HTML, CSS, JavaScript (módulos ES) y SVG.
 
 ## Ejecutar en local
@@ -27,7 +29,8 @@ Luego abre <http://localhost:8000>.
 index.html          Página y contenedor del plano (SVG)
 css/styles.css      Estilos y animaciones
 js/app.js           Registro: formulario y dictado por voz
-js/main.js          Visualización: micrófono, grupos, reloj y animación de las palabras
+js/main.js          Visualización: el telar y la simbología de temáticas
+js/ejemplos.js      Pendientes de ejemplo (MOSTRAR_EJEMPLOS = false para el evento)
 js/respuestas.js    Guarda y lee las respuestas del registro (localStorage)
 js/audio.js         AudioEngine (micrófono / análisis); aún no se usa, queda para conectar audio real
 assets/             Imágenes, audios de ejemplo, fuentes
@@ -41,15 +44,15 @@ La página es una sola pantalla dividida en dos mitades:
   el aviso de que los relatos son anónimos y el dictado por voz (se graba apretando el botón).
   El pendiente solo se agrega con voz: el campo no se puede escribir. Lo dictado queda en el campo hasta presionar Enviar, o se borra con Eliminar pendiente.
   El dictado usa la Web Speech API (Chrome, Edge, Safari) y necesita internet.
-- **Derecha, visualización:** simbología (con una barra de colores por hora que marca la hora del reloj)
-  y el plano, donde cada pendiente viaja hacia su temática. Sin pendientes registrados, el plano queda vacío.
+- **Derecha, visualización:** el telar y, debajo, la simbología. Al hacer clic en una temática de la
+  simbología se destacan sus pendientes; al hacer clic en el telar se ve en pantalla completa.
 
 Las respuestas se guardan en el navegador: solo aparecen en la visualización abierta en el mismo equipo.
 
-En la visualización:
+Para ajustar la visualización (`js/main.js`):
 
-- **Pausar / Reanudar**: congela o retoma la emisión de palabras.
-- **Clic en el micrófono**: suelta varias hileras de palabras a la vez.
-- Posición del patio y del micrófono: constantes `PATIO` y `MIC` en `js/main.js`.
-- Velocidad, frecuencia, tamaño y duración de las palabras: constante `EMIT` en `js/main.js`.
-- Temáticas: nubes en `GROUPS` y su tamaño en `CLOUD` (`js/main.js`) y palabras clave en `TEMATICAS` (`js/respuestas.js`); reloj y colores por hora: constante `DAY`; tamaños: constante `SIZE` (todas en `js/main.js`).
+- Jornada y largo de cada línea: constante `DAY` (inicio, término y paso de media hora).
+- Márgenes, tamaño de letra, grosor del hilo, ondulación y largo máximo de cada pendiente: constante `TELAR`.
+- Velocidad de escritura, tiempo que queda escrita cada frase y transformación en línea: constante `TEJIDO`.
+- Temáticas, colores y palabras clave: `TEMATICAS` en `js/respuestas.js`.
+- Textos de ejemplo: `js/ejemplos.js`.

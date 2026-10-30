@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Taller de Visualización Interactiva (Braulio, Bernardita y Benjamín): ¿qué tienes pendiente? Relatos anónimos que viajan hacia su temática.">
+  <meta name="description" content="Taller de Visualización Interactiva (Braulio, Bernardita y Benjamín): ¿qué tienes pendiente? Relatos anónimos tejidos en un telar, hora a hora, con el color de su temática.">
   <title>¿Qué tienes pendiente? · Diseño Abierto</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -47,6 +47,7 @@
       </div>
 
       <textarea id="respuesta" name="respuesta" aria-labelledby="pregunta" rows="3" readonly placeholder="Tu pendiente aparecerá aquí cuando lo dictes"></textarea>
+      <p id="tema-detectado" class="tema-detectado" aria-live="polite"></p>
 
       <div class="acciones">
         <button class="boton-modo" type="submit">Enviar</button>
@@ -60,71 +61,44 @@
   <section id="vista-visualizacion" class="vista vista-visualizacion">
     <header class="bar">
       <h2 class="modo">Modo visualización</h2>
-      <button id="btn-pausa" type="button">Pausar</button>
     </header>
 
     <main class="plano-wrap">
 
       <svg id="plano" viewBox="140 110 1120 780" role="img"
-           aria-label="Plano con un micrófono del que brotan hileras de palabras que forman una nube por temática"></svg>
+           aria-label="Telar de pendientes: una franja por cada media hora de la jornada, con hilos del color de cada temática; más hilos y más delgados donde más se habló"></svg>
 
       <aside class="simbologia" aria-labelledby="simbologia-titulo">
         <h2 id="simbologia-titulo">Simbología</h2>
 
-        <div class="simbologia-grupo simbologia-hora">
-          <h3>Hora del día <span class="escala-nota">cálidos → fríos</span></h3>
-          <div class="escala-hora" id="escala-hora" aria-hidden="true">
-            <span class="escala-marca" id="escala-marca"></span>
-          </div>
-          <div class="escala-horas" aria-hidden="true">
-            <span style="left: 0.0%">8 AM</span>
-            <span style="left: 28.6%">12 PM</span>
-            <span style="left: 50.0%">3 PM</span>
-            <span style="left: 71.4%">6 PM</span>
-            <span style="left: 100.0%">10 PM</span>
-          </div>
-        </div>
-
-        <div class="simbologia-grupo">
-          <h3>Tamaño</h3>
-          <ul class="items">
-            <li><span class="icono icono-texto tamano-grande" aria-hidden="true">diseño</span><span>Más nombrada</span></li>
-            <li><span class="icono icono-texto tamano-chico" aria-hidden="true">diseño</span><span>Menos nombrada</span></li>
-          </ul>
-        </div>
-
-        <div class="simbologia-grupo">
-          <h3>Elementos</h3>
+        <div class="simbologia-grupo simbologia-telar">
+          <h3>Telar</h3>
           <ul class="items">
             <li>
-              <svg class="icono" viewBox="-24 -24 48 48" aria-hidden="true">
-                <circle class="mic-bg" r="22"></circle>
-                <rect class="mic-body" x="-6" y="-14" width="12" height="18" rx="6"></rect>
-                <path class="mic-stand" d="M -10 -2 a 10 10 0 0 0 20 0 M 0 8 V 13 M -6 13 H 6"></path>
+              <svg class="icono icono-hilos" viewBox="0 0 40 22" aria-hidden="true">
+                <rect x="0.5" y="0.5" width="39" height="9" rx="1"></rect>
+                <rect class="vacia" x="0.5" y="12.5" width="39" height="9" rx="1"></rect>
               </svg>
-              <span>Micrófono</span>
+              <span>Cada franja es media hora: arriba 8 AM, abajo 8 PM. Franja vacía: nadie habló</span>
             </li>
             <li>
-              <span class="icono icono-nube" aria-hidden="true"><b>tesis</b> pega <i>amigo</i></span>
-              <span>Nube de una temática (clic para ver sus pendientes)</span>
+              <svg class="icono icono-hebra" viewBox="0 0 84 22" aria-hidden="true">
+                <path class="trazo-muestra" d="M 3 8 Q 9 6 15 8 T 27 8 T 39 8" style="stroke: #e4572e; stroke-width: 5"></path>
+                <path class="trazo-muestra" d="M 45 8 Q 51 6 57 8 T 69 8 T 81 8" style="stroke: #1f5fd1; stroke-width: 5"></path>
+                <text x="3" y="19" font-size="7">frase apegada</text>
+              </svg>
+              <span>Cada hilo cruza de lado a lado; cada tramo es un pendiente, del largo de su frase. Si se habló mucho, los tramos se acortan y la frase se escribe más apegada</span>
             </li>
           </ul>
+        </div>
+
+        <div class="simbologia-grupo">
+          <h3>Temática <span class="escala-nota">(clic para destacar)</span></h3>
+          <ul id="simbologia-temas" class="items temas"></ul>
         </div>
       </aside>
     </main>
 
-    <dialog id="grupo-dialogo" class="grupo-dialogo" aria-labelledby="grupo-dialogo-titulo">
-      <div class="grupo-dialogo-contenido">
-        <header>
-          <div>
-            <h2 id="grupo-dialogo-titulo"></h2>
-            <p id="grupo-dialogo-resumen"></p>
-          </div>
-          <button id="grupo-dialogo-cerrar" type="button" aria-label="Cerrar">Cerrar</button>
-        </header>
-        <ul id="grupo-dialogo-palabras" class="grupo-dialogo-palabras"></ul>
-      </div>
-    </dialog>
 
   </section>
   </div>

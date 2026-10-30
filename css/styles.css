@@ -8,7 +8,7 @@
   --line: #a9b3bf;
   --accent: #c4673f;
   --title: #b04e22; /* naranjo oscuro del título */
-  --patio-fill: #e3e8ee;
+  --patio-fill: #f7efe0; /* crema: el fondo del telar */
   --font: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
 }
@@ -191,8 +191,6 @@ body {
   padding: 24px 0;
 }
 
-
-
 .registro textarea {
   width: 100%;
   padding: 1rem 1.25rem;
@@ -226,11 +224,6 @@ body {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
-
-
-
-
-
 
 .acciones {
   display: flex;
@@ -372,8 +365,7 @@ button:hover {
   color: var(--bg);
 }
 
-button:focus-visible,
-.mic:focus-visible {
+button:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 3px;
 }
@@ -408,57 +400,11 @@ button:focus-visible,
   line-height: 1.3;
 }
 
-.simbologia-hora {
-  flex: 1 1 260px;
-  max-width: 420px;
-}
-
 .escala-nota {
   margin-left: 0.4rem;
   font-weight: 400;
   text-transform: none;
   letter-spacing: 0;
-}
-
-.escala-hora {
-  position: relative;
-  height: 14px;
-  border-radius: 7px;
-}
-
-/* Marca que avanza con el reloj sobre la barra. */
-.escala-marca {
-  position: absolute;
-  top: -4px;
-  left: 0;
-  width: 3px;
-  height: 22px;
-  margin-left: -1.5px;
-  border-radius: 2px;
-  background: var(--ink);
-}
-
-.escala-horas {
-  position: relative;
-  height: 1.2em;
-  margin-top: 0.3rem;
-  font-size: 0.72rem;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.escala-horas span {
-  position: absolute;
-  white-space: nowrap;
-  transform: translateX(-50%);
-}
-
-.escala-horas span:first-child {
-  transform: none;
-}
-
-.escala-horas span:last-child {
-  transform: translateX(-100%);
 }
 
 .simbologia .items {
@@ -467,18 +413,10 @@ button:focus-visible,
   gap: 0.4rem 1rem;
 }
 
-.simbologia .muestra,
 .simbologia .icono {
   flex-basis: 22px;
   width: 22px;
   height: 22px;
-}
-
-.simbologia .icono-texto,
-.simbologia .icono-nube {
-  width: auto;
-  height: auto;
-  flex-basis: auto;
 }
 
 .simbologia h2 {
@@ -513,55 +451,10 @@ button:focus-visible,
   gap: 0.6rem;
 }
 
-.muestra {
-  flex: 0 0 28px;
-  height: 28px;
-}
-
 .icono {
   flex: 0 0 28px;
   width: 28px;
   height: 28px;
-}
-
-.icono-texto {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: auto;
-  flex-basis: auto;
-  min-width: 28px;
-  font-size: 0.8rem;
-}
-
-.icono-nube {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.25rem;
-  width: auto;
-  height: auto;
-  font-family: var(--font-serif);
-  font-size: 0.75rem;
-  color: var(--muted);
-}
-
-.icono-nube b {
-  font-size: 1rem;
-  color: var(--accent);
-}
-
-.icono-nube i {
-  font-style: normal;
-  color: #4b5d84;
-}
-
-.icono-texto.tamano-grande {
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.icono-texto.tamano-chico {
-  font-size: 0.7rem;
 }
 
 @media (max-width: 760px) {
@@ -575,12 +468,6 @@ button:focus-visible,
   stroke: var(--ink);
   stroke-width: 2;
   cursor: zoom-in;
-}
-
-.ondas circle {
-  fill: none;
-  stroke: rgb(47 55 66 / 0.12);
-  stroke-width: 1.2;
 }
 
 /* Visualización ampliada a toda la pantalla (clic en el rectángulo del plano). */
@@ -601,117 +488,6 @@ button:focus-visible,
   cursor: zoom-out;
 }
 
-/* ---------- Grupos y reloj ---------- */
-
-
-
-.grupo {
-  cursor: pointer;
-  outline: none;
-}
-
-
-
-
-/* ---------- Ventana de un grupo ---------- */
-.grupo-dialogo {
-  width: min(680px, calc(100vw - 32px));
-  max-height: calc(100dvh - 64px);
-  padding: 0;
-  border: 1px solid var(--ink);
-  background: var(--surface);
-  color: var(--ink);
-}
-
-.grupo-dialogo::backdrop {
-  background: rgb(0 0 0 / 0.25);
-}
-
-.grupo-dialogo-contenido {
-  padding: 24px;
-}
-
-.grupo-dialogo header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-
-.grupo-dialogo h2 {
-  margin: 0;
-  font-size: 1.1rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.grupo-dialogo header p {
-  margin: 0.25rem 0 0;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-.grupo-dialogo-palabras {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.3rem 0.9rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  line-height: 1.2;
-}
-
-/* ---------- Nubes de palabras por temática ---------- */
-.nube-zona {
-  fill: transparent;
-  stroke: transparent;
-  stroke-dasharray: 3 5;
-}
-
-.grupo:hover .nube-zona,
-.grupo:focus-visible .nube-zona {
-  stroke: rgb(47 55 66 / 0.3);
-}
-
-.nube-palabra {
-  font-family: var(--font-serif);
-  text-anchor: middle;
-  dominant-baseline: central;
-  transform-box: fill-box;
-  transform-origin: center;
-}
-
-/* Palabra que acaba de llegar: aparece creciendo. */
-.nube-palabra.nueva {
-  animation: llega 0.6s ease-out both;
-}
-
-@keyframes llega {
-  from {
-    opacity: 0;
-    transform: scale(0.4);
-  }
-}
-
-.grupo-nombre {
-  fill: var(--ink);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-anchor: middle;
-  dominant-baseline: central;
-  text-transform: uppercase;
-}
-
-.grupo-contador {
-  fill: var(--muted);
-  font-size: 11px;
-  text-anchor: middle;
-  dominant-baseline: central;
-}
-
 .aviso-vacio {
   fill: var(--muted);
   font-size: 18px;
@@ -719,78 +495,199 @@ button:focus-visible,
   dominant-baseline: central;
 }
 
-.reloj {
-  font-size: 22px;
-  font-weight: 600;
+/* ---------- Telar ---------- */
+.hora {
+  fill: var(--muted);
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
   text-anchor: end;
-  dominant-baseline: hanging;
+  dominant-baseline: central;
 }
 
-/* ---------- Micrófonos ---------- */
-.mic {
-  cursor: pointer;
-  outline: none;
+/* Hora actual, junto al borde derecho de su franja. */
+.ahora text {
+  fill: var(--accent);
+  font-size: 12px;
+  font-style: italic;
+  dominant-baseline: central;
 }
 
-.mic-bg {
-  fill: var(--surface);
-  stroke: var(--ink);
-  stroke-width: 1.5;
-}
-
-.mic-body {
-  fill: var(--ink);
-}
-
-.mic-stand {
-  fill: none;
-  stroke: var(--ink);
-  stroke-width: 2;
-  stroke-linecap: round;
-}
-
-.pulse {
-  fill: none;
-  stroke: var(--ink);
-  stroke-width: 1;
+/* La frase mientras se escribe: tapa el hilo y se destapa letra a letra, de izquierda a derecha. */
+.escritura {
+  font-family: var(--font-serif);
+  dominant-baseline: central;
+  paint-order: stroke;
+  stroke: var(--patio-fill);
+  stroke-width: 3px;
+  stroke-linejoin: round;
   transform-box: fill-box;
   transform-origin: center;
-  animation: pulse 2.4s ease-out infinite;
+  animation: escribir var(--dur, 1s) linear both;
+  pointer-events: none;
 }
 
-.pulse:nth-of-type(2) {
-  animation-delay: 1.2s;
-}
-
-@keyframes pulse {
+@keyframes escribir {
   from {
-    transform: scale(1);
-    opacity: 0.5;
+    clip-path: inset(-30% 100% -30% 0);
   }
   to {
-    transform: scale(2.6);
+    clip-path: inset(-30% 0 -30% 0);
+  }
+}
+
+/* Luego se aplana y se desvanece: se transforma en el trazo que aparece en su lugar. */
+.escritura.transformandose {
+  animation: aplanar 0.8s ease-in forwards;
+}
+
+@keyframes aplanar {
+  to {
+    opacity: 0;
+    transform: scaleY(0.15);
+  }
+}
+
+/* Texto invisible que solo sirve para medir el largo de cada frase. */
+.medidor {
+  visibility: hidden;
+  animation: none;
+}
+
+/* Urdimbre: hilos verticales tenues entre los que ondula la trama. */
+.urdimbre line {
+  stroke: rgb(47 55 66 / 0.1);
+  stroke-width: 1;
+}
+
+/* La trama: el hilo de cada media hora, del color de la temática de cada pendiente.
+   El grosor lo pone el código: más delgado cuantas más pasadas tenga la franja. */
+.hebra {
+  fill: none;
+  stroke-linecap: round;
+  animation: aparecer 0.8s ease-out both;
+  transition: opacity 0.3s;
+}
+
+@keyframes aparecer {
+  from {
     opacity: 0;
   }
 }
 
-/* ---------- Hileras de palabras ---------- */
-.stream {
-  fill: var(--ink);
-  font-family: var(--font-serif);
-  dominant-baseline: central;
-  pointer-events: none;
-  user-select: none;
+/* Hilo de un pendiente recién contado: aparece cuando pasa su frase. */
+.hebra.oculta {
+  opacity: 0;
+  animation: none;
 }
 
-#plano.is-paused .pulse {
-  animation-play-state: paused;
+/* Mientras su frase está escrita encima, el hilo se aclara para que la frase se lea. */
+.hebra.leyendose {
+  opacity: 0.2;
+}
+
+/* Al elegir una temática en la simbología, el resto se atenúa. */
+.tejido[data-tema]:not([data-tema=""]) .hebra {
+  opacity: 0.12;
+}
+
+.tejido[data-tema="estudios"] .hebra[data-tema="estudios"],
+.tejido[data-tema="trabajo"] .hebra[data-tema="trabajo"],
+.tejido[data-tema="familia"] .hebra[data-tema="familia"],
+.tejido[data-tema="vinculos"] .hebra[data-tema="vinculos"],
+.tejido[data-tema="uno-mismo"] .hebra[data-tema="uno-mismo"],
+.tejido[data-tema="salud"] .hebra[data-tema="salud"],
+.tejido[data-tema="suenos"] .hebra[data-tema="suenos"],
+.tejido[data-tema="otros"] .hebra[data-tema="otros"] {
+  opacity: 1;
+}
+
+/* ---------- Simbología del telar ---------- */
+.icono-hilos {
+  flex-basis: 40px;
+  width: 40px;
+  height: 22px;
+}
+
+.simbologia .icono-hilos {
+  flex-basis: 40px;
+  width: 40px;
+}
+
+/* Muestra de franja: con hilos (llena) y vacía. */
+.icono-hilos rect {
+  fill: var(--patio-fill);
+  stroke: rgb(47 55 66 / 0.35);
+}
+
+.icono-hilos .vacia {
+  fill: none;
+  stroke-dasharray: 2 2;
+}
+
+/* Muestra de un texto escrito sobre una línea. */
+.simbologia .icono-hebra {
+  flex-basis: 84px;
+  width: 84px;
+  height: 22px;
+}
+
+.icono-hebra text {
+  font-family: var(--font-serif);
+  fill: var(--muted);
+  letter-spacing: -0.06em;
+}
+
+.icono-hebra .trazo-muestra {
+  fill: none;
+  stroke-linecap: round;
+}
+
+
+
+.simbologia-telar {
+  flex: 1 1 320px;
+}
+
+.temas {
+  max-width: 560px;
+}
+
+.tema {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.8rem;
+}
+
+.tema:hover,
+.tema[aria-pressed="true"] {
+  border-color: var(--ink);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.tema-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+/* Temática detectada mientras se dicta. */
+.tema-detectado {
+  min-height: 1.3em;
+  margin: -0.75rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .nube-palabra.nueva,
-  .boton-dictar.escuchando svg,
-  .pulse {
+  .hebra,
+  .boton-dictar.escuchando svg {
     animation: none;
   }
 }

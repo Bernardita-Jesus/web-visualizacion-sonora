@@ -1,8 +1,7 @@
-import { activarVisualizacion, hourColor, lanzarRespuesta } from './main.js';
-import { guardarRespuesta } from './respuestas.js';
+import { lanzarRespuesta } from './main.js';
+import { guardarRespuesta, temaPorId, tematicaDe } from './respuestas.js';
 
-// Una sola pantalla: registro a la izquierda y visualización a la derecha.
-activarVisualizacion(true);
+// Una sola pantalla: registro a la izquierda y visualización (el telar) a la derecha.
 
 /* ---------- Formulario de registro ---------- */
 
@@ -32,7 +31,8 @@ function enviar() {
   form.reset();
   actualizarBorrar();
   estado.textContent = 'Aprieta el botón y cuenta tu pendiente.';
-  aviso.textContent = '¡Gracias! Mira tu pendiente viajar hacia su temática →';
+  colorearSegunTema();
+  aviso.textContent = '¡Gracias! Mira tu pendiente tejerse en el telar →';
   setTimeout(() => (aviso.textContent = ''), 5000);
 }
 
@@ -84,6 +84,7 @@ function iniciarDictado() {
     // Lo dictado se suma a lo que ya había en el campo; nunca lo reemplaza por un resultado vacío.
     if (final || parcial) campo.value = [textoPrevio, final, parcial].filter(Boolean).join(' ').trim();
     actualizarBorrar();
+    colorearSegunTema();
   };
 
   reconocimiento.onerror = (event) => {
@@ -136,22 +137,32 @@ botonBorrar.addEventListener('click', () => {
   detenerDictado();
   campo.value = '';
   actualizarBorrar();
+  colorearSegunTema();
   estado.textContent = 'Aprieta el botón y cuenta tu pendiente.';
   aviso.textContent = 'Pendiente eliminado. Puedes volver a dictarlo.';
   setTimeout(() => (aviso.textContent = ''), 3000);
 });
 
-/* ---------- El texto del pendiente toma el color de la hora actual ---------- */
+/* ---------- El texto del pendiente toma el color de su temática ---------- */
 
-// Es el mismo color con que el pendiente viajará en la visualización (hora real del registro).
-function colorearSegunHora() {
-  const ahora = new Date();
-  const color = hourColor(ahora.getHours() + ahora.getMinutes() / 60);
-  campo.style.color = color;
-  campo.style.caretColor = color;
+const temaDetectado = document.querySelector('#tema-detectado');
+
+// Es el mismo color con que el pendiente se tejerá en el telar.
+function colorearSegunTema() {
+  const texto = campo.value.trim();
+  if (!texto) {
+    campo.style.color = '';
+    campo.style.caretColor = '';
+    temaDetectado.textContent = '';
+    return;
+  }
+  const tema = temaPorId(tematicaDe(texto));
+  campo.style.color = tema.color;
+  campo.style.caretColor = tema.color;
+  temaDetectado.textContent = `Temática: ${tema.nombre}`;
+  temaDetectado.style.color = tema.color;
 }
 
-colorearSegunHora();
-setInterval(colorearSegunHora, 60 * 1000);
+colorearSegunTema();
 
 if (Reconocimiento) estado.textContent = 'Aprieta el botón y cuenta tu pendiente.';

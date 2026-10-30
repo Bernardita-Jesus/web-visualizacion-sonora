@@ -12,14 +12,6 @@ try {
   // Sin acceso al almacenamiento: no hay nada que borrar.
 }
 
-// Palabras demasiado comunes para mostrarse solas.
-const VACIAS = new Set(`
-  a al algo algún alguna ante antes así aun aunque bien cada como con contra cual cuando de del desde donde
-  durante e el ella ellas ellos en entre era es esa ese eso esta este esto estoy fue ha hay hoy la las le les lo los
-  más me mi mis mucho muy nada ni no nos nuestra nuestro o otra otro para pero poco por porque que quien se ser si
-  sin sobre solo son su sus también tan te tener tengo ti todo todos tu tus un una uno unos unas vez y ya yo
-`.trim().split(/\s+/));
-
 export function cargarRespuestas() {
   try {
     return JSON.parse(localStorage.getItem(KEY)) ?? [];
@@ -40,14 +32,6 @@ export function guardarRespuesta(texto) {
   }
 }
 
-/** Palabras con significado de una respuesta, en minúsculas y sin puntuación. */
-export function palabrasDe(texto) {
-  return texto
-    .toLowerCase()
-    .split(/[^\p{L}\p{N}]+/u)
-    .filter((palabra) => palabra.length >= 3 && !VACIAS.has(palabra));
-}
-
 /** Hora del día (con decimales) en que se registró una respuesta. */
 export function horaDe(respuesta) {
   const fecha = new Date(respuesta.fecha);
@@ -57,19 +41,20 @@ export function horaDe(respuesta) {
 /* ---------- Temática del pendiente ---------- */
 
 /**
- * Temáticas de la bitácora (Escala 02). Cada una con raíces de palabras que la delatan; se compara
+ * Temáticas de la bitácora (Escala 02), con su nombre, su color en el telar y raíces de palabras
+ * que la delatan; se compara
  * sin tildes y por comienzo de palabra ("estudi" reconoce estudiar, estudios, estudiando…).
  * Es una clasificación simple por palabras clave: lo que no calza con nada queda en "otros".
  */
 export const TEMATICAS = [
-  { id: 'estudios', raices: ['estudi', 'tesis', 'ramo', 'prueba', 'examen', 'certamen', 'carrera', 'titul', 'universidad', 'clase', 'curso', 'entrega', 'taller', 'tarea', 'nota', 'semestre', 'profe', 'apunte', 'inform', 'investig', 'portafolio', 'bitacora'] },
-  { id: 'trabajo', raices: ['trabaj', 'pega', 'jefe', 'empleo', 'sueldo', 'cliente', 'oficina', 'contrato', 'renunci', 'practica', 'postul', 'curriculum', 'freelance', 'encargo'] },
-  { id: 'familia', raices: ['mama', 'papa', 'padre', 'madre', 'herman', 'abuel', 'hijo', 'hija', 'familia', 'tia', 'tio', 'prim', 'sobrin'] },
-  { id: 'vinculos', raices: ['amig', 'pareja', 'polol', 'perdon', 'disculp', 'convers', 'hablar', 'hable', 'decirle', 'carta', 'llamar', 'llamad', 'relacion', 'amor', 'agradec', 'gracias', 'reencontr', 'visitar', 'escribirle', 'ex'] },
-  { id: 'uno-mismo', raices: ['mismo', 'misma', 'soltar', 'perdonarme', 'cuidarme', 'quererme', 'aceptar', 'dibuj', 'pintar', 'escribir', 'leer', 'descans', 'medit', 'hobby', 'paciencia', 'confianza', 'ordenar', 'organiz'] },
-  { id: 'salud', raices: ['salud', 'medic', 'doctor', 'dentist', 'ejercicio', 'gimnasio', 'gym', 'deporte', 'correr', 'dormir', 'dieta', 'comer', 'terapia', 'psicolog', 'cuerpo', 'peso', 'enferm', 'examenes', 'fumar'] },
-  { id: 'suenos', raices: ['viaj', 'sueno', 'sonar', 'proyecto', 'emprend', 'idioma', 'ingles', 'banda', 'musica', 'tocar', 'instrumento', 'mudar', 'construir', 'crear', 'negocio', 'conocer'] },
-  { id: 'otros', raices: [] },
+  { id: 'estudios', nombre: 'Estudios', color: '#e4572e', raices: ['estudi', 'tesis', 'ramo', 'prueba', 'examen', 'certamen', 'carrera', 'titul', 'universidad', 'clase', 'curso', 'entrega', 'taller', 'tarea', 'nota', 'semestre', 'profe', 'apunte', 'inform', 'investig', 'portafolio', 'bitacora'] },
+  { id: 'trabajo', nombre: 'Trabajo', color: '#1f5fd1', raices: ['trabaj', 'pega', 'jefe', 'empleo', 'sueldo', 'cliente', 'oficina', 'contrato', 'renunci', 'practica', 'postul', 'curriculum', 'freelance', 'encargo'] },
+  { id: 'familia', nombre: 'Familia', color: '#d18f00', raices: ['mama', 'papa', 'padre', 'madre', 'herman', 'abuel', 'hijo', 'hija', 'familia', 'tia', 'tio', 'prim', 'sobrin'] },
+  { id: 'vinculos', nombre: 'Vínculos', color: '#e0317a', raices: ['amig', 'pareja', 'polol', 'perdon', 'disculp', 'convers', 'hablar', 'hable', 'decirle', 'carta', 'llamar', 'llamad', 'relacion', 'amor', 'agradec', 'gracias', 'reencontr', 'visitar', 'escribirle', 'ex'] },
+  { id: 'uno-mismo', nombre: 'Uno mismo', color: '#2e9d3f', raices: ['mismo', 'misma', 'soltar', 'perdonarme', 'cuidarme', 'quererme', 'aceptar', 'dibuj', 'pintar', 'escribir', 'leer', 'descans', 'medit', 'hobby', 'paciencia', 'confianza', 'ordenar', 'organiz'] },
+  { id: 'salud', nombre: 'Salud y cuerpo', color: '#0a9a96', raices: ['salud', 'medic', 'doctor', 'dentist', 'ejercicio', 'gimnasio', 'gym', 'deporte', 'correr', 'dormir', 'dieta', 'comer', 'terapia', 'psicolog', 'cuerpo', 'peso', 'enferm', 'examenes', 'fumar'] },
+  { id: 'suenos', nombre: 'Sueños y proyectos', color: '#8e3fd6', raices: ['viaj', 'sueno', 'sonar', 'proyecto', 'emprend', 'idioma', 'ingles', 'banda', 'musica', 'tocar', 'instrumento', 'mudar', 'construir', 'crear', 'negocio', 'conocer'] },
+  { id: 'otros', nombre: 'Otros', color: '#5a6472', raices: [] },
 ];
 
 const sinTildes = (texto) => texto.normalize('NFD').replace(/\p{Diacritic}/gu, '');
@@ -93,3 +78,6 @@ export function tematicaDe(texto) {
   }
   return mejor;
 }
+
+/** Datos de una temática por su id (nombre y color). */
+export const temaPorId = (id) => TEMATICAS.find((tema) => tema.id === id) ?? TEMATICAS.at(-1);

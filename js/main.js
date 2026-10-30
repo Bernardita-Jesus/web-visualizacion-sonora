@@ -1,97 +1,52 @@
-import { cargarRespuestas, horaDe, palabrasDe, tematicaDe } from './respuestas.js';
+import { EJEMPLOS, MOSTRAR_EJEMPLOS } from './ejemplos.js';
+import { TEMATICAS, cargarRespuestas, horaDe, temaPorId, tematicaDe } from './respuestas.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-// Coordenadas en unidades del viewBox (1400 × 1000).
-const PATIO = { x: 150, y: 120, width: 1100, height: 760 };
-const CENTER = { x: PATIO.x + PATIO.width / 2, y: PATIO.y + PATIO.height / 2 };
+/*
+ * El telar: una franja por cada media hora de la jornada, de la mañana (arriba) a la tarde (abajo).
+ * Lo que se dijo en esa media hora es un hilo (la trama), siempre del mismo grosor, que cruza el telar
+ * de lado a lado y ondula entre los hilos verticales (la urdimbre), con el color de la temática de cada
+ * pendiente. Las medias horas en que nadie habló quedan vacías. Sobre el tejido van pasando las frases
+ * de a una: cada frase se escribe sobre su tramo de hilo (con las letras más apegadas si hace falta
+ * para que quepa) y vuelve a transformarse en hilo.
+ */
 
-// Un solo micrófono, al centro del patio.
-const MIC = { x: CENTER.x, y: CENTER.y, phase: Math.random() * Math.PI * 2 };
-
-// El micrófono suelta hileras de palabras. La "cabeza" de la hilera avanza curvándose
-// y las palabras la siguen por el mismo trazo, doblándose con él.
-const EMIT = {
-  interval: [1.2, 2.5], // segundos entre hileras (cada una repite una respuesta registrada)
-  speed: [60, 100], // velocidad de avance (unidades del viewBox por segundo)
-  curl: 0.6, // curvatura base: tendencia a enroscarse en espiral (solo cerca del micrófono)
-  flex: 0.45, // cuánto se flecta la curva hacia un lado y otro
-  steer: 1.8, // radianes/s con que la hilera corrige su rumbo hacia su grupo
-  freeTime: 1.2, // segundos que sale en espiral libre antes de buscar su grupo
-  life: 30, // segundos máximos de una hilera (por si no llega a su grupo)
-  fade: 1.5, // segundos de desvanecimiento
-  absorb: 0.9, // segundos que tarda en desvanecerse al entrar a su grupo
-  responseWords: 8, // máximo de palabras de una respuesta por hilera
-  armSpin: 0.7, // radianes/s que rota la dirección de salida
-  burst: 6, // hileras extra al hacer clic en el micrófono
-  max: 50, // tope de hileras simultáneas
+// Coordenadas en unidades del viewBox.
+const MARCO = { x: 150, y: 120, width: 1100, height: 760 };
+const DAY = { start: 8, end: 20, step: 0.5 }; // jornada de Diseño Abierto (bitácora): 8:00 a 20:00
+const TELAR = {
+  left: MARCO.x + 96, // espacio a la izquierda para las horas
+  right: MARCO.x + MARCO.width - 28,
+  top: MARCO.y + 34,
+  bottom: MARCO.y + MARCO.height - 26,
+  fontSize: 14, // tamaño de la frase mientras se escribe; si no cabe, las letras se apegan (no se achican)
+  gap: 6, // separación entre un pendiente y el siguiente en el mismo hilo
+  maxChars: 400, // largo máximo de un pendiente
+  stroke: 7, // grosor del hilo (el mismo en todas las franjas)
+  waveLength: 18, // separación aproximada entre los hilos verticales (urdimbre): el hilo ondula entre ellos
 };
 
-// Tamaño según en cuántos pendientes de la temática aparece la palabra.
-const SIZE = { min: 16, max: 40, boldFrom: 0.7 };
-
-// Una nube de palabras por temática (bitácora, Escala 02), repartidas en un óvalo alrededor del
-// micrófono: cada pendiente viaja hacia su temática y sus palabras se suman a esa nube.
-const ARRIVE_RADIUS = 45; // distancia al centro de la nube a la que una hilera se considera llegada
-// Nube: área (elipse) donde caben sus palabras, tope de palabras visibles y tamaños de letra.
-const CLOUD = { rx: 140, ry: 90, maxWords: 30, size: [14, 34], boldFrom: 0.6, pad: 3 };
-const GROUP_LAYOUT = { rx: 420, ry: 270 }; // radios del óvalo donde se ubican las nubes
-const GROUPS = [
-  { id: 'estudios', name: 'Estudios', lines: ['Estudios'] },
-  { id: 'trabajo', name: 'Trabajo', lines: ['Trabajo'] },
-  { id: 'vinculos', name: 'Vínculos', lines: ['Vínculos'] },
-  { id: 'familia', name: 'Familia', lines: ['Familia'] },
-  { id: 'uno-mismo', name: 'Uno mismo', lines: ['Uno', 'mismo'] },
-  { id: 'salud', name: 'Salud y cuerpo', lines: ['Salud y', 'cuerpo'] },
-  { id: 'suenos', name: 'Sueños y proyectos', lines: ['Sueños y', 'proyectos'] },
-  { id: 'otros', name: 'Otros', lines: ['Otros'] },
-].map((group, i, all) => {
-  const angle = -Math.PI / 2 + (i / all.length) * Math.PI * 2; // el primero arriba, en sentido horario
-  return { ...group, x: MIC.x + Math.cos(angle) * GROUP_LAYOUT.rx, y: MIC.y + Math.sin(angle) * GROUP_LAYOUT.ry };
-});
-
-// Reloj simulado: recorre la jornada y el color de las palabras se enfría con las horas.
-const DAY = {
-  start: 8, // hora de inicio
-  end: 22, // hora de término
-  duration: 120, // segundos reales que dura la jornada completa
-  // Tonos de la portada: de terracota (mañana) pasando por rosa y ciruela apagados, hasta azul pizarra (noche).
-  hue: [20, -148],
-  saturation: [58, 40],
-  lightness: [50, 38],
+// Cómo pasan las frases: una se escribe letra a letra sobre su trazo, se queda un momento, vuelve a
+// ser línea y recién entonces pasa la siguiente (en orden de hora, en ciclo).
+const TEJIDO = {
+  charsPerSecond: 60, // velocidad de escritura
+  maxWrite: 2.6, // segundos máximos que tarda en escribirse una frase (las largas se escriben más rápido)
+  hold: 1.6, // segundos que la frase queda escrita antes de volver a ser línea
+  transform: 0.8, // segundos que tarda en transformarse en línea
+  pause: 0.6, // respiro antes de la siguiente frase
 };
 
-const STEP = 3; // distancia mínima entre puntos del trazo
-// Margen interior donde las hileras rebotan: media palabra grande, para que choquen con el borde sin cortarse.
-const WALL = SIZE.max / 2 + 4;
+const ROWS = Math.round((DAY.end - DAY.start) / DAY.step);
+const rowHeight = (TELAR.bottom - TELAR.top) / ROWS;
+const rowY = (row) => TELAR.top + (row + 0.5) * rowHeight;
+const ANCHO = TELAR.right - TELAR.left;
+// Largo de onda ajustado para que el hilo empiece y termine justo sobre los bordes.
+const ONDA = ANCHO / Math.max(1, Math.round(ANCHO / TELAR.waveLength));
 
 const svg = document.querySelector('#plano');
-const pauseButton = document.querySelector('#btn-pausa');
 
-/* ---------- Aleatorio ---------- */
-
-const between = ([min, max]) => min + Math.random() * (max - min);
-const randInt = ([min, max]) => Math.floor(between([min, max + 1]));
-const pickFrom = (list) => list[randInt([0, list.length - 1])];
-const lerp = (a, b, t) => a + (b - a) * t;
-
-/** Color de una hora del día: cálido en la mañana, frío en la noche. */
-export function hourColor(hour) {
-  const t = Math.min(Math.max((hour - DAY.start) / (DAY.end - DAY.start), 0), 1);
-  const hue = (lerp(DAY.hue[0], DAY.hue[1], t) + 360) % 360;
-  const saturation = lerp(DAY.saturation[0], DAY.saturation[1], t);
-  return `hsl(${hue.toFixed(0)} ${saturation.toFixed(0)}% ${lerp(DAY.lightness[0], DAY.lightness[1], t).toFixed(0)}%)`;
-}
-
-/** Hora en formato de 12 horas con AM / PM, por ejemplo "3:30 PM". */
-function formatHour(hour) {
-  const h = Math.floor(hour);
-  const m = Math.floor((hour - h) * 60);
-  const h12 = h % 12 || 12;
-  return `${h12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
-}
-
-/* ---------- Dibujo estático ---------- */
+/* ---------- Utilidades ---------- */
 
 function el(name, attrs = {}, parent) {
   const node = document.createElementNS(SVG_NS, name);
@@ -100,442 +55,258 @@ function el(name, attrs = {}, parent) {
   return node;
 }
 
-function drawPatio() {
-  const patio = el('rect', { class: 'patio', ...PATIO }, svg);
-  el('title', {}, patio).textContent = 'Clic para ver en pantalla completa';
-  patio.addEventListener('click', toggleFullscreen);
+/** Hora en formato de 12 horas, por ejemplo "8 AM" o "3:30 PM". */
+function formatHour(hour) {
+  const h = Math.floor(hour);
+  const m = Math.round((hour - h) * 60);
+  const h12 = h % 12 || 12;
+  return `${h12}${m ? `:${String(m).padStart(2, '0')}` : ''} ${h < 12 ? 'AM' : 'PM'}`;
 }
 
-/** Anillos concéntricos tenues alrededor del micrófono, como ondas de voz. */
-function drawRipples() {
-  const g = el('g', { class: 'ondas', 'clip-path': 'url(#recorte-patio)' }, svg);
-  for (const r of [50, 95, 150, 215, 290, 375]) el('circle', { cx: MIC.x, cy: MIC.y, r }, g);
+/** Línea del telar que corresponde a una hora (las horas fuera de la jornada van a la primera o la última). */
+function rowOf(hour) {
+  const row = Math.floor((hour - DAY.start) / DAY.step);
+  return Math.min(Math.max(row, 0), ROWS - 1);
 }
 
-function drawGroups() {
-  for (const group of GROUPS) {
-    const g = el('g', {
-      class: 'grupo',
-      transform: `translate(${group.x} ${group.y})`,
-      role: 'button',
-      tabindex: 0,
-      'aria-label': `${group.name}: ver todos sus pendientes`,
-    }, svg);
-    // Zona invisible para hacer clic en la nube (se insinúa al pasar el mouse).
-    el('ellipse', { class: 'nube-zona', rx: CLOUD.rx, ry: CLOUD.ry }, g);
-    // Nombre de la temática al centro, en una o dos líneas, con el contador debajo.
-    const label = el('g', { class: 'nube-etiqueta' }, g);
-    const top = -6 - (group.lines.length - 1) * 7;
-    group.lines.forEach((line, i) => {
-      el('text', { class: 'grupo-nombre', y: top + i * 14 }, label).textContent = line;
-    });
-    group.counter = el('text', { class: 'grupo-contador', y: top + group.lines.length * 14 + 2 }, label);
-    group.label = label;
-    group.wordsLayer = el('g', { class: 'nube-palabras' }, g);
+function recortar(texto) {
+  const limpio = texto.trim().replace(/\s+/g, ' ').toLowerCase();
+  return limpio.length > TELAR.maxChars ? `${limpio.slice(0, TELAR.maxChars - 1).trimEnd()}…` : limpio;
+}
 
-    group.cloud = new Map(); // palabras dibujadas: texto → { node, box, size }
-    group.arrived = new Set(); // palabras que ya llegaron a la nube
-    group.tally = new Map(); // palabras de los pendientes de la temática: texto → { count, color }
-    group.responses = 0;
+/* ---------- Dibujo del telar ---------- */
 
-    const open = () => openGroup(group);
-    g.addEventListener('click', open);
-    g.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        open();
-      }
-    });
+function drawFrame() {
+  const marco = el('rect', { class: 'patio', ...MARCO }, svg);
+  el('title', {}, marco).textContent = 'Clic para ver en pantalla completa';
+  marco.addEventListener('click', toggleFullscreen);
+}
+
+function drawLoom() {
+  // Urdimbre: hilos verticales tenues por donde la trama pasa por encima y por debajo.
+  const urdimbre = el('g', { class: 'urdimbre' }, svg);
+  for (let x = TELAR.left + ONDA / 4; x < TELAR.right; x += ONDA / 2) {
+    el('line', { x1: x.toFixed(1), x2: x.toFixed(1), y1: TELAR.top, y2: TELAR.bottom }, urdimbre);
   }
-}
 
-// Aviso mientras todavía no hay respuestas registradas.
-function drawEmptyHint() {
-  const hint = el('text', { class: 'aviso-vacio', x: MIC.x, y: MIC.y + 70 }, svg);
-  hint.textContent = 'Aún no hay pendientes: cuenta el tuyo en el modo registro';
-  return hint;
-}
-
-function drawClock() {
-  const clock = el('text', { class: 'reloj', x: PATIO.x + PATIO.width - 24, y: PATIO.y + 24 }, svg);
-  return clock;
-}
-
-function drawMic() {
-  const g = el('g', {
-    class: 'mic',
-    transform: `translate(${MIC.x} ${MIC.y})`,
-    role: 'button',
-    tabindex: 0,
-    'aria-label': 'Micrófono: soltar una ráfaga de palabras',
-  }, svg);
-
-  el('circle', { class: 'pulse', r: 22 }, g);
-  el('circle', { class: 'pulse', r: 22 }, g);
-  el('circle', { class: 'mic-bg', r: 22 }, g);
-  el('rect', { class: 'mic-body', x: -6, y: -14, width: 12, height: 18, rx: 6 }, g);
-  el('path', { class: 'mic-stand', d: 'M -10 -2 a 10 10 0 0 0 20 0 M 0 8 V 13 M -6 13 H 6' }, g);
-
-  const burst = () => {
-    for (let i = 0; i < EMIT.burst; i++) spawn((i / EMIT.burst) * Math.PI * 2);
-  };
-  g.addEventListener('click', burst);
-  g.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      burst();
+  // Etiqueta de cada hora en punto, a la izquierda de su franja.
+  const horas = el('g', { class: 'horas' }, svg);
+  for (let row = 0; row < ROWS; row++) {
+    const hour = DAY.start + row * DAY.step;
+    if (Number.isInteger(hour)) {
+      el('text', { class: 'hora', x: TELAR.left - 18, y: rowY(row) }, horas).textContent = formatHour(hour);
     }
-  });
+  }
+  el('text', { class: 'hora hora-fin', x: TELAR.left - 18, y: TELAR.bottom + 8 }, horas).textContent = formatHour(DAY.end);
 }
 
-drawPatio();
-// Trazos invisibles (guías de las hileras y órbitas) y texto van entre el patio y el micrófono.
-const guides = el('defs', {}, svg);
-drawRipples();
-drawGroups();
-const clock = drawClock();
-const emptyHint = drawEmptyHint();
-// Recorte con la forma del rectángulo: ninguna palabra se dibuja fuera de él.
-const clip = el('clipPath', { id: 'recorte-patio' }, guides);
-el('rect', { ...PATIO }, clip);
-const layer = el('g', { class: 'streams', 'clip-path': 'url(#recorte-patio)' }, svg);
-drawMic();
+/** Marca la franja de la hora actual (si está dentro de la jornada), junto al borde derecho. */
+function drawNow() {
+  const marca = el('g', { class: 'ahora' }, svg);
+  const label = el('text', { x: TELAR.right + 6 }, marca);
+  label.textContent = '◂ ahora';
 
-/* ---------- Hileras de palabras ---------- */
+  const update = () => {
+    const now = new Date();
+    const hour = now.getHours() + now.getMinutes() / 60;
+    const inside = hour >= DAY.start && hour < DAY.end;
+    marca.style.display = inside ? '' : 'none';
+    if (!inside) return;
+    label.setAttribute('y', rowY(rowOf(hour)));
+  };
+  update();
+  setInterval(update, 60 * 1000);
+}
 
-const streams = [];
-let nextId = 0;
+drawFrame();
+drawLoom();
+drawNow();
+const tejido = el('g', { class: 'tejido' }, svg);
+const emptyHint = el('text', { class: 'aviso-vacio', x: MARCO.x + MARCO.width / 2, y: MARCO.y + MARCO.height / 2 }, svg);
+emptyHint.textContent = 'Aún no hay pendientes: cuenta el tuyo en el modo registro';
+
+/* ---------- Tejer los pendientes ---------- */
+
+const esperar = (segundos) => new Promise((resolve) => setTimeout(resolve, segundos * 1000));
+
+// Por cada franja (media hora): sus pendientes en orden de hora y el grupo donde se dibuja su hilo.
+const franjas = Array.from({ length: ROWS }, () => ({ pendientes: [], g: el('g', { class: 'franja' }, tejido) }));
+// Todos los pendientes tejidos, en orden de hora: por aquí van pasando las frases.
+const tejidos = [];
+
+// Para medir cuánto mide una frase con la letra de base.
+const medidor = el('text', { class: 'escritura medidor', 'font-size': TELAR.fontSize, x: -9999, y: -9999 }, svg);
+function medir(texto) {
+  medidor.textContent = texto;
+  return medidor.getComputedTextLength();
+}
+
+/** Tramo ondulado de hilo entre xa y xb: pasa por encima y por debajo de la urdimbre. */
+function onda(xa, xb, y, fila, amplitud) {
+  const pasos = Math.max(2, Math.ceil(Math.abs(xb - xa) / 3));
+  const fase = (fila % 2) * Math.PI; // franjas vecinas ondulan al revés, como en un tejido
+  const puntos = [];
+  for (let i = 0; i <= pasos; i++) {
+    const x = xa + ((xb - xa) * i) / pasos;
+    const yy = y + amplitud * Math.sin((2 * Math.PI * (x - TELAR.left)) / ONDA + fase);
+    puntos.push(`${x.toFixed(1)} ${yy.toFixed(2)}`);
+  }
+  return `M ${puntos.join(' L ')}`;
+}
 
 /**
- * Hilera con una respuesta del modo registro: viaja a su grupo, con el color de la hora en que se registró.
- * El tamaño depende de cuántas respuestas de ese grupo usan la misma palabra.
+ * Dibuja el hilo de una franja: todo lo dicho en esa media hora, de borde a borde. Cada pendiente ocupa
+ * un tramo proporcional al largo de su frase; si se habló mucho, los tramos se acortan (y la frase se
+ * escribe con las letras más apegadas), pero el hilo siempre llega al otro lado y nunca se superpone.
  */
-function responseRow(respuestas, respuesta = pickFrom(respuestas)) {
-  const group = GROUPS.find(({ id }) => id === tematicaDe(respuesta.texto));
-  const words = palabrasDe(respuesta.texto).slice(0, EMIT.responseWords);
-  if (!group || words.length === 0) return null;
+function dibujarFranja(row) {
+  const franja = franjas[row];
+  franja.g.replaceChildren();
+  const lista = franja.pendientes;
+  if (!lista.length) return; // media hora sin pendientes: franja vacía
 
-  const counts = new Map();
-  for (const otra of respuestas) {
-    if (tematicaDe(otra.texto) !== group.id) continue;
-    for (const palabra of new Set(palabrasDe(otra.texto))) counts.set(palabra, (counts.get(palabra) ?? 0) + 1);
+  const largoTotal = lista.reduce((suma, p) => suma + p.largo, 0) + TELAR.gap * (lista.length - 1);
+  const escala = ANCHO / largoTotal; // < 1 si hay que apretar, > 1 si hay que estirar hasta el borde
+  const y = rowY(row);
+  const amplitud = Math.min(2.2, rowHeight * 0.08);
+
+  let x = TELAR.left;
+  for (const p of lista) {
+    const ancho = p.largo * escala;
+    const nodo = el('path', { class: 'hebra', d: onda(x, x + ancho, y, row, amplitud), 'data-tema': p.tema.id }, franja.g);
+    nodo.style.stroke = p.tema.color;
+    nodo.style.strokeWidth = TELAR.stroke;
+    el('title', {}, nodo).textContent = `${p.tema.nombre} · ${formatHour(p.hora)} · ${p.texto}`;
+    if (p.oculto) nodo.classList.add('oculta');
+    p.nodo = nodo;
+    p.tramo = { x, ancho, y };
+    x += ancho + TELAR.gap * escala;
   }
-  const max = Math.max(...counts.values(), 2);
+}
 
-  return {
-    group,
-    color: hourColor(horaDe(respuesta)),
-    items: words.map((word) => {
-      const t = Math.log(counts.get(word) ?? 1) / Math.log(max);
-      return { text: word, size: lerp(SIZE.min, SIZE.max, t), weight: t >= SIZE.boldFrom ? 600 : 400 };
-    }),
+/** Agrega un pendiente al hilo de su media hora. Con `oculto`, su hilo aparece cuando pasa su frase. */
+function colocar({ texto, hora }, oculto = false) {
+  const limpio = recortar(texto);
+  const pendiente = { texto: limpio, hora, tema: temaPorId(tematicaDe(texto)), row: rowOf(hora), largo: medir(limpio), oculto };
+
+  const enOrden = (lista) => {
+    const i = lista.findIndex((otro) => otro.hora > hora);
+    lista.splice(i === -1 ? lista.length : i, 0, pendiente);
   };
+  enOrden(franjas[pendiente.row].pendientes);
+  enOrden(tejidos);
+  dibujarFranja(pendiente.row);
+  emptyHint.style.display = 'none';
+  return pendiente;
 }
-
-/** Llena el textPath con las palabras de la hilera, cada una con su propio tamaño. */
-function fillRow(textPath, items) {
-  items.forEach((item, i) => {
-    const tspan = el('tspan', { 'font-size': item.size.toFixed(1), 'font-weight': item.weight }, textPath);
-    // Espacios duros para que el separador no se colapse entre tspans.
-    tspan.textContent = i < items.length - 1 ? `${item.text}\u00a0\u00a0` : item.text;
-  });
-  return items.map(({ text }) => text);
-}
-
-function spawn(angleOffset = 0, forcedRow = null) {
-  if (streams.length >= EMIT.max && !forcedRow) return;
-  // Solo salen palabras de las respuestas registradas: sin respuestas, no sale nada.
-  const respuestas = cargarRespuestas();
-  const row = forcedRow ?? (respuestas.length > 0 ? responseRow(respuestas) : null);
-  if (!row) return;
-  const { group, color } = row;
-
-  const id = `hilera-${nextId++}`;
-  const heading = MIC.phase + angleOffset + between([-0.3, 0.3]);
-  const path = el('path', { id }, guides);
-  const textNode = el('text', { class: 'stream', style: `fill: ${color}` }, layer);
-  const textPath = el('textPath', { href: `#${id}` }, textNode);
-  const words = fillRow(textPath, row.items);
-  const textLength = textNode.getComputedTextLength();
-
-  // Arranca en el borde del ícono, no en su centro.
-  const start = { x: MIC.x + Math.cos(heading) * 24, y: MIC.y + Math.sin(heading) * 24 };
-
-  streams.push({
-    path,
-    textNode,
-    textPath,
-    textLength,
-    points: [start],
-    lengths: [0], // distancia acumulada desde el origen hasta cada punto
-    head: { ...start },
-    heading,
-    turn: Math.random() < 0.5 ? 1 : -1, // sentido de giro: mezclados para que se enreden
-    speed: between(EMIT.speed),
-    flexFreq: between([0.4, 1.1]),
-    flexPhase: Math.random() * Math.PI * 2,
-    age: 0,
-    group,
-    words,
-    color,
-    arrivedAt: null, // momento en que entró a su grupo
-  });
-}
-
-/** Rebote contra los bordes del rectángulo: refleja la dirección como una pelota. */
-function bounce(s) {
-  const left = PATIO.x + WALL;
-  const right = PATIO.x + PATIO.width - WALL;
-  const top = PATIO.y + WALL;
-  const bottom = PATIO.y + PATIO.height - WALL;
-
-  if (s.head.x < left || s.head.x > right) {
-    s.heading = Math.PI - s.heading;
-    s.head.x = Math.min(Math.max(s.head.x, left), right);
-  }
-  if (s.head.y < top || s.head.y > bottom) {
-    s.heading = -s.heading;
-    s.head.y = Math.min(Math.max(s.head.y, top), bottom);
-  }
-}
-
-/** Ángulo en (-π, π]. */
-const wrapAngle = (angle) => Math.atan2(Math.sin(angle), Math.cos(angle));
-
-function advance(s, dt) {
-  const distance = Math.hypot(s.head.x - MIC.x, s.head.y - MIC.y);
-  // Curvatura: se enrosca alrededor del micrófono (más suave al alejarse) y se flecta con una onda.
-  const curl = (s.turn * EMIT.curl) / (1 + distance / 60);
-  const flex = Math.sin(s.age * s.flexFreq + s.flexPhase) * EMIT.flex;
-  s.heading += (curl + flex) * dt;
-
-  // Después de salir en espiral, corrige el rumbo poco a poco hacia su grupo.
-  if (s.age > EMIT.freeTime) {
-    const target = Math.atan2(s.group.y - s.head.y, s.group.x - s.head.x);
-    const delta = wrapAngle(target - s.heading);
-    const maxTurn = EMIT.steer * dt;
-    s.heading += Math.min(Math.max(delta, -maxTurn), maxTurn);
-  }
-
-  s.head.x += Math.cos(s.heading) * s.speed * dt;
-  s.head.y += Math.sin(s.heading) * s.speed * dt;
-  bounce(s);
-
-  // Al llegar a su nube, la hilera se absorbe y sus palabras se suman a la nube.
-  if (s.arrivedAt === null && Math.hypot(s.head.x - s.group.x, s.head.y - s.group.y) < ARRIVE_RADIUS) {
-    s.arrivedAt = s.age;
-    receive(s.group, s.words, s.color);
-  }
-
-  const lastPoint = s.points.at(-1);
-  const segment = Math.hypot(s.head.x - lastPoint.x, s.head.y - lastPoint.y);
-  if (segment >= STEP) {
-    s.points.push({ ...s.head });
-    s.lengths.push(s.lengths.at(-1) + segment);
-  }
-
-  // Descarta la cola que ya no lleva texto, para que el trazo no crezca sin límite.
-  const total = s.lengths.at(-1);
-  while (s.points.length > 2 && total - s.lengths[1] > s.textLength + 20) {
-    s.points.shift();
-    s.lengths.shift();
-  }
-}
-
-function render(s) {
-  s.path.setAttribute('d', 'M ' + s.points.map((p) => `${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' L '));
-  // El final del texto va pegado a la cabeza: las palabras avanzan en fila y van apareciendo desde el micrófono.
-  const pathLength = s.lengths.at(-1) - s.lengths[0];
-  s.textPath.setAttribute('startOffset', (pathLength - s.textLength).toFixed(1));
-
-  const fadeIn = Math.min(s.age / 0.4, 1);
-  const fadeOut = s.arrivedAt !== null
-    ? 1 - (s.age - s.arrivedAt) / EMIT.absorb
-    : Math.min((EMIT.life + EMIT.fade - s.age) / EMIT.fade, 1);
-  s.textNode.setAttribute('opacity', Math.max(0, Math.min(fadeIn, fadeOut)).toFixed(2));
-}
-
-function update(dt) {
-  for (let i = streams.length - 1; i >= 0; i--) {
-    const s = streams[i];
-    s.age += dt;
-    const absorbed = s.arrivedAt !== null && s.age - s.arrivedAt >= EMIT.absorb;
-    if (absorbed || s.age >= EMIT.life + EMIT.fade) {
-      s.path.remove();
-      s.textNode.remove();
-      streams.splice(i, 1);
-      continue;
-    }
-    advance(s, dt);
-    render(s);
-  }
-}
-
-function receive(group, words) {
-  const nuevas = new Set(words.filter((word) => !group.arrived.has(word)));
-  for (const word of words) group.arrived.add(word);
-  renderCloud(group, nuevas);
-}
-
-/* ---------- Nube de palabras ---------- */
-
-const overlaps = (a, b) =>
-  a.x < b.x + b.w + CLOUD.pad && b.x < a.x + a.w + CLOUD.pad && a.y < b.y + b.h + CLOUD.pad && b.y < a.y + a.h + CLOUD.pad;
-
-/** Caja de un elemento centrado en (cx, cy), a partir de su tamaño medido. */
-const boxAt = (bbox, cx, cy) => ({ x: bbox.x + cx, y: bbox.y + cy, w: bbox.width, h: bbox.height });
 
 /**
- * Dibuja la nube de una temática. Las palabras que ya estaban no se mueven (la nube se va formando);
- * las nuevas, o las que cambiaron de tamaño, buscan lugar en espiral desde el centro hacia afuera.
+ * Pasa una frase: se escribe sobre su tramo de hilo y, si no cabe, con las letras más apegadas (más
+ * juntas y angostas, pero del mismo alto) hasta ocupar justo su tramo. Se queda un momento y vuelve a
+ * ser hilo.
  */
-function renderCloud(group, nuevas = new Set()) {
-  // Las más nombradas primero; solo las que ya llegaron, hasta el tope de la nube.
-  const visibles = [...group.arrived]
-    .filter((word) => group.tally.has(word))
-    .sort((a, b) => group.tally.get(b).count - group.tally.get(a).count)
-    .slice(0, CLOUD.maxWords);
-  const max = Math.max(...visibles.map((word) => group.tally.get(word).count), 2);
+async function pasarFrase(pendiente) {
+  const { texto, tema, nodo, tramo } = pendiente;
+  pendiente.oculto = false;
+  nodo.classList.remove('oculta');
+  nodo.classList.add('leyendose'); // el hilo se aclara mientras su frase está escrita encima
 
-  const sizeOf = (word) => {
-    const t = Math.log(group.tally.get(word).count) / Math.log(max);
-    return { size: lerp(CLOUD.size[0], CLOUD.size[1], t), bold: t >= CLOUD.boldFrom };
-  };
-
-  // Quita las que salieron de la nube o cambiaron de tamaño (se vuelven a ubicar).
-  for (const [word, placed] of group.cloud) {
-    if (!visibles.includes(word) || Math.abs(sizeOf(word).size - placed.size) > 0.5) {
-      placed.node.remove();
-      group.cloud.delete(word);
-    }
+  const escrito = el('text', {
+    class: 'escritura',
+    x: tramo.x.toFixed(1),
+    y: tramo.y.toFixed(1),
+    'font-size': TELAR.fontSize,
+    style: `fill: ${tema.color}`,
+  }, tejido);
+  escrito.textContent = texto;
+  if (pendiente.largo > tramo.ancho) {
+    escrito.setAttribute('textLength', tramo.ancho.toFixed(1));
+    escrito.setAttribute('lengthAdjust', 'spacingAndGlyphs');
   }
+  const segundos = Math.min(texto.length / TEJIDO.charsPerSecond, TEJIDO.maxWrite);
+  escrito.style.setProperty('--dur', `${segundos.toFixed(2)}s`);
 
-  const ocupadas = [boxAt(group.label.getBBox(), 0, 0), ...[...group.cloud.values()].map((p) => p.box)];
+  await esperar(segundos + TEJIDO.hold);
+  escrito.classList.add('transformandose');
+  nodo.classList.remove('leyendose');
+  await esperar(TEJIDO.transform);
+  escrito.remove();
+  await esperar(TEJIDO.pause);
+}
 
-  for (const word of visibles) {
-    const { color } = group.tally.get(word);
-    const placed = group.cloud.get(word);
-    if (placed) {
-      placed.node.style.fill = color;
-      continue;
+/* ---------- Las frases pasan de a una, en ciclo ---------- */
+
+const urgentes = []; // pendientes recién registrados: pasan antes que el resto
+
+async function ciclo() {
+  let i = 0;
+  for (;;) {
+    if (urgentes.length) {
+      await pasarFrase(urgentes.shift());
+    } else if (tejidos.length) {
+      i %= tejidos.length;
+      await pasarFrase(tejidos[i]);
+      i += 1;
+    } else {
+      await esperar(1);
     }
-
-    const { size, bold } = sizeOf(word);
-    const node = el('text', {
-      class: nuevas.has(word) ? 'nube-palabra nueva' : 'nube-palabra',
-      'font-size': size.toFixed(1),
-      'font-weight': bold ? 600 : 400,
-      style: `fill: ${color}`,
-    }, group.wordsLayer);
-    node.textContent = word;
-    const bbox = node.getBBox();
-
-    // Espiral (más ancha que alta) desde el centro: primer lugar libre dentro de la nube.
-    let lugar = null;
-    for (let step = 0; step < 600 && !lugar; step++) {
-      const angle = step * 0.45;
-      const radius = step * 0.55;
-      const cx = Math.cos(angle) * radius * 1.6;
-      const cy = Math.sin(angle) * radius;
-      const box = boxAt(bbox, cx, cy);
-      const dentro = ((box.x + box.w / 2) / CLOUD.rx) ** 2 + ((box.y + box.h / 2) / CLOUD.ry) ** 2 <= 1
-        && Math.abs(cx) + box.w / 2 <= CLOUD.rx + 10;
-      if (dentro && !ocupadas.some((other) => overlaps(box, other))) lugar = { cx, cy, box };
-    }
-
-    if (!lugar) {
-      node.remove(); // no cabe: sigue disponible en la ventana de la temática
-      continue;
-    }
-    node.setAttribute('x', lugar.cx.toFixed(1));
-    node.setAttribute('y', lugar.cy.toFixed(1));
-    ocupadas.push(lugar.box);
-    group.cloud.set(word, { node, box: lugar.box, size });
   }
 }
 
-/* ---------- Conteo real de las respuestas de cada grupo ---------- */
-
-let cloudsReady = false;
-
-/** Recalcula contadores y palabras a partir de los pendientes guardados. */
-function refreshGroups() {
-  const respuestas = cargarRespuestas();
-  emptyHint.style.display = respuestas.length ? 'none' : '';
-
-  for (const group of GROUPS) {
-    const propias = respuestas.filter((r) => tematicaDe(r.texto) === group.id);
-    group.responses = propias.length;
-    group.counter.textContent = `${propias.length} ${propias.length === 1 ? 'pendiente' : 'pendientes'}`;
-
-    group.tally = new Map();
-    for (const respuesta of propias) {
-      const color = hourColor(horaDe(respuesta));
-      for (const palabra of palabrasDe(respuesta.texto)) {
-        const entry = group.tally.get(palabra) ?? { count: 0 };
-        entry.count += 1;
-        entry.color = color; // color de la última vez que se dijo
-        group.tally.set(palabra, entry);
-      }
-    }
-
-    // Al abrir la página, la nube parte con las palabras de los pendientes ya guardados.
-    if (!cloudsReady) {
-      for (const word of group.tally.keys()) group.arrived.add(word);
-      renderCloud(group);
-    }
-    if (dialog.open && dialog.dataset.group === group.id) fillDialog(group);
-  }
-  cloudsReady = true;
+function pendientesDelDia() {
+  const ejemplos = MOSTRAR_EJEMPLOS ? EJEMPLOS : [];
+  const reales = cargarRespuestas().map((respuesta) => ({ texto: respuesta.texto, hora: horaDe(respuesta) }));
+  return [...ejemplos, ...reales].sort((a, b) => a.hora - b.hora);
 }
 
-// Si se registran respuestas en otra pestaña del mismo navegador, se actualiza.
-window.addEventListener('storage', refreshGroups);
-
-/* ---------- Ventana con todas las palabras de un grupo ---------- */
-
-const dialog = document.querySelector('#grupo-dialogo');
-const dialogTitle = document.querySelector('#grupo-dialogo-titulo');
-const dialogSummary = document.querySelector('#grupo-dialogo-resumen');
-const dialogWords = document.querySelector('#grupo-dialogo-palabras');
-
-function fillDialog(group) {
-  dialogTitle.textContent = group.name;
-  const entries = [...group.tally.entries()].sort((a, b) => b[1].count - a[1].count);
-  dialogSummary.textContent = entries.length
-    ? `${group.responses} ${group.responses === 1 ? 'pendiente' : 'pendientes'} · ${entries.length} palabras distintas`
-    : 'Todavía no hay pendientes de esta temática.';
-
-  const max = entries[0]?.[1].count ?? 1;
-  dialogWords.replaceChildren(...entries.map(([text, { count, color }]) => {
-    const item = document.createElement('li');
-    item.textContent = text;
-    item.title = `${count} ${count === 1 ? 'vez' : 'veces'}`;
-    item.style.color = color;
-    item.style.fontSize = `${lerp(0.85, 2.1, Math.log(count) / Math.log(Math.max(max, 2))).toFixed(2)}rem`;
-    return item;
-  }));
+/** Un pendiente recién registrado se suma al telar y su frase es la próxima en pasar. */
+export function lanzarRespuesta(respuesta) {
+  urgentes.push(colocar({ texto: respuesta.texto, hora: horaDe(respuesta) }, true));
 }
 
-function openGroup(group) {
-  dialog.dataset.group = group.id;
-  fillDialog(group);
-  dialog.showModal();
-}
-
-document.querySelector('#grupo-dialogo-cerrar').addEventListener('click', () => dialog.close());
-// Cerrar al hacer clic fuera del contenido.
-dialog.addEventListener('click', (event) => {
-  if (event.target === dialog) dialog.close();
+// Se mide el largo de cada frase para ubicarla: hay que esperar a que cargue la tipografía,
+// o se mediría con la letra de reemplazo (más angosta).
+document.fonts.ready.then(() => {
+  // El telar aparece completo desde el comienzo: todos los hilos, siempre.
+  pendientesDelDia().forEach((pendiente) => colocar(pendiente));
+  emptyHint.style.display = tejidos.length ? 'none' : '';
+  ciclo();
 });
+
+/* ---------- Simbología: temáticas (clic para destacar una) ---------- */
+
+const listaTemas = document.querySelector('#simbologia-temas');
+let temaActivo = null;
+
+for (const tema of TEMATICAS) {
+  const item = document.createElement('li');
+  const boton = document.createElement('button');
+  boton.type = 'button';
+  boton.className = 'tema';
+  boton.dataset.tema = tema.id;
+  boton.setAttribute('aria-pressed', 'false');
+  const muestra = document.createElement('span');
+  muestra.className = 'tema-color';
+  muestra.setAttribute('aria-hidden', 'true');
+  muestra.style.background = tema.color;
+  boton.append(muestra, tema.nombre);
+  boton.addEventListener('click', () => {
+    temaActivo = temaActivo === tema.id ? null : tema.id;
+    tejido.dataset.tema = temaActivo ?? '';
+    for (const otro of listaTemas.querySelectorAll('.tema')) {
+      otro.setAttribute('aria-pressed', String(otro.dataset.tema === temaActivo));
+    }
+  });
+  item.append(boton);
+  listaTemas.append(item);
+}
 
 /* ---------- Pantalla completa ---------- */
 
 const planoWrap = document.querySelector('.plano-wrap');
 
-/** Agranda la visualización (simbología + plano) a toda la pantalla, o vuelve a su mitad. */
+/** Agranda la visualización (telar + simbología) a toda la pantalla, o vuelve a su mitad. */
 function toggleFullscreen() {
-  // Si ya está agrandada (de cualquiera de las dos formas), vuelve a su mitad.
   if (planoWrap.classList.contains('ampliado')) {
     planoWrap.classList.remove('ampliado');
     return;
@@ -553,77 +324,4 @@ function toggleFullscreen() {
 
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') planoWrap.classList.remove('ampliado');
-});
-
-/* ---------- Reloj ---------- */
-
-let dayElapsed = 0;
-const scaleMark = document.querySelector('#escala-marca');
-
-function clockHour() {
-  return DAY.start + (dayElapsed / DAY.duration) * (DAY.end - DAY.start);
-}
-
-function tickClock(dt) {
-  dayElapsed = (dayElapsed + dt) % DAY.duration;
-  const hour = clockHour();
-  clock.textContent = formatHour(hour);
-  clock.style.fill = hourColor(hour);
-  // Marca de la hora actual sobre la barra de colores de la simbología.
-  if (scaleMark) scaleMark.style.left = `${((hour - DAY.start) / (DAY.end - DAY.start)) * 100}%`;
-}
-
-/* ---------- Bucle ---------- */
-
-let timer = 0;
-let paused = false;
-let active = false; // la animación solo corre mientras se ve la pantalla de visualización
-let last = performance.now();
-
-export function activarVisualizacion(visible) {
-  active = visible;
-  last = performance.now();
-}
-
-/** Lanza de inmediato una respuesta recién registrada, para verla viajar a su grupo. */
-export function lanzarRespuesta(respuesta) {
-  refreshGroups();
-  const row = responseRow(cargarRespuestas(), respuesta);
-  if (row) spawn(0, row);
-}
-
-function frame(now) {
-  // Limita el salto de tiempo al volver de otra pestaña.
-  const dt = Math.min(Math.max((now - last) / 1000, 0), 0.1);
-  last = now;
-
-  if (active && !paused) {
-    tickClock(dt);
-    MIC.phase += EMIT.armSpin * dt;
-    timer -= dt;
-    if (timer <= 0) {
-      spawn();
-      timer = between(EMIT.interval);
-    }
-    update(dt);
-  }
-  requestAnimationFrame(frame);
-}
-
-refreshGroups();
-requestAnimationFrame(frame);
-
-/* ---------- Simbología: colores generados con la misma función que las hileras ---------- */
-
-function gradient(fromHour, toHour, steps = 15) {
-  const stops = Array.from({ length: steps }, (_, i) => hourColor(lerp(fromHour, toHour, i / (steps - 1))));
-  return `linear-gradient(to right, ${stops.join(', ')})`;
-}
-
-document.querySelector('#escala-hora').style.background = gradient(DAY.start, DAY.end);
-
-pauseButton.addEventListener('click', () => {
-  paused = !paused;
-  pauseButton.textContent = paused ? 'Reanudar' : 'Pausar';
-  svg.classList.toggle('is-paused', paused);
 });
