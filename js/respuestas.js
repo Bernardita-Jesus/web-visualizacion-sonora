@@ -52,7 +52,7 @@ export const TEMATICAS = [
   { id: 'familia', nombre: 'Familia', color: '#d18f00', raices: ['mama', 'papa', 'padre', 'madre', 'herman', 'abuel', 'hijo', 'hija', 'familia', 'tia', 'tio', 'prim', 'sobrin'] },
   { id: 'vinculos', nombre: 'Vínculos', color: '#e0317a', raices: ['amig', 'pareja', 'polol', 'perdon', 'disculp', 'convers', 'hablar', 'hable', 'decirle', 'carta', 'llamar', 'llamad', 'relacion', 'amor', 'agradec', 'gracias', 'reencontr', 'visitar', 'escribirle', 'ex'] },
   { id: 'uno-mismo', nombre: 'Uno mismo', color: '#2e9d3f', raices: ['mismo', 'misma', 'soltar', 'perdonarme', 'cuidarme', 'quererme', 'aceptar', 'dibuj', 'pintar', 'escribir', 'leer', 'descans', 'medit', 'hobby', 'paciencia', 'confianza', 'ordenar', 'organiz'] },
-  { id: 'salud', nombre: 'Salud y cuerpo', color: '#0a9a96', raices: ['salud', 'medic', 'doctor', 'dentist', 'ejercicio', 'gimnasio', 'gym', 'deporte', 'correr', 'dormir', 'dieta', 'comer', 'terapia', 'psicolog', 'cuerpo', 'peso', 'enferm', 'examenes', 'fumar'] },
+  { id: 'salud', nombre: 'Salud y cuerpo', color: '#0a9a96', raices: ['salud', 'medic', 'doctor', 'dentist', 'ejercicio', 'gimnasio', 'gym', 'deporte', 'correr', 'nadar', 'natacion', 'dormir', 'dieta', 'comer', 'terapia', 'psicolog', 'cuerpo', 'peso', 'enferm', 'examenes', 'fumar'] },
   { id: 'suenos', nombre: 'Sueños y proyectos', color: '#8e3fd6', raices: ['viaj', 'sueno', 'sonar', 'proyecto', 'emprend', 'idioma', 'ingles', 'banda', 'musica', 'tocar', 'instrumento', 'mudar', 'construir', 'crear', 'negocio', 'conocer'] },
   { id: 'otros', nombre: 'Otros', color: '#5a6472', raices: [] },
 ];

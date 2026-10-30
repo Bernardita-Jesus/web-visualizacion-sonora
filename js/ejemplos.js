@@ -52,6 +52,25 @@ export const EJEMPLOS = [
   { hora: 15.2, texto: 'armar una banda de música y tocar en vivo, tengo canciones escritas en un cuaderno que nadie ha escuchado' },
   { hora: 18.8, texto: 'emprender mi propio negocio de cerámica, tengo el proyecto pensado pero me da miedo dar el primer paso' },
 
+  // Momentos muy conversados: a media mañana, a la hora de almuerzo y a la salida, la franja se llena de líneas.
+  { hora: 11.05, texto: 'terminar la entrega del taller de esta semana, llevo noches sin dormir y todavía no tengo clara la idea del proyecto ni qué le voy a mostrar al profe' },
+  { hora: 11.15, texto: 'hablar con mi mejor amiga, nos distanciamos sin pelear, simplemente dejamos de escribirnos y cada día que pasa me cuesta más dar el primer paso para conversar' },
+  { hora: 11.25, texto: 'ir al médico a hacerme los exámenes que me pidieron hace meses, tengo la orden guardada en la mochila y siempre encuentro una razón para no ir a la consulta' },
+  { hora: 11.35, texto: 'organizar mis cosas y aprender a decir que no, me comprometo con todo el mundo y al final no me queda tiempo para mí ni para descansar un poco' },
+  { hora: 11.45, texto: 'viajar sola por primera vez, tengo ahorrado para el pasaje hace un año y me da miedo dar el paso y conocer un lugar sin nadie que me acompañe' },
+
+  { hora: 13.02, texto: 'llamar a mi papá para su cumpleaños, no hablamos desde hace mucho y no sé bien qué decirle después de todo lo que pasó en la familia este último tiempo' },
+  { hora: 13.12, texto: 'rendir el examen que reprobé el semestre pasado, tengo que estudiar de nuevo toda la materia del ramo y siento que no avanzo nada cuando abro los apuntes' },
+  { hora: 13.22, texto: 'buscar otro trabajo de medio tiempo, el sueldo no me alcanza para el arriendo y mi jefe no me da más horas aunque se lo he pedido varias veces' },
+  { hora: 13.32, texto: 'decirle a una persona lo que siento, la conozco hace años y nunca me he atrevido porque me da miedo perder la amistad que tenemos ahora' },
+  { hora: 13.42, texto: 'empezar a hacer ejercicio y comer mejor, siento el cuerpo cansado todo el día y sé que me haría bien moverme aunque sea un poco cada mañana' },
+
+  { hora: 17.52, texto: 'terminar el proyecto de cerámica que empecé en el verano, tengo las piezas a medio hacer en una caja y cada vez que las veo me dan ganas de crear algo nuevo' },
+  { hora: 17.62, texto: 'visitar a mi abuela en el hogar, mi mamá me dice que pregunta por mí y yo siempre digo que voy el próximo domingo y el domingo nunca llega' },
+  { hora: 17.72, texto: 'escribirle a un amigo que se fue a vivir afuera, prometimos mantener el contacto y ya pasaron dos años sin que ninguno de los dos mande un mensaje' },
+  { hora: 17.82, texto: 'entregar la práctica y postular a un trabajo de verdad, tengo miedo de salir de la universidad y no saber qué hacer después de la carrera' },
+  { hora: 17.92, texto: 'perdonarme a mí misma por los errores del año pasado, sigo pensando en lo que hice mal y no me dejo tranquila para seguir adelante con calma' },
+
   // Pendientes cortos, solos en su media hora: quedan como un hilo grueso de una sola pasada.
   { hora: 14.6, texto: 'dormir una siesta sin culpa' },
   { hora: 17.1, texto: 'volver a nadar' },

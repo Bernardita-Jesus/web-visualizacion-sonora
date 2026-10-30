@@ -3,12 +3,12 @@
 **Taller de Visualización Interactiva** — Braulio, Bernardita y Benjamín.
 
 Maqueta para el Diseño Abierto: las respuestas a *¿Qué tienes pendiente?* se tejen en un **telar**.
-Cada media hora de la jornada es una franja (8:00 arriba, 20:00 abajo). Lo dicho en esa media hora es un
+Cada media hora de la jornada es una franja (8:00 arriba, 20:00 abajo), todas del mismo alto. Lo dicho en esa media hora es un
 **hilo**, siempre del mismo grosor, que cruza el telar de lado a lado y ondula entre una urdimbre de hilos
 verticales. Cada pendiente es un tramo del hilo, del color de su temática (estudios, trabajo, familia,
 vínculos, uno mismo, salud y cuerpo, sueños y proyectos u otros, detectada por palabras clave) y del largo
-de su frase. Si se habló mucho, el hilo da vuelta en los bordes y la franja **se llena de líneas**: los
-momentos más conversados del día se ven más densos. Las medias horas sin pendientes quedan vacías.
+de su frase. Si se habló mucho, el hilo da vuelta en los bordes y la franja **se llena de líneas cada vez
+más juntas**: los momentos más conversados del día se ven más densos. Las medias horas sin pendientes quedan vacías.
 Sobre el tejido van pasando las frases de a una, en orden de hora: cada una se escribe sobre su hilo
 —con las letras más apegadas si hace falta para que quepa— y vuelve a ser hilo.
 Todos los relatos son anónimos: solo se guarda el texto y la hora, nunca quién habla ni su voz.
@@ -45,7 +45,10 @@ La página es una sola pantalla dividida en dos mitades:
   el aviso de que los relatos son anónimos y el dictado por voz (se graba apretando el botón).
   El pendiente solo se agrega con voz: el campo no se puede escribir. Lo dictado queda en el campo hasta presionar Enviar, o se borra con Eliminar pendiente.
   El dictado usa la Web Speech API (Chrome, Edge, Safari) y necesita internet.
-- **Derecha, visualización:** el telar y, debajo, la simbología. Al hacer clic en una temática de la
+  El registro se puede **ocultar** (botón Ocultar): queda como una pestaña angosta a la izquierda y la
+  visualización ocupa toda la pantalla; al hacer clic en la pestaña se vuelve a abrir.
+- **Derecha, telar de testimonios:** bajo el título, la simbología (a la izquierda) y el telar (a la derecha);
+  se ven completos, sin tener que bajar. Al hacer clic en una temática de la
   simbología se destacan sus pendientes; al hacer clic en el telar se ve en pantalla completa.
 
 Las respuestas se guardan en el navegador: solo aparecen en la visualización abierta en el mismo equipo.
@@ -53,8 +56,9 @@ Las respuestas se guardan en el navegador: solo aparecen en la visualización ab
 Para ajustar la visualización (`js/main.js`):
 
 - Jornada y largo de cada línea: constante `DAY` (inicio, término y paso de media hora).
-- Márgenes, tamaño de letra, grosor del hilo, separación entre líneas, cuánto se apega la letra antes de pasar
-  a otra línea (`apegue`), ondulación y largo máximo de cada pendiente: constante `TELAR`.
+- Márgenes, tamaño de letra, grosor del hilo, separación entre líneas (`lineGap`), aire entre horas (`bandGap`),
+  líneas máximas por media hora (`maxLines`), cuánto se apega la letra antes de pasar a otra línea (`apegue`),
+  ondulación y largo máximo de cada pendiente: constante `TELAR`.
 - Velocidad de escritura, tiempo que queda escrita cada frase y transformación en línea: constante `TEJIDO`.
 - Temáticas, colores y palabras clave: `TEMATICAS` en `js/respuestas.js`.
 - Textos de ejemplo: `js/ejemplos.js`.

@@ -1,14 +1,15 @@
 /* ---------- Tokens ---------- */
 :root {
-  /* Tonos de la portada "Bitácora de voces": gris azulado, pizarra y terracota. */
-  --bg: #eef1f4;
-  --surface: #f9fafb;
+  /* Todo en blanco hueso; textos pizarra y acento terracota, de la portada "Bitácora de voces". */
+  --bg: #f4efe6;
+  --surface: var(--bg);
   --ink: #2f3742;
   --muted: #7b8591;
   --line: #a9b3bf;
   --accent: #c4673f;
   --title: #b04e22; /* naranjo oscuro del título */
-  --patio-fill: #f7efe0; /* crema: el fondo del telar */
+  --azul: #2b4a7e; /* textos del telar de testimonios, de la simbología y títulos de cada modo */
+  --patio-fill: var(--bg); /* el telar también va en blanco hueso */
   --font: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
 }
@@ -52,6 +53,7 @@ body {
 .cabecera .pregunta {
   flex: 1 1 auto;
   min-width: 0;
+  margin-left: 1.5rem; /* la pregunta, un poco más hacia la derecha */
 }
 
 .cabecera-info {
@@ -67,6 +69,10 @@ body {
 
   .cabecera-info {
     text-align: left;
+  }
+
+  .cabecera .pregunta {
+    margin-left: 0;
   }
 }
 
@@ -111,9 +117,79 @@ body {
   border-left: 1px solid var(--ink);
 }
 
+/* ---------- Pestaña del modo registro ---------- */
+.contenido-registro {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.contenido-registro[hidden] {
+  display: none;
+}
+
+.vista-registro .bar {
+  justify-content: space-between;
+}
+
+/* Registro oculto: queda una franja angosta a la izquierda y la visualización ocupa el resto. */
+.escenario.registro-oculto .vista-registro {
+  flex: 0 0 48px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.escenario.registro-oculto .vista-visualizacion {
+  flex: 1 1 auto;
+}
+
+.pestana-registro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.pestana-registro[hidden] {
+  display: none;
+}
+
+.pestana-texto {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.pestana-flecha {
+  font-size: 0.9rem;
+}
+
+.pestana-registro:hover {
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.pestana-registro:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -4px;
+}
+
 /* Cada mitad lleva el nombre de su modo arriba. */
 .modo {
   margin: 0;
+  color: var(--azul);
   font-size: clamp(1.2rem, 1.8vw, 1.6rem);
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -147,6 +223,20 @@ body {
     min-height: 70dvh;
     border-left: none;
     border-top: 1px solid var(--ink);
+  }
+
+  /* En pantallas angostas, la pestaña oculta queda como una barra arriba. */
+  .escenario.registro-oculto .vista-registro {
+    flex: 0 0 44px;
+  }
+
+  .pestana-registro {
+    flex-direction: row;
+  }
+
+  .pestana-texto {
+    writing-mode: horizontal-tb;
+    transform: none;
   }
 }
 
@@ -375,29 +465,57 @@ button:focus-visible {
   flex: 1;
   min-height: 0;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 0 16px 16px;
+  flex-direction: row; /* simbología a la izquierda (bajo el título), telar a la derecha */
+  align-items: stretch;
+  gap: 36px; /* el telar queda centrado: mismo aire a su izquierda que a su derecha */
+  padding: 16px 36px 12px 16px; /* arriba, a la altura del título del modo registro */
 }
 
+/* Columna izquierda de la visualización: el título y, bajo él, la simbología. */
+.telar-lado {
+  display: flex;
+  flex: 0 0 250px;
+  flex-direction: column;
+  order: -1; /* a la izquierda del telar */
+  gap: 0.9rem;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.telar-lado .bar {
+  min-height: 0;
+  padding: 0;
+}
+
+/* El telar ocupa todo el espacio que deja la simbología y se ve completo (sin tener que bajar). */
 #plano {
   display: block;
   flex: 1;
   min-width: 0;
   min-height: 0;
-  width: 100%;
+  height: 100%; /* el telar empieza arriba, a la altura de los títulos */
 }
 
 /* ---------- Simbología ---------- */
 /* Simbología en una franja debajo del plano. */
 .simbologia {
+  color: var(--azul);
   display: flex;
   flex: none;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 0.75rem 2rem;
-  font-size: 0.8rem;
-  line-height: 1.3;
+  flex-direction: column; /* en columna, justo bajo "Telar de testimonios" */
+  gap: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+/* Título solo para lectores de pantalla: la simbología se entiende sola y así deja más alto al telar. */
+.solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .escala-nota {
@@ -414,25 +532,25 @@ button:focus-visible {
 }
 
 .simbologia .icono {
-  flex-basis: 22px;
-  width: 22px;
-  height: 22px;
+  flex-basis: 28px;
+  width: 28px;
+  height: 28px;
 }
 
 .simbologia h2 {
   margin: 0;
-  padding-top: 0.1rem;
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .simbologia h3 {
-  margin: 0 0 0.4rem;
-  font-size: 0.75rem;
+  margin: 0 0 0.35rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: var(--muted);
+  color: var(--azul);
+  opacity: 0.75;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -458,10 +576,24 @@ button:focus-visible {
 }
 
 @media (max-width: 760px) {
+  .plano-wrap {
+    flex-direction: column;
+  }
+
+  .telar-lado {
+    flex: none;
+  }
+
+  .simbologia .temas {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   #plano {
-    min-height: 320px;
+    height: auto;
+    min-height: 420px;
   }
 }
+
 
 .patio {
   fill: var(--patio-fill);
@@ -497,8 +629,8 @@ button:focus-visible {
 
 /* ---------- Telar ---------- */
 .hora {
-  fill: var(--muted);
-  font-size: 13px;
+  fill: var(--azul);
+  font-size: 20px;
   font-variant-numeric: tabular-nums;
   text-anchor: end;
   dominant-baseline: central;
@@ -609,8 +741,8 @@ button:focus-visible {
 }
 
 .simbologia .icono-hilos {
-  flex-basis: 40px;
-  width: 40px;
+  flex-basis: 52px;
+  width: 52px;
 }
 
 /* Muestra de franja: con hilos (llena) y vacía. */
@@ -626,9 +758,9 @@ button:focus-visible {
 
 /* Muestra de un texto escrito sobre una línea. */
 .simbologia .icono-hebra {
-  flex-basis: 84px;
-  width: 84px;
-  height: 22px;
+  flex-basis: 52px;
+  width: 52px;
+  height: 28px;
 }
 
 .icono-hebra text {
@@ -645,35 +777,42 @@ button:focus-visible {
 
 
 .simbologia-telar {
-  flex: 1 1 320px;
+  flex: none;
 }
 
-.temas {
-  max-width: 560px;
+.simbologia-telar .items {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.simbologia .temas {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.15rem;
 }
 
 .tema {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.25rem 0.6rem;
+  padding: 0.15rem 0.5rem;
   border: 1px solid transparent;
   border-radius: 999px;
   background: transparent;
-  color: var(--ink);
-  font-size: 0.8rem;
+  color: var(--azul);
+  font-size: 0.9rem;
 }
 
 .tema:hover,
 .tema[aria-pressed="true"] {
-  border-color: var(--ink);
+  border-color: var(--azul);
   background: var(--surface);
-  color: var(--ink);
+  color: var(--azul);
 }
 
 .tema-color {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
 }
 

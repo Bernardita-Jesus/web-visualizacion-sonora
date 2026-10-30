@@ -26,8 +26,16 @@
   <div class="escenario">
   <!-- ---------- Registro ---------- -->
   <section id="vista-registro" class="vista vista-registro">
+    <!-- Pestaña: con el registro oculto, solo se ve esta franja; al hacer clic se vuelve a abrir. -->
+    <button id="pestana-registro" class="pestana-registro" type="button" aria-controls="contenido-registro" aria-expanded="true" hidden>
+      <span class="pestana-texto">Modo registro</span>
+      <span class="pestana-flecha" aria-hidden="true">▸</span>
+    </button>
+
+    <div id="contenido-registro" class="contenido-registro">
     <header class="bar">
       <h2 class="modo">Modo registro</h2>
+      <button id="btn-ocultar-registro" type="button" aria-controls="contenido-registro" aria-expanded="true">Ocultar ◂</button>
     </header>
     <form id="form-registro" class="registro" novalidate>
       <p class="anonimo">
@@ -55,18 +63,17 @@
       </div>
       <p id="registro-aviso" class="registro-aviso" role="status"></p>
     </form>
+    </div>
   </section>
 
   <!-- ---------- Visualización ---------- -->
   <section id="vista-visualizacion" class="vista vista-visualizacion">
-    <header class="bar">
-      <h2 class="modo">Modo visualización</h2>
-    </header>
-
     <main class="plano-wrap">
-
-      <svg id="plano" viewBox="140 110 1120 780" role="img"
-           aria-label="Telar de pendientes: una franja por cada media hora de la jornada, con hilos del color de cada temática; más hilos y más delgados donde más se habló"></svg>
+      <!-- Columna izquierda: el título y, debajo, la simbología. El telar va a la derecha, desde arriba. -->
+      <div class="telar-lado">
+        <header class="bar">
+          <h2 class="modo">Telar de testimonios</h2>
+        </header>
 
       <aside class="simbologia" aria-labelledby="simbologia-titulo">
         <h2 id="simbologia-titulo">Simbología</h2>
@@ -79,7 +86,7 @@
                 <rect x="0.5" y="0.5" width="39" height="9" rx="1"></rect>
                 <rect class="vacia" x="0.5" y="12.5" width="39" height="9" rx="1"></rect>
               </svg>
-              <span>Cada franja es media hora: arriba 8 AM, abajo 8 PM. Franja vacía: nadie habló</span>
+              <span>Franja = media hora (8 AM arriba, 8 PM abajo). Vacía: nadie habló</span>
             </li>
             <li>
               <svg class="icono icono-hebra" viewBox="0 0 84 22" aria-hidden="true">
@@ -90,7 +97,7 @@
                 <path class="trazo-muestra" d="M 3 12 A 4 4 0 0 0 3 20" style="stroke: #1f5fd1; stroke-width: 3"></path>
                 <path class="trazo-muestra" d="M 3 20 Q 9 18 15 20 T 27 20 T 39 20 T 51 20" style="stroke: #8e3fd6; stroke-width: 3"></path>
               </svg>
-              <span>Cada hilo cruza de lado a lado; cada tramo es un pendiente, del largo de su frase. Cuanto más se habló en esa media hora, más líneas: el hilo da vuelta en los bordes</span>
+              <span>Cada tramo es un pendiente. Más se habló, más líneas y más juntas</span>
             </li>
           </ul>
         </div>
@@ -100,6 +107,9 @@
           <ul id="simbologia-temas" class="items temas"></ul>
         </div>
       </aside>
+      </div>
+      <svg id="plano" viewBox="140 110 920 1170" preserveAspectRatio="xMidYMin meet" role="img"
+           aria-label="Telar de pendientes: una franja por cada media hora de la jornada, con hilos del color de cada temática; más hilos y más delgados donde más se habló"></svg>
     </main>
 
 

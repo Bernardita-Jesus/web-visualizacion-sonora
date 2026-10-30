@@ -166,3 +166,35 @@ function colorearSegunTema() {
 colorearSegunTema();
 
 if (Reconocimiento) estado.textContent = 'Aprieta el botón y cuenta tu pendiente.';
+
+/* ---------- Pestaña: el modo registro se puede ocultar ---------- */
+
+const escenario = document.querySelector('.escenario');
+const pestana = document.querySelector('#pestana-registro');
+const contenidoRegistro = document.querySelector('#contenido-registro');
+const botonOcultar = document.querySelector('#btn-ocultar-registro');
+const CLAVE_OCULTO = 'diseno-abierto:registro-oculto';
+
+function mostrarRegistro(visible) {
+  escenario.classList.toggle('registro-oculto', !visible);
+  contenidoRegistro.hidden = !visible;
+  pestana.hidden = visible;
+  pestana.setAttribute('aria-expanded', String(visible));
+  botonOcultar.setAttribute('aria-expanded', String(visible));
+  if (!visible) detenerDictado();
+  // Se recuerda en este navegador si se dejó oculto (es solo una comodidad: si falla, no pasa nada).
+  try {
+    localStorage.setItem(CLAVE_OCULTO, visible ? '' : '1');
+  } catch {
+    // Sin almacenamiento disponible.
+  }
+}
+
+botonOcultar.addEventListener('click', () => mostrarRegistro(false));
+pestana.addEventListener('click', () => mostrarRegistro(true));
+
+try {
+  if (localStorage.getItem(CLAVE_OCULTO)) mostrarRegistro(false);
+} catch {
+  // Sin almacenamiento disponible: el registro empieza visible.
+}
