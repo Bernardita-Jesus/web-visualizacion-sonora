@@ -37,6 +37,12 @@
       <h2 class="modo">Modo registro</h2>
       <button id="btn-ocultar-registro" type="button" aria-controls="contenido-registro" aria-expanded="true">Ocultar ◂</button>
     </header>
+    <!-- Reloj: la hora real y la franja del telar donde se tejerá el pendiente que se cuente ahora. -->
+    <div class="reloj-registro" aria-live="off">
+      <time id="reloj-hora" class="reloj-hora">--:--</time>
+      <p id="reloj-franja" class="reloj-franja"></p>
+    </div>
+
     <form id="form-registro" class="registro" novalidate>
       <p class="anonimo">
         <strong>Todos los relatos son anónimos.</strong>
@@ -62,6 +68,15 @@
         <button id="btn-borrar" class="boton-modo boton-secundario" type="button" disabled>Eliminar pendiente</button>
       </div>
       <p id="registro-aviso" class="registro-aviso" role="status"></p>
+
+      <!-- Después de enviar: en qué temática quedó el testimonio, y la opción de corregirla a mano. -->
+      <div id="confirmacion" class="confirmacion" hidden>
+        <p>Tu testimonio está registrado en la temática <strong id="confirmacion-tema"></strong>.</p>
+        <button id="btn-otra-tema" class="boton-otra-tema" type="button" aria-expanded="false" aria-controls="elegir-tema">
+          Esa no era la categoría · seleccionar manualmente
+        </button>
+        <div id="elegir-tema" class="elegir-tema" role="group" aria-label="Elegir la temática" hidden></div>
+      </div>
     </form>
     </div>
   </section>
@@ -86,7 +101,14 @@
                 <rect x="0.5" y="0.5" width="39" height="9" rx="1"></rect>
                 <rect class="vacia" x="0.5" y="12.5" width="39" height="9" rx="1"></rect>
               </svg>
-              <span>Franja = media hora (8 AM arriba, 8 PM abajo). Vacía: nadie habló</span>
+              <span>Franja = media hora (8 AM arriba, 7 PM abajo). Angosta y vacía: nadie habló</span>
+            </li>
+            <li>
+              <svg class="icono icono-costura" viewBox="0 0 52 12" aria-hidden="true">
+                <line class="costura-sombra" x1="2" x2="50" y1="6" y2="6"></line>
+                <line class="costura" x1="2" x2="50" y1="6" y2="6"></line>
+              </svg>
+              <span>Costura blanca: cambio de hora</span>
             </li>
             <li>
               <svg class="icono icono-hebra" viewBox="0 0 84 22" aria-hidden="true">
@@ -97,7 +119,7 @@
                 <path class="trazo-muestra" d="M 3 12 A 4 4 0 0 0 3 20" style="stroke: #1f5fd1; stroke-width: 3"></path>
                 <path class="trazo-muestra" d="M 3 20 Q 9 18 15 20 T 27 20 T 39 20 T 51 20" style="stroke: #8e3fd6; stroke-width: 3"></path>
               </svg>
-              <span>Cada tramo es un pendiente. Más se habló, más líneas y más juntas</span>
+              <span>Cada tramo es un pendiente, del largo de su frase. Más se habló, más líneas: el hilo da vuelta</span>
             </li>
           </ul>
         </div>
@@ -107,6 +129,13 @@
           <ul id="simbologia-temas" class="items temas"></ul>
         </div>
       </aside>
+
+        <!-- Simular registros: muestra testimonios de ejemplo de toda la jornada; apagado, solo los reales. -->
+        <div class="simular">
+          <button id="btn-simular" class="boton-simular" type="button" aria-pressed="false">Simular registros</button>
+          <p class="simular-nota">Apagado: solo los registros reales.</p>
+          <button id="btn-borrar-registros" class="boton-borrar" type="button">Borrar registros reales</button>
+        </div>
       </div>
       <svg id="plano" viewBox="140 110 920 1170" preserveAspectRatio="xMidYMin meet" role="img"
            aria-label="Telar de pendientes: una franja por cada media hora de la jornada, con hilos del color de cada temática; más hilos y más delgados donde más se habló"></svg>

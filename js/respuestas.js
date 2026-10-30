@@ -22,13 +22,64 @@ export function cargarRespuestas() {
 
 export function guardarRespuesta(texto) {
   const respuestas = cargarRespuestas();
-  const respuesta = { texto, fecha: new Date().toISOString() };
+  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const respuesta = { id, texto, fecha: new Date().toISOString() };
   respuestas.push(respuesta);
   try {
     localStorage.setItem(KEY, JSON.stringify(respuestas));
     return respuesta;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Corrige a mano la temática de un registro (cuando la detectada por palabras clave no era la correcta).
+ * Devuelve el registro actualizado, o null si no se encontró.
+ */
+export function cambiarTema(id, temaId) {
+  const respuestas = cargarRespuestas();
+  const respuesta = respuestas.find((r) => r.id === id);
+  if (!respuesta) return null;
+  respuesta.tema = temaId;
+  try {
+    localStorage.setItem(KEY, JSON.stringify(respuestas));
+    return respuesta;
+  } catch {
+    return null;
+  }
+}
+
+/** Temática de un registro: la elegida a mano, si la hay; si no, la detectada en su texto. */
+export const temaDeRespuesta = (respuesta) => respuesta.tema ?? tematicaDe(respuesta.texto);
+
+/* ---------- Borrador: lo dictado y aún no enviado no se pierde ---------- */
+
+const CLAVE_BORRADOR = 'diseno-abierto:borrador';
+
+export function guardarBorrador(texto) {
+  try {
+    if (texto) localStorage.setItem(CLAVE_BORRADOR, texto);
+    else localStorage.removeItem(CLAVE_BORRADOR);
+  } catch {
+    // Sin almacenamiento: el borrador solo vive en la página.
+  }
+}
+
+export function leerBorrador() {
+  try {
+    return localStorage.getItem(CLAVE_BORRADOR) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+/** Borra todos los registros reales guardados en este navegador. */
+export function borrarRespuestas() {
+  try {
+    localStorage.removeItem(KEY);
+  } catch {
+    // Sin acceso al almacenamiento: no hay nada que borrar.
   }
 }
 
@@ -45,15 +96,16 @@ export function horaDe(respuesta) {
  * que la delatan; se compara
  * sin tildes y por comienzo de palabra ("estudi" reconoce estudiar, estudios, estudiando…).
  * Es una clasificación simple por palabras clave: lo que no calza con nada queda en "otros".
+ * Incluye palabras del habla chilena (pega, pituto, pololo, tata, guagua, carrete, la u, solemne…).
  */
 export const TEMATICAS = [
-  { id: 'estudios', nombre: 'Estudios', color: '#e4572e', raices: ['estudi', 'tesis', 'ramo', 'prueba', 'examen', 'certamen', 'carrera', 'titul', 'universidad', 'clase', 'curso', 'entrega', 'taller', 'tarea', 'nota', 'semestre', 'profe', 'apunte', 'inform', 'investig', 'portafolio', 'bitacora'] },
-  { id: 'trabajo', nombre: 'Trabajo', color: '#1f5fd1', raices: ['trabaj', 'pega', 'jefe', 'empleo', 'sueldo', 'cliente', 'oficina', 'contrato', 'renunci', 'practica', 'postul', 'curriculum', 'freelance', 'encargo'] },
-  { id: 'familia', nombre: 'Familia', color: '#d18f00', raices: ['mama', 'papa', 'padre', 'madre', 'herman', 'abuel', 'hijo', 'hija', 'familia', 'tia', 'tio', 'prim', 'sobrin'] },
-  { id: 'vinculos', nombre: 'Vínculos', color: '#e0317a', raices: ['amig', 'pareja', 'polol', 'perdon', 'disculp', 'convers', 'hablar', 'hable', 'decirle', 'carta', 'llamar', 'llamad', 'relacion', 'amor', 'agradec', 'gracias', 'reencontr', 'visitar', 'escribirle', 'ex'] },
-  { id: 'uno-mismo', nombre: 'Uno mismo', color: '#2e9d3f', raices: ['mismo', 'misma', 'soltar', 'perdonarme', 'cuidarme', 'quererme', 'aceptar', 'dibuj', 'pintar', 'escribir', 'leer', 'descans', 'medit', 'hobby', 'paciencia', 'confianza', 'ordenar', 'organiz'] },
-  { id: 'salud', nombre: 'Salud y cuerpo', color: '#0a9a96', raices: ['salud', 'medic', 'doctor', 'dentist', 'ejercicio', 'gimnasio', 'gym', 'deporte', 'correr', 'nadar', 'natacion', 'dormir', 'dieta', 'comer', 'terapia', 'psicolog', 'cuerpo', 'peso', 'enferm', 'examenes', 'fumar'] },
-  { id: 'suenos', nombre: 'Sueños y proyectos', color: '#8e3fd6', raices: ['viaj', 'sueno', 'sonar', 'proyecto', 'emprend', 'idioma', 'ingles', 'banda', 'musica', 'tocar', 'instrumento', 'mudar', 'construir', 'crear', 'negocio', 'conocer'] },
+  { id: 'estudios', nombre: 'Estudios', color: '#e4572e', raices: ['estudi', 'tesis', 'ramo', 'prueb', 'solemne', 'ayudantia', 'facu', 'u', 'examen', 'certamen', 'carrera', 'titul', 'universidad', 'clase', 'curso', 'entrega', 'taller', 'tarea', 'nota', 'semestre', 'profe', 'apunte', 'inform', 'investig', 'portafolio', 'bitacora', 'beca', 'intercambio'] },
+  { id: 'trabajo', nombre: 'Trabajo', color: '#1f5fd1', raices: ['trabaj', 'pega', 'jef', 'pituto', 'pegita', 'chamba', 'turno', 'boleta', 'honorario', 'empleo', 'sueldo', 'cliente', 'oficina', 'contrato', 'renunci', 'practica', 'postul', 'curriculum', 'freelance', 'encargo'] },
+  { id: 'familia', nombre: 'Familia', color: '#d18f00', raices: ['mama', 'papa', 'padre', 'madre', 'herman', 'abuel', 'tata', 'mami', 'papi', 'mamit', 'papit', 'guagua', 'suegr', 'cunad', 'nieto', 'nieta', 'hijo', 'hija', 'familia', 'tia', 'tio', 'prim', 'sobrin'] },
+  { id: 'vinculos', nombre: 'Vínculos', color: '#e0317a', raices: ['amig', 'pareja', 'polol', 'yunta', 'companer', 'compadre', 'amigui', 'cabros', 'carrete', 'junta', 'perdon', 'disculp', 'convers', 'hablar', 'hable', 'decirle', 'carta', 'llamar', 'llamad', 'relacion', 'amor', 'agradec', 'gracias', 'reencontr', 'visitar', 'escribirle', 'ex'] },
+  { id: 'uno-mismo', nombre: 'Uno mismo', color: '#2e9d3f', raices: ['mismo', 'misma', 'soltar', 'perdonarme', 'cuidarme', 'quererme', 'aceptar', 'dibuj', 'pintar', 'escribir', 'leer', 'descans', 'medit', 'hobby', 'paciencia', 'confianza', 'ordenar', 'organiz', 'chato', 'chata', 'bajon'] },
+  { id: 'salud', nombre: 'Salud y cuerpo', color: '#0a9a96', raices: ['salud', 'medic', 'doctor', 'dentist', 'muela', 'kine', 'consultorio', 'cesfam', 'remedio', 'pastilla', 'ejercicio', 'gimnasio', 'gym', 'deporte', 'correr', 'nadar', 'natacion', 'dormir', 'dieta', 'comer', 'terapia', 'psicolog', 'cuerpo', 'peso', 'enferm', 'examenes', 'fumar'] },
+  { id: 'suenos', nombre: 'Sueños y proyectos', color: '#8e3fd6', raices: ['viaj', 'mochile', 'sueno', 'sonar', 'proyecto', 'emprend', 'idioma', 'ingles', 'banda', 'musica', 'tocar', 'instrumento', 'mudar', 'construir', 'crear', 'negocio', 'conocer'] },
   { id: 'otros', nombre: 'Otros', color: '#5a6472', raices: [] },
 ];
 
@@ -81,3 +133,21 @@ export function tematicaDe(texto) {
 
 /** Datos de una temática por su id (nombre y color). */
 export const temaPorId = (id) => TEMATICAS.find((tema) => tema.id === id) ?? TEMATICAS.at(-1);
+
+/* ---------- Habla chilena: muletillas ---------- */
+
+// Muletillas que no aportan a la idea del pendiente (se quitan al guardar, como dice la bitácora).
+const MULETILLAS = /(^|[\s,.;])(e+h+|e+m+|m{2,}|o sea|cach[aá][iy]|po|poh|puh|pos|we[oó]n|hue[vb]?[oó]n|wn)(?=$|[\s,.;!?])/giu;
+
+/** Quita muletillas del dictado ("eh", "o sea", "cachai", "po", "weón"…) y ordena espacios y comas. */
+export function limpiarDictado(texto) {
+  let limpio = texto;
+  // Se repite porque una muletilla puede quedar pegada a otra ("eh, o sea, po").
+  for (let i = 0; i < 3; i++) limpio = limpio.replace(MULETILLAS, '$1');
+  return limpio
+    .replace(/\s+([,.;!?])/g, '$1') // sin espacio antes de la puntuación
+    .replace(/([,;])(\s*[,;])+/g, '$1') // comas repetidas
+    .replace(/^[\s,.;]+|[\s,;]+$/g, '') // sin comas sueltas al principio o al final
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}

@@ -117,6 +117,28 @@ body {
   border-left: 1px solid var(--ink);
 }
 
+/* ---------- Reloj del registro ---------- */
+.reloj-registro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  margin: 0.25rem 0 0;
+  color: var(--azul);
+}
+
+.reloj-hora {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.reloj-franja {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
 /* ---------- Pestaña del modo registro ---------- */
 .contenido-registro {
   display: flex;
@@ -336,6 +358,61 @@ body {
   color: inherit;
 }
 
+/* ---------- Confirmación de la temática ---------- */
+.confirmacion {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.9rem 1.1rem;
+  border-left: 3px solid var(--azul);
+  font-size: 1.05rem;
+}
+
+.confirmacion[hidden],
+.elegir-tema[hidden] {
+  display: none;
+}
+
+.confirmacion p {
+  margin: 0;
+}
+
+.boton-otra-tema {
+  justify-self: start;
+  border-color: var(--azul);
+  color: var(--azul);
+}
+
+.boton-otra-tema:hover {
+  background: var(--azul);
+  color: var(--surface);
+}
+
+.elegir-tema {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tema-opcion {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.tema-opcion:hover,
+.tema-opcion[aria-pressed="true"] {
+  border-color: var(--azul);
+  background: var(--surface);
+  color: var(--azul);
+}
+
+.tema-opcion[aria-pressed="true"] {
+  font-weight: 600;
+}
+
 /* ---------- Dictado ---------- */
 .dictado {
   display: flex;
@@ -467,14 +544,14 @@ button:focus-visible {
   display: flex;
   flex-direction: row; /* simbología a la izquierda (bajo el título), telar a la derecha */
   align-items: stretch;
-  gap: 36px; /* el telar queda centrado: mismo aire a su izquierda que a su derecha */
-  padding: 16px 36px 12px 16px; /* arriba, a la altura del título del modo registro */
+  gap: 22px; /* el telar queda centrado: mismo aire a su izquierda que a su derecha */
+  padding: 16px 22px 12px 16px; /* arriba, a la altura del título del modo registro */
 }
 
 /* Columna izquierda de la visualización: el título y, bajo él, la simbología. */
 .telar-lado {
   display: flex;
-  flex: 0 0 250px;
+  flex: 0 0 205px;
   flex-direction: column;
   order: -1; /* a la izquierda del telar */
   gap: 0.9rem;
@@ -485,6 +562,11 @@ button:focus-visible {
 .telar-lado .bar {
   min-height: 0;
   padding: 0;
+}
+
+/* Ningún elemento de la columna se aplasta: si no cabe, la columna se recorre bajando. */
+.telar-lado > * {
+  flex-shrink: 0;
 }
 
 /* El telar ocupa todo el espacio que deja la simbología y se ve completo (sin tener que bajar). */
@@ -503,7 +585,7 @@ button:focus-visible {
   display: flex;
   flex: none;
   flex-direction: column; /* en columna, justo bajo "Telar de testimonios" */
-  gap: 1rem;
+  gap: 0.8rem;
   font-size: 0.9rem;
   line-height: 1.35;
 }
@@ -597,7 +679,7 @@ button:focus-visible {
 
 .patio {
   fill: var(--patio-fill);
-  stroke: var(--ink);
+  stroke: var(--title); /* el margen del telar, en el color del título */
   stroke-width: 2;
   cursor: zoom-in;
 }
@@ -621,15 +703,19 @@ button:focus-visible {
 }
 
 .aviso-vacio {
-  fill: var(--muted);
-  font-size: 18px;
+  fill: var(--azul);
+  font-size: 30px;
+  paint-order: stroke; /* un borde del color del fondo: la costura no cruza las letras */
+  stroke: var(--patio-fill);
+  stroke-width: 12px;
+  stroke-linejoin: round;
   text-anchor: middle;
   dominant-baseline: central;
 }
 
 /* ---------- Telar ---------- */
 .hora {
-  fill: var(--azul);
+  fill: var(--title); /* las horas, en el color del título */
   font-size: 20px;
   font-variant-numeric: tabular-nums;
   text-anchor: end;
@@ -637,11 +723,14 @@ button:focus-visible {
 }
 
 /* Hora actual, junto al borde derecho de su franja. */
-.ahora text {
-  fill: var(--accent);
-  font-size: 12px;
-  font-style: italic;
-  dominant-baseline: central;
+/* La hora actual, como un botón: pastilla del color del título con la hora en claro. */
+.hora-pastilla {
+  fill: var(--title);
+}
+
+.hora.hora-actual {
+  fill: var(--surface);
+  font-weight: 600;
 }
 
 /* La frase mientras se escribe: tapa el hilo y se destapa letra a letra, de izquierda a derecha. */
@@ -667,15 +756,17 @@ button:focus-visible {
   }
 }
 
-/* Luego se aplana y se desvanece: se transforma en el trazo que aparece en su lugar. */
-.escritura.transformandose {
-  animation: aplanar 0.8s ease-in forwards;
+/* Al terminar, la frase se cose: de izquierda a derecha las letras desaparecen… */
+.escritura.cosiendose {
+  animation: descoser var(--coser, 1.5s) linear forwards;
 }
 
-@keyframes aplanar {
+@keyframes descoser {
+  from {
+    clip-path: inset(-30% 0 -30% 0);
+  }
   to {
-    opacity: 0;
-    transform: scaleY(0.15);
+    clip-path: inset(-30% 0 -30% 100%);
   }
 }
 
@@ -689,6 +780,40 @@ button:focus-visible {
 .urdimbre line {
   stroke: rgb(47 55 66 / 0.1);
   stroke-width: 1;
+}
+
+/* Costura blanca en cada cambio de hora; la sombra tenue debajo hace que se vea sobre el fondo claro. */
+.costura,
+.costura-sombra {
+  stroke-linecap: round;
+}
+
+.costura {
+  stroke: #ffffff;
+  stroke-width: 6;
+  stroke-dasharray: 18 10;
+}
+
+.costura-sombra {
+  stroke: rgb(47 55 66 / 0.2);
+  stroke-width: 9;
+  stroke-dasharray: 18 10;
+  transform: translateY(1.5px);
+}
+
+/* Costura que aparece cuando cambia la hora: se traza de izquierda a derecha. */
+.costura.trazandose,
+.costura-sombra.trazandose {
+  animation: trazar-costura 2.5s ease-in-out both;
+}
+
+@keyframes trazar-costura {
+  from {
+    clip-path: inset(-50% 100% -50% 0);
+  }
+  to {
+    clip-path: inset(-50% 0 -50% 0);
+  }
 }
 
 /* La trama: el hilo de cada media hora, del color de la temática de cada pendiente.
@@ -706,15 +831,36 @@ button:focus-visible {
   }
 }
 
+/* …y en su lugar aparece el hilo en puntadas, al mismo ritmo, como una costura. */
+.hebra.cosiendo {
+  stroke-dasharray: 7 5;
+  transition: none;
+  animation: coser var(--coser, 1.5s) linear both;
+}
+
+@keyframes coser {
+  from {
+    clip-path: inset(-60% 100% -60% 0);
+  }
+  to {
+    clip-path: inset(-60% 0 -60% 0);
+  }
+}
+
+/* Terminada la costura, el hilo se tensa (queda continuo) y no vuelve a animarse. */
+.hebra.cosida {
+  animation: none;
+}
+
 /* Hilo de un pendiente recién contado: aparece cuando pasa su frase. */
 .hebra.oculta {
   opacity: 0;
   animation: none;
 }
 
-/* Mientras su frase está escrita encima, el hilo se aclara para que la frase se lea. */
+/* Mientras su frase está escrita, el hilo desaparece: la frase ocupa su lugar (sin la línea debajo). */
 .hebra.leyendose {
-  opacity: 0.2;
+  opacity: 0;
 }
 
 /* Al elegir una temática en la simbología, el resto se atenúa. */
@@ -733,11 +879,78 @@ button:focus-visible {
   opacity: 1;
 }
 
+/* ---------- Botón: simular registros ---------- */
+.simular {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.2rem;
+  color: var(--azul);
+}
+
+.boton-simular {
+  justify-self: start;
+  padding: 0.5rem 1rem;
+  border: 1.5px solid var(--azul);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--azul);
+  font-size: 0.9rem;
+}
+
+.boton-simular:hover {
+  background: var(--azul);
+  color: var(--surface);
+}
+
+.boton-simular[aria-pressed="true"] {
+  background: var(--azul);
+  color: var(--surface);
+}
+
+.boton-borrar {
+  justify-self: start;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--muted);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.boton-borrar:hover {
+  border-color: var(--title);
+  background: transparent;
+  color: var(--title);
+}
+
+.simular-nota {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.8;
+}
+
 /* ---------- Simbología del telar ---------- */
 .icono-hilos {
   flex-basis: 40px;
   width: 40px;
   height: 22px;
+}
+
+.simbologia .icono-costura {
+  flex-basis: 52px;
+  width: 52px;
+  height: 14px;
+  background: var(--patio-fill);
+}
+
+.icono-costura .costura {
+  stroke-width: 3;
+  stroke-dasharray: 8 5;
+}
+
+.icono-costura .costura-sombra {
+  stroke-width: 5;
+  stroke-dasharray: 8 5;
 }
 
 .simbologia .icono-hilos {
@@ -787,8 +1000,13 @@ button:focus-visible {
 
 .simbologia .temas {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.15rem;
+  grid-template-columns: 1fr 1fr; /* en dos columnas, para que la simbología quepa entera */
+  gap: 0.1rem 0.2rem;
+}
+
+.simbologia .temas .tema {
+  padding-inline: 0.3rem;
+  text-align: left;
 }
 
 .tema {
@@ -811,6 +1029,7 @@ button:focus-visible {
 }
 
 .tema-color {
+  flex: none; /* el punto de color no se deforma si el nombre ocupa dos líneas */
   width: 14px;
   height: 14px;
   border-radius: 50%;

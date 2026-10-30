@@ -1,19 +1,20 @@
 /**
  * Pendientes de ejemplo para la maqueta, repartidos en todas las temáticas y a lo largo de la jornada.
  * Son frases largas, como se cuentan en voz alta. No corresponden a datos reales.
- * Para el día de Diseño Abierto, cambiar MOSTRAR_EJEMPLOS a false.
+ * Se ven al activar "Simular registros" en la visualización; también fijan el alto de cada media hora
+ * (el molde del telar), para que el telar y sus costuras tengan las mismas dimensiones en ambos modos.
  */
-export const MOSTRAR_EJEMPLOS = true;
 
 // hora: hora del día con decimales (9.5 = 9:30). La temática se detecta del texto, como con los reales.
 // Hay medias horas sin pendientes (franjas vacías) y otras muy conversadas, como la hora de almuerzo.
+// La jornada termina a las 19:30 (la última franja es la de las 7 PM).
 export const EJEMPLOS = [
   // Estudios
   { hora: 8.1, texto: 'tengo pendiente terminar la tesis, la vengo arrastrando desde el semestre pasado y cada vez que abro el documento me da más miedo seguir escribiendo' },
   { hora: 13.05, texto: 'estudiar para el certamen de la próxima semana, porque llevo días diciendo que mañana empiezo y todavía no he abierto los apuntes de la clase' },
   { hora: 13.1, texto: 'entregar el informe del taller que debo hace un mes, el profe ya me dio otro plazo y me da vergüenza pedirle uno más' },
   { hora: 16.05, texto: 'ponerme al día con las lecturas y las tareas del curso, siento que voy siempre atrasada y que nunca alcanzo a estudiar con calma' },
-  { hora: 19.6, texto: 'cerrar el portafolio del semestre y ordenar todos los proyectos de la carrera antes de que se me olviden las entregas' },
+  { hora: 18.6, texto: 'cerrar el portafolio del semestre y ordenar todos los proyectos de la carrera antes de que se me olviden las entregas' },
 
   // Trabajo
   { hora: 9.1, texto: 'renunciar a la pega que no me gusta, llevo dos años diciendo que este mes lo hago y sigo yendo todos los días a la misma oficina' },
@@ -32,7 +33,7 @@ export const EJEMPLOS = [
   { hora: 11.2, texto: 'responderle a una amiga que me escribió hace meses, leí su mensaje y lo dejé para después y después nunca llegó' },
   { hora: 13.4, texto: 'tener una conversación pendiente con mi pareja sobre lo que queremos, la vamos postergando porque nos da miedo lo que podamos decir' },
   { hora: 16.2, texto: 'agradecerle a una amiga que me ayudó cuando estaba mal, nunca le dije lo importante que fue para mí' },
-  { hora: 19.7, texto: 'reencontrarme con mis amigos del colegio, siempre armamos el grupo para juntarnos y nunca nos juntamos' },
+  { hora: 18.7, texto: 'reencontrarme con mis amigos del colegio, siempre armamos el grupo para juntarnos y nunca nos juntamos' },
 
   // Uno mismo
   { hora: 8.2, texto: 'volver a dibujar por gusto y no solo por obligación, antes lo hacía todo el tiempo y ahora me cuesta tomar el lápiz' },
@@ -71,6 +72,12 @@ export const EJEMPLOS = [
   { hora: 17.82, texto: 'entregar la práctica y postular a un trabajo de verdad, tengo miedo de salir de la universidad y no saber qué hacer después de la carrera' },
   { hora: 17.92, texto: 'perdonarme a mí misma por los errores del año pasado, sigo pensando en lo que hice mal y no me dejo tranquila para seguir adelante con calma' },
 
+  // A las 7 PM, cuando se cierra la jornada.
+  { hora: 19.05, texto: 'llegar temprano a la casa y cenar con mi familia, siempre llego cuando ya todos se acostaron' },
+  { hora: 19.15, texto: 'aprender a cocinar algo más que fideos, mi mamá me dice que ya es hora' },
+  { hora: 19.25, texto: 'terminar de leer la novela que empecé en el verano, la tengo en el velador con el marcador en la mitad' },
+  { hora: 19.4, texto: 'mandar la postulación a la beca de intercambio antes de que cierre el plazo el viernes' },
+
   // Pendientes cortos, solos en su media hora: quedan como un hilo grueso de una sola pasada.
   { hora: 14.6, texto: 'dormir una siesta sin culpa' },
   { hora: 17.1, texto: 'volver a nadar' },
@@ -79,5 +86,5 @@ export const EJEMPLOS = [
   { hora: 10.7, texto: 'devolver un libro de la biblioteca que saqué el año pasado, ya debe tener una multa enorme' },
   { hora: 11.3, texto: 'sacar el carnet de conducir, tengo la hora tomada en la municipalidad y la he cambiado tres veces' },
   { hora: 15.3, texto: 'pagar las cuentas que se me acumularon y revisar los correos que tengo sin abrir desde hace semanas' },
-  { hora: 19.8, texto: 'nada importante, creo, aunque quizás lo pendiente es justamente darme el tiempo de pensar qué tengo pendiente' },
+  { hora: 18.8, texto: 'nada importante, creo, aunque quizás lo pendiente es justamente darme el tiempo de pensar qué tengo pendiente' },
 ];

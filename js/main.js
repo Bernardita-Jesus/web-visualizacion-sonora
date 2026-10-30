@@ -1,35 +1,36 @@
-import { EJEMPLOS, MOSTRAR_EJEMPLOS } from './ejemplos.js';
-import { TEMATICAS, cargarRespuestas, horaDe, temaPorId, tematicaDe } from './respuestas.js';
+import { EJEMPLOS } from './ejemplos.js';
+import { TEMATICAS, borrarRespuestas, cargarRespuestas, horaDe, temaDeRespuesta, temaPorId, tematicaDe } from './respuestas.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 /*
- * El telar: una franja por cada media hora de la jornada, de la mañana (arriba) a la tarde (abajo), todas
- * del mismo alto y con la misma distancia entre una y otra. Lo que se dijo en esa media hora es un hilo
- * (la trama), siempre del mismo grosor, que cruza el telar de lado a lado y ondula entre los hilos
- * verticales (la urdimbre), con el color de la temática de cada pendiente. Si se habló mucho, el hilo da
- * vueltas en los bordes y la franja se llena de líneas cada vez más juntas: los momentos más conversados
- * del día se ven más densos. Las medias horas en que nadie habló quedan vacías.
- * Sobre el tejido van pasando las frases de a una: cada frase se escribe sobre su hilo (con las letras más
- * apegadas si hace falta para que quepa) y vuelve a transformarse en hilo.
+ * El telar: una franja por cada media hora de la jornada, de la mañana (arriba) a la tarde (abajo).
+ * Lo que se dijo en esa media hora es un hilo (la trama) que ondula entre los hilos verticales (la
+ * urdimbre), con el color de la temática de cada pendiente. Todo tiene siempre las mismas dimensiones:
+ * cada tramo de hilo mide lo mismo que su frase escrita, con el mismo tamaño de letra, el mismo grosor y
+ * la misma separación entre líneas. Cuando el hilo llega al borde da la vuelta y sigue en otra línea, así
+ * que el alto de cada media hora (y la distancia entre las horas) depende solo de cuánto se dijo en ella;
+ * las medias horas en que nadie habló quedan angostas y vacías. El telar se alarga con los testimonios.
+ * Sobre el tejido van pasando las frases de a una: cada frase se escribe sobre su propio hilo y vuelve a
+ * transformarse en hilo.
  */
 
 // Coordenadas en unidades del viewBox.
-const MARCO = { x: 150, y: 120, width: 900, height: 1150 }; // más angosto y menos alto: todo se ve más grande en pantalla
-const DAY = { start: 8, end: 20, step: 0.5 }; // jornada de Diseño Abierto (bitácora): 8:00 a 20:00
+// El alto del marco no es fijo: se calcula según los testimonios (ver distribuir()).
+const MARCO = { x: 150, y: 120, width: 1320, height: 1000 }; // ancho: más texto por línea, telar más corto
+export const DAY = { start: 8, end: 19.5, step: 0.5 }; // jornada de Diseño Abierto: de 8:00 a 19:30 (la última franja es la de las 7 PM)
 const TELAR = {
   left: MARCO.x + 96, // espacio a la izquierda para las horas
   right: MARCO.x + MARCO.width - 28,
-  top: MARCO.y + 34,
-  bottom: MARCO.y + MARCO.height - 26,
-  fontSize: 20, // tamaño máximo de la frase mientras se escribe; si no cabe, las letras se apegan
+  top: MARCO.y + 26,
+  fontSize: 15, // tamaño de la frase (siempre el mismo): el hilo mide lo mismo que la frase escrita
   gap: 6, // separación entre un pendiente y el siguiente en el mismo hilo
   maxChars: 400, // largo máximo de un pendiente
-  stroke: 6, // grosor del hilo (el mismo en todo el telar)
-  lineGap: 14, // separación entre líneas de una franja cuando hay pocas; con más texto se acercan
-  apegue: 2.2, // cuánto pueden apegarse las letras antes de que el hilo pase a otra línea
-  maxLines: 5, // líneas máximas por media hora (si se habla aún más, las letras se apegan más)
-  bandGap: 11, // aire entre una media hora y la siguiente (igual en todo el telar)
+  stroke: 6, // grosor del hilo (siempre el mismo)
+  lineGap: 19, // separación entre líneas (siempre la misma; la frase cabe sin tocar las líneas vecinas)
+  bandPad: 8, // aire arriba y abajo de las líneas de cada media hora
+  emptyBand: 16, // alto de una media hora sin testimonios
+  bottomPad: 26, // aire bajo la última media hora, para la hora de cierre
   waveLength: 18, // separación aproximada entre los hilos verticales (urdimbre): el hilo ondula entre ellos
 };
 
@@ -38,14 +39,15 @@ const TELAR = {
 const TEJIDO = {
   charsPerSecond: 60, // velocidad de escritura
   maxWrite: 2.6, // segundos máximos que tarda en escribirse una frase (las largas se escriben más rápido)
-  hold: 1.6, // segundos que la frase queda escrita antes de volver a ser línea
-  transform: 0.8, // segundos que tarda en transformarse en línea
+  hold: 4, // segundos que la frase queda escrita antes de volver a ser línea
+  sewCharsPerSecond: 70, // velocidad con que la frase se cose (se convierte en hilo, de izquierda a derecha)
+  maxSew: 2.5, // segundos máximos que tarda en coserse una frase
   pause: 0.6, // respiro antes de la siguiente frase
 };
 
 const ROWS = Math.round((DAY.end - DAY.start) / DAY.step);
-const rowHeight = (TELAR.bottom - TELAR.top) / ROWS;
-const rowY = (row) => TELAR.top + (row + 0.5) * rowHeight;
+// Posición provisoria de cada media hora (antes de conocer los testimonios); la real la fija distribuir().
+const rowY = (row) => TELAR.top + (row + 0.5) * TELAR.emptyBand;
 const ANCHO = TELAR.right - TELAR.left;
 // Largo de onda ajustado para que el hilo empiece y termine justo sobre los bordes.
 const ONDA = ANCHO / Math.max(1, Math.round(ANCHO / TELAR.waveLength));
@@ -82,18 +84,22 @@ function recortar(texto) {
 
 /* ---------- Dibujo del telar ---------- */
 
+let marcoRect = null;
+
 function drawFrame() {
-  const marco = el('rect', { class: 'patio', ...MARCO }, svg);
-  el('title', {}, marco).textContent = 'Clic para ver en pantalla completa';
-  marco.addEventListener('click', toggleFullscreen);
+  marcoRect = el('rect', { class: 'patio', ...MARCO }, svg);
+  el('title', {}, marcoRect).textContent = 'Clic para ver en pantalla completa';
+  marcoRect.addEventListener('click', toggleFullscreen);
 }
 
 function drawLoom() {
   // Urdimbre: hilos verticales tenues por donde la trama pasa por encima y por debajo.
-  const urdimbre = el('g', { class: 'urdimbre' }, svg);
+  urdimbre = el('g', { class: 'urdimbre' }, svg);
   for (let x = TELAR.left + ONDA / 4; x < TELAR.right; x += ONDA / 2) {
-    el('line', { x1: x.toFixed(1), x2: x.toFixed(1), y1: TELAR.top, y2: TELAR.bottom }, urdimbre);
+    el('line', { x1: x.toFixed(1), x2: x.toFixed(1), y1: TELAR.top, y2: TELAR.top }, urdimbre);
   }
+  // Costuras blancas que marcan cada cambio de hora (se ubican al calcular las franjas).
+  costuras = el('g', { class: 'costuras-hora' }, svg);
 
   // Etiqueta de cada hora en punto, a la izquierda de su franja (se ubican al calcular las franjas).
   const horas = el('g', { class: 'horas' }, svg);
@@ -104,33 +110,60 @@ function drawLoom() {
       etiquetas[row].textContent = formatHour(hour);
     }
   }
-  etiquetaFin = el('text', { class: 'hora hora-fin', x: TELAR.left - 18, y: TELAR.bottom + 8 }, horas);
-  etiquetaFin.textContent = formatHour(DAY.end);
 }
 
 const etiquetas = [];
-let etiquetaFin = null;
+let urdimbre = null;
+let costuras = null;
 
-/** Marca la franja de la hora actual (si está dentro de la jornada), junto al borde derecho. */
+/** La hora en que estamos se marca como un botón: su etiqueta va dentro de una pastilla del color del título. */
 function drawNow() {
-  const marca = el('g', { class: 'ahora' }, svg);
-  const label = el('text', { x: TELAR.right + 6 }, marca);
-  label.textContent = '◂ ahora';
+  const horas = svg.querySelector('.horas');
+  const pastilla = el('rect', { class: 'hora-pastilla' });
+  horas.insertBefore(pastilla, horas.firstChild); // detrás de las etiquetas
+  el('title', {}, pastilla).textContent = 'Hora actual';
 
   const update = () => {
     const now = new Date();
     const hour = now.getHours() + now.getMinutes() / 60;
     const inside = hour >= DAY.start && hour < DAY.end;
-    marca.style.display = inside ? '' : 'none';
+    etiquetas.forEach((etiqueta) => etiqueta?.classList.remove('hora-actual'));
+    pastilla.style.display = inside ? '' : 'none';
     if (!inside) return;
-    const franja = franjas[rowOf(hour)];
-    label.setAttribute('y', (franja.top + franja.alto / 2).toFixed(1));
+    // La etiqueta de la hora en punto que corresponde (a las 11:40 se marca "11 AM").
+    const etiqueta = etiquetas[rowOf(Math.floor(hour))];
+    if (!etiqueta) return;
+    etiqueta.classList.add('hora-actual');
+    const caja = etiqueta.getBBox();
+    pastilla.setAttribute('x', (caja.x - 8).toFixed(1));
+    pastilla.setAttribute('y', (caja.y - 4).toFixed(1));
+    pastilla.setAttribute('width', (caja.width + 16).toFixed(1));
+    pastilla.setAttribute('height', (caja.height + 8).toFixed(1));
+    pastilla.setAttribute('rx', ((caja.height + 8) / 2).toFixed(1));
   };
   marcarAhora = update;
-  setInterval(update, 60 * 1000);
+  // Cada minuto se actualiza la hora marcada; si cambió la hora, se traza su costura y el telar sigue.
+  let horaVista = Math.floor(horaActual());
+  setInterval(() => {
+    const hora = Math.floor(horaActual());
+    if (hora !== horaVista) {
+      horaVista = hora;
+      distribuir();
+    } else {
+      update();
+    }
+  }, 60 * 1000);
 }
 
 let marcarAhora = () => {};
+
+// Costuras de cambio de hora ya trazadas (para animar solo la que aparece cuando cambia la hora).
+const costurasTrazadas = new Set();
+
+const horaActual = () => {
+  const now = new Date();
+  return now.getHours() + now.getMinutes() / 60;
+};
 
 drawFrame();
 drawLoom();
@@ -148,8 +181,8 @@ const esperar = (segundos) => new Promise((resolve) => setTimeout(resolve, segun
 const franjas = Array.from({ length: ROWS }, (_, row) => ({
   pendientes: [],
   g: el('g', { class: 'franja' }, tejido),
-  top: rowY(row) - rowHeight / 2,
-  alto: rowHeight,
+  top: rowY(row) - TELAR.emptyBand / 2,
+  alto: TELAR.emptyBand,
   lineas: 0,
 }));
 // Todos los pendientes tejidos, en orden de hora: por aquí van pasando las frases.
@@ -183,18 +216,110 @@ function onda(xa, xb, y, linea, amplitud) {
  * líneas como necesite lo que se dijo, hasta un máximo; cuantas más líneas, más juntas quedan.
  * Luego dibuja todas las franjas.
  */
+/** Alto de una media hora con cierta cantidad de líneas (o el mínimo, si no tiene). */
+const altoPara = (lineas) => (lineas ? lineas * TELAR.lineGap + TELAR.bandPad * 2 : TELAR.emptyBand);
+
+/**
+ * Con registros reales, reparte el alto total del telar entre las horas: todas a la misma distancia mientras
+ * quepa lo dicho; si a una hora le falta espacio, toma lo que necesita y las demás se achican parejo para
+ * hacerle lugar (el telar mantiene su tamaño). Solo si ya no queda espacio en ninguna, el telar crece.
+ * Devuelve el alto de cada media hora.
+ */
+function altosParejos(necesita) {
+  const altoTotal = molde.reduce((suma, lineas) => suma + altoPara(lineas), 0);
+  // Agrupa las medias horas por hora (la de las 7 PM tiene una sola).
+  const horas = new Map();
+  necesita.forEach((alto, row) => {
+    const hora = Math.floor(DAY.start + row * DAY.step);
+    if (!horas.has(hora)) horas.set(hora, []);
+    horas.get(hora).push(row);
+  });
+  const grupos = [...horas.values()].map((rows) => ({ rows, necesita: rows.reduce((suma, row) => suma + necesita[row], 0) }));
+
+  // Las horas que necesitan más que su parte se quedan con lo que necesitan; el resto se reparte parejo
+  // entre las demás (se repite hasta que ninguna quede corta).
+  const fijas = new Set();
+  let parte = altoTotal / grupos.length;
+  for (let cambio = true; cambio; ) {
+    cambio = false;
+    const libres = grupos.filter((g) => !fijas.has(g));
+    const usado = grupos.filter((g) => fijas.has(g)).reduce((suma, g) => suma + g.necesita, 0);
+    parte = libres.length ? (altoTotal - usado) / libres.length : 0;
+    for (const g of libres) {
+      if (g.necesita > parte) {
+        fijas.add(g);
+        cambio = true;
+      }
+    }
+  }
+
+  // Dentro de cada hora, cada media hora recibe lo que necesita más una parte igual de lo que sobra.
+  const altos = Array(necesita.length).fill(0);
+  for (const g of grupos) {
+    const altoHora = fijas.has(g) ? g.necesita : parte;
+    const sobra = (altoHora - g.necesita) / g.rows.length;
+    for (const row of g.rows) altos[row] = necesita[row] + sobra;
+  }
+  return altos;
+}
+
 function distribuir() {
-  const capacidad = ANCHO * TELAR.apegue; // lo que cabe en una línea con las letras apegadas
-  const util = rowHeight - TELAR.bandGap; // alto de la franja sin el aire que la separa de la siguiente
-  franjas.forEach((franja, row) => {
+  // Lo que necesita cada media hora para sus líneas (con la frase a su tamaño real, de borde a borde).
+  franjas.forEach((franja) => {
     const largo = largoDe(franja);
-    franja.lineas = largo ? Math.min(TELAR.maxLines, Math.max(1, Math.ceil(largo / capacidad))) : 0;
-    franja.separacion = franja.lineas ? Math.min(TELAR.lineGap, util / franja.lineas) : TELAR.lineGap;
-    franja.top = TELAR.top + row * rowHeight;
-    franja.alto = rowHeight;
-    franja.inicioLineas = rowY(row) - (franja.lineas * franja.separacion) / 2; // líneas centradas en su franja
+    franja.lineas = largo ? Math.ceil(largo / ANCHO) : 0;
+  });
+  const necesita = franjas.map((franja) => altoPara(franja.lineas));
+  // Simulando, cada media hora tiene el alto de su molde (o el que necesite, si es más); con registros
+  // reales, las horas se reparten parejo el alto del telar y se redistribuyen si a alguna le falta espacio.
+  const altos = simular ? necesita.map((alto, row) => Math.max(alto, altoPara(molde[row] ?? 0))) : altosParejos(necesita);
+
+  let y = TELAR.top;
+  franjas.forEach((franja, row) => {
+    franja.top = y;
+    franja.alto = altos[row];
+    // Las líneas van centradas en el alto reservado: así la costura de cada hora queda al medio entre
+    // lo de la hora anterior y lo de la siguiente, aunque la franja tenga menos líneas que su molde.
+    franja.inicioLineas = y + (franja.alto - franja.lineas * TELAR.lineGap) / 2;
+    y += franja.alto;
     dibujarFranja(row);
   });
+
+  // Cada hora va centrada en su bloque: de su costura blanca a la siguiente (su media hora en punto y la
+  // media hora que le sigue).
+  etiquetas.forEach((etiqueta, row) => {
+    if (!etiqueta) return;
+    const desde = franjas[row].top;
+    const ultima = franjas[row + 1] && !Number.isInteger(DAY.start + (row + 1) * DAY.step) ? franjas[row + 1] : franjas[row];
+    etiqueta.setAttribute('y', ((desde + ultima.top + ultima.alto) / 2).toFixed(1));
+  });
+
+  // Costura blanca en cada cambio de hora: justo donde empieza la franja de cada hora en punto.
+  // Simulando se ven las de todo el día; con registros reales, solo las de las horas que ya empezaron:
+  // cuando el reloj cambia de hora, la costura nueva se traza de izquierda a derecha y el telar sigue.
+  const ahora = horaActual();
+  const primeraVez = !simular && costurasTrazadas.size === 0;
+  costuras.replaceChildren();
+  franjas.forEach((franja, row) => {
+    const hora = DAY.start + row * DAY.step;
+    if (row === 0 || !Number.isInteger(hora)) return;
+    if (!simular && hora > ahora) return;
+    const nueva = !simular && !primeraVez && !costurasTrazadas.has(hora);
+    if (!simular) costurasTrazadas.add(hora); // simulando no cuentan: son de todo el día, no del reloj
+    const yc = (franja.top - 0.5).toFixed(1);
+    const clase = nueva ? ' trazandose' : '';
+    el('line', { class: `costura-sombra${clase}`, x1: TELAR.left - 8, x2: TELAR.right + 8, y1: yc, y2: yc }, costuras);
+    el('line', { class: `costura${clase}`, x1: TELAR.left - 8, x2: TELAR.right + 8, y1: yc, y2: yc }, costuras);
+  });
+  // Desde la primera vez quedan registradas: solo las que aparezcan después (al cambiar la hora) se animan.
+  costurasTrazadas.add(DAY.start);
+
+  // El telar se alarga o se acorta con lo que se ha dicho: marco, urdimbre y área visible.
+  MARCO.height = y + TELAR.bottomPad - MARCO.y;
+  marcoRect.setAttribute('height', MARCO.height.toFixed(1));
+  for (const linea of urdimbre.children) linea.setAttribute('y2', y.toFixed(1));
+  svg.setAttribute('viewBox', `${MARCO.x - 10} ${MARCO.y - 10} ${MARCO.width + 20} ${(MARCO.height + 20).toFixed(1)}`);
+  emptyHint.setAttribute('y', (MARCO.y + MARCO.height / 2).toFixed(1));
   marcarAhora();
 }
 
@@ -210,11 +335,11 @@ function dibujarFranja(row) {
   if (!lista.length) return; // media hora sin pendientes: franja vacía
 
   const lineas = franja.lineas;
-  const porLinea = largoDe(franja) / lineas; // largo natural que entra en cada línea
-  const escala = ANCHO / porLinea; // < 1: las letras se apegan; > 1: el hilo se estira hasta el borde
-  const { separacion } = franja;
+  const porLinea = ANCHO; // cada línea lleva exactamente lo que cabe de borde a borde
+  const escala = 1; // el hilo mide lo mismo que la frase escrita: siempre las mismas dimensiones
+  const separacion = TELAR.lineGap;
   const grosor = TELAR.stroke;
-  const amplitud = Math.min(1.6, separacion * 0.08);
+  const amplitud = 1.6;
   const yDe = (linea) => franja.inicioLineas + (linea + 0.5) * separacion;
   const xDe = (linea, t) => {
     const d = (t - linea * porLinea) * escala;
@@ -245,7 +370,7 @@ function dibujarFranja(row) {
       const xb = xDe(linea, b);
       const y = yDe(linea);
       trazo(onda(xa, xb, y, linea, amplitud), 'hebra');
-      p.piezas.push({ x: Math.min(xa, xb), y });
+      p.piezas.push({ hasta: b - t0, x: Math.min(xa, xb), ancho: Math.abs(xb - xa), y });
 
       // Si el hilo de este pendiente sigue en la línea siguiente, da la vuelta en el borde.
       const fin = (linea + 1) * porLinea;
@@ -257,14 +382,42 @@ function dibujarFranja(row) {
       }
     }
 
+    // Qué parte de la frase va sobre cada tramo (si el hilo da vuelta, la frase sigue en la otra línea).
+    // Se calcula una sola vez, para que cada parte empiece justo donde terminó la anterior.
+    let previo = 0;
+    p.piezas.forEach((pieza, i) => {
+      const corte = i === p.piezas.length - 1 ? p.texto.length : Math.max(previo, corteEn(p.texto, pieza.hasta));
+      pieza.trozo = p.texto.slice(previo, corte).trim();
+      previo = corte;
+    });
     t = t1 + TELAR.gap;
   }
 }
 
+/**
+ * Posición (en caracteres) donde cortar la frase para un largo medido desde su comienzo: el corte cae
+ * en el espacio más cercano, para no partir palabras entre una vuelta del hilo y la siguiente.
+ */
+function corteEn(texto, largo) {
+  if (largo <= 0) return 0;
+  medidor.textContent = texto;
+  if (largo >= medidor.getComputedTextLength()) return texto.length;
+  let [lo, hi] = [1, texto.length];
+  while (lo < hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (medidor.getSubStringLength(0, mid) >= largo) hi = mid;
+    else lo = mid + 1;
+  }
+  const candidatos = [texto.lastIndexOf(' ', lo), texto.indexOf(' ', lo)].filter((i) => i > 0);
+  if (!candidatos.length) return lo;
+  return candidatos.reduce((mejor, i) => (Math.abs(i - lo) < Math.abs(mejor - lo) ? i : mejor));
+}
+
 /** Agrega un pendiente al hilo de su media hora. Con `oculto`, su hilo aparece cuando pasa su frase. */
-function colocar({ texto, hora }, oculto = false, redibujar = true) {
+function colocar({ texto, hora, tema }, oculto = false, redibujar = true) {
   const limpio = recortar(texto);
-  const pendiente = { texto: limpio, hora, tema: temaPorId(tematicaDe(texto)), row: rowOf(hora), largo: medir(limpio), oculto };
+  // La temática elegida a mano (si la hay) manda sobre la detectada en el texto.
+  const pendiente = { texto: limpio, hora, tema: temaPorId(tema ?? tematicaDe(texto)), row: rowOf(hora), largo: medir(limpio), oculto };
 
   const enOrden = (lista) => {
     const i = lista.findIndex((otro) => otro.hora > hora);
@@ -278,50 +431,85 @@ function colocar({ texto, hora }, oculto = false, redibujar = true) {
 }
 
 /**
- * Pasa una frase: se escribe entera, en una sola línea, sobre la línea donde empieza su hilo (un
- * testimonio = un solo texto). Parte donde parte su tramo; si no alcanza a caber antes del borde se corre
- * hacia la izquierda, y si es más larga que el telar, las letras se apegan. Se queda un momento y vuelve
- * a ser hilo.
+ * Pasa una frase: solo desaparece su propio hilo y, justo encima, la frase se escribe con el color de su
+ * temática, tramo por tramo (si el hilo da vuelta, la frase sigue en la línea siguiente). Cada parte
+ * ocupa exactamente su tramo: si no cabe, las letras se apegan; nunca se sale de su hilo. Se queda un
+ * momento y se cose de vuelta, de izquierda a derecha.
  */
+// Cambia cada vez que se vuelve a tejer el día (por ejemplo, al apagar la simulación): la frase que se
+// estaba escribiendo se corta y se borra, para no mostrar textos que ya no están en el telar.
+let vuelta = 0;
+const escritosEnCurso = new Set();
+
+function cortarFraseEnCurso() {
+  vuelta += 1;
+  escritosEnCurso.forEach((grupo) => grupo.remove());
+  escritosEnCurso.clear();
+}
+
 async function pasarFrase(pendiente) {
-  const { texto, tema, piezas, nodos } = pendiente;
-  const primera = piezas[0];
-  const letra = TELAR.fontSize;
+  const { tema, piezas, nodos } = pendiente;
+  const miVuelta = vuelta;
+  const vigente = () => miVuelta === vuelta;
 
   pendiente.oculto = false;
   for (const nodo of nodos) {
     nodo.classList.remove('oculta');
-    nodo.classList.add('leyendose'); // el hilo se aclara mientras su frase está escrita encima
+    nodo.classList.add('leyendose'); // solo su hilo desaparece; la frase se escribe en su lugar
   }
 
-  // El grupo apega las letras (las angosta a lo ancho) si la frase es más larga que el telar; el texto
-  // de adentro es el que se anima al escribirse y al volver a ser hilo.
-  const grupo = el('g', {}, tejido);
-  const escrito = el('text', {
-    class: 'escritura',
-    y: primera.y.toFixed(1),
-    'font-size': letra.toFixed(2),
-    style: `fill: ${tema.color}`,
-  }, grupo);
-  escrito.textContent = texto;
-  const largo = escrito.getComputedTextLength();
-  if (largo > ANCHO) {
-    escrito.setAttribute('x', TELAR.left);
-    const k = (ANCHO / largo).toFixed(4);
-    grupo.setAttribute('transform', `translate(${TELAR.left} 0) scale(${k} 1) translate(${-TELAR.left} 0)`);
-  } else {
-    // Parte donde parte su tramo; si no alcanza a caber antes del borde, se corre hacia la izquierda.
-    escrito.setAttribute('x', Math.max(TELAR.left, Math.min(primera.x, TELAR.right - largo)).toFixed(1));
+  const partes = [];
+  for (const pieza of piezas) {
+    if (!pieza.trozo) continue;
+    // El grupo apega las letras (las angosta a lo ancho) cuando la parte es más larga que su tramo.
+    const grupo = el('g', {}, tejido);
+    const escrito = el('text', {
+      class: 'escritura',
+      x: pieza.x.toFixed(1),
+      y: pieza.y.toFixed(1),
+      'font-size': TELAR.fontSize,
+      style: `fill: ${tema.color}`,
+    }, grupo);
+    escrito.textContent = pieza.trozo;
+    const largo = escrito.getComputedTextLength();
+    if (largo > pieza.ancho) {
+      const k = (pieza.ancho / largo).toFixed(4);
+      grupo.setAttribute('transform', `translate(${pieza.x.toFixed(1)} 0) scale(${k} 1) translate(${(-pieza.x).toFixed(1)} 0)`);
+    }
+    // Las partes se escriben una tras otra, siguiendo el hilo.
+    const segundos = Math.min(pieza.trozo.length / TEJIDO.charsPerSecond, TEJIDO.maxWrite);
+    escrito.style.setProperty('--dur', `${segundos.toFixed(2)}s`);
+    partes.push({ grupo, escrito });
+    escritosEnCurso.add(grupo);
+    await esperar(segundos);
+    if (!vigente()) return;
   }
+  await esperar(TEJIDO.hold);
+  if (!vigente()) return;
 
-  const segundos = Math.min(texto.length / TEJIDO.charsPerSecond, TEJIDO.maxWrite);
-  escrito.style.setProperty('--dur', `${segundos.toFixed(2)}s`);
-  await esperar(segundos + TEJIDO.hold);
-
-  escrito.classList.add('transformandose');
-  for (const nodo of nodos) nodo.classList.remove('leyendose');
-  await esperar(TEJIDO.transform);
-  grupo.remove();
+  // Se cose: de izquierda a derecha las letras desaparecen y en su lugar vuelve su hilo en puntadas;
+  // al terminar, el hilo se tensa y queda continuo.
+  const largoTotal = piezas.reduce((suma, pieza) => suma + (pieza.trozo?.length ?? 0), 0);
+  const coser = `${Math.min(largoTotal / TEJIDO.sewCharsPerSecond, TEJIDO.maxSew).toFixed(2)}s`;
+  for (const { escrito } of partes) {
+    escrito.style.setProperty('--coser', coser);
+    escrito.classList.add('cosiendose');
+  }
+  for (const nodo of nodos) {
+    nodo.style.setProperty('--coser', coser);
+    nodo.classList.remove('leyendose');
+    nodo.classList.add('cosiendo');
+  }
+  await esperar(parseFloat(coser));
+  if (!vigente()) return;
+  for (const nodo of nodos) {
+    nodo.classList.remove('cosiendo');
+    nodo.classList.add('cosida');
+  }
+  partes.forEach(({ grupo }) => {
+    grupo.remove();
+    escritosEnCurso.delete(grupo);
+  });
   await esperar(TEJIDO.pause);
 }
 
@@ -351,15 +539,90 @@ async function ciclo() {
   }
 }
 
+/* ---------- Simular registros (ejemplos) o solo los reales ---------- */
+
+const CLAVE_SIMULAR = 'diseno-abierto:simular';
+let simular = false;
+try {
+  simular = localStorage.getItem(CLAVE_SIMULAR) === '1';
+} catch {
+  // Sin almacenamiento: parte mostrando solo los registros reales.
+}
+
+// Alto que ocupa cada media hora en la simulación: es el molde del telar en ambos modos.
+const molde = [];
+
+function calcularMolde() {
+  const largos = Array(ROWS).fill(0);
+  const cuantos = Array(ROWS).fill(0);
+  for (const { texto, hora } of EJEMPLOS) {
+    const row = rowOf(hora);
+    largos[row] += medir(recortar(texto));
+    cuantos[row] += 1;
+  }
+  largos.forEach((largo, row) => {
+    molde[row] = largo ? Math.ceil((largo + TELAR.gap * (cuantos[row] - 1)) / ANCHO) : 0;
+  });
+}
+
+/** Los registros reales (siempre) y, si se está simulando, también los de ejemplo; en orden de hora. */
 function pendientesDelDia() {
-  const ejemplos = MOSTRAR_EJEMPLOS ? EJEMPLOS : [];
-  const reales = cargarRespuestas().map((respuesta) => ({ texto: respuesta.texto, hora: horaDe(respuesta) }));
+  const ejemplos = simular ? EJEMPLOS : [];
+  const reales = cargarRespuestas().map((respuesta) => ({ texto: respuesta.texto, hora: horaDe(respuesta), tema: temaDeRespuesta(respuesta) }));
   return [...ejemplos, ...reales].sort((a, b) => a.hora - b.hora);
 }
 
+/** Vuelve a tejer el telar desde cero con lo que corresponde al modo actual. */
+function tejerDia() {
+  cortarFraseEnCurso();
+  urgentes.length = 0;
+  for (const franja of franjas) franja.pendientes = [];
+  tejidos.length = 0;
+  pendientesDelDia().forEach((pendiente) => colocar(pendiente, false, false));
+  distribuir();
+  emptyHint.style.display = tejidos.length ? 'none' : '';
+}
+
+const botonSimular = document.querySelector('#btn-simular');
+
+function mostrarModoSimulacion() {
+  botonSimular.setAttribute('aria-pressed', String(simular));
+  botonSimular.textContent = simular ? 'Simulando registros ✓' : 'Simular registros';
+}
+
+botonSimular.addEventListener('click', () => {
+  simular = !simular;
+  try {
+    localStorage.setItem(CLAVE_SIMULAR, simular ? '1' : '');
+  } catch {
+    // Sin almacenamiento: no se recuerda, pero el cambio funciona igual.
+  }
+  mostrarModoSimulacion();
+  tejerDia();
+});
+mostrarModoSimulacion();
+
+// Borrar los registros reales guardados en este navegador (por ejemplo, pruebas antes del evento).
+document.querySelector('#btn-borrar-registros').addEventListener('click', () => {
+  const cuantos = cargarRespuestas().length;
+  if (!cuantos) {
+    window.alert('No hay registros reales guardados en este navegador.');
+    return;
+  }
+  const texto = `¿Borrar ${cuantos === 1 ? 'el registro real' : `los ${cuantos} registros reales`} guardados en este navegador? No se puede deshacer.`;
+  if (!window.confirm(texto)) return;
+  borrarRespuestas();
+  tejerDia();
+});
+
 /** Un pendiente recién registrado se suma al telar y su frase es la próxima en pasar. */
 export function lanzarRespuesta(respuesta) {
-  urgentes.push(colocar({ texto: respuesta.texto, hora: horaDe(respuesta) }, true));
+  urgentes.push(colocar({ texto: respuesta.texto, hora: horaDe(respuesta), tema: temaDeRespuesta(respuesta) }, true));
+}
+
+/** Vuelve a tejer el telar (por ejemplo, después de corregir a mano la temática de un registro). */
+export function retejer() {
+  tejerDia();
 }
 
 // Se mide el largo de cada frase para ubicarla: hay que esperar a que cargue la tipografía de las frases,
@@ -368,9 +631,8 @@ export function lanzarRespuesta(respuesta) {
 const tipografia = document.fonts.load(`${TELAR.fontSize}px "Source Serif 4"`).catch(() => {});
 Promise.all([tipografia, document.fonts.ready]).then(() => {
   // El telar aparece completo desde el comienzo: todos los hilos, siempre.
-  pendientesDelDia().forEach((pendiente) => colocar(pendiente, false, false));
-  distribuir();
-  emptyHint.style.display = tejidos.length ? 'none' : '';
+  calcularMolde();
+  tejerDia();
   ciclo();
 });
 
