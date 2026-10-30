@@ -7,9 +7,10 @@ Cada media hora de la jornada es una franja (8:00 arriba, 20:00 abajo). Lo dicho
 **hilo**, siempre del mismo grosor, que cruza el telar de lado a lado y ondula entre una urdimbre de hilos
 verticales. Cada pendiente es un tramo del hilo, del color de su temática (estudios, trabajo, familia,
 vínculos, uno mismo, salud y cuerpo, sueños y proyectos u otros, detectada por palabras clave) y del largo
-de su frase. Las medias horas sin pendientes quedan vacías. Sobre el tejido van pasando las frases de a una,
-en orden de hora: cada una se escribe sobre su tramo —con las letras más apegadas si se habló mucho y no
-cabe— y vuelve a ser hilo.
+de su frase. Si se habló mucho, el hilo da vuelta en los bordes y la franja **se llena de líneas**: los
+momentos más conversados del día se ven más densos. Las medias horas sin pendientes quedan vacías.
+Sobre el tejido van pasando las frases de a una, en orden de hora: cada una se escribe sobre su hilo
+—con las letras más apegadas si hace falta para que quepa— y vuelve a ser hilo.
 Todos los relatos son anónimos: solo se guarda el texto y la hora, nunca quién habla ni su voz.
 Sin dependencias ni paso de compilación: HTML, CSS, JavaScript (módulos ES) y SVG.
 
@@ -52,7 +53,8 @@ Las respuestas se guardan en el navegador: solo aparecen en la visualización ab
 Para ajustar la visualización (`js/main.js`):
 
 - Jornada y largo de cada línea: constante `DAY` (inicio, término y paso de media hora).
-- Márgenes, tamaño de letra, grosor del hilo, ondulación y largo máximo de cada pendiente: constante `TELAR`.
+- Márgenes, tamaño de letra, grosor del hilo, separación entre líneas, cuánto se apega la letra antes de pasar
+  a otra línea (`apegue`), ondulación y largo máximo de cada pendiente: constante `TELAR`.
 - Velocidad de escritura, tiempo que queda escrita cada frase y transformación en línea: constante `TEJIDO`.
 - Temáticas, colores y palabras clave: `TEMATICAS` en `js/respuestas.js`.
 - Textos de ejemplo: `js/ejemplos.js`.
