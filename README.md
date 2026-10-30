@@ -9,8 +9,8 @@ Una costura blanca marca cada cambio de hora: con registros reales se traza en e
 pasando cruzan a otra hora, su costura se descose y se vuelve a coser. Lo dicho en esa media hora es un
 **hilo**, siempre del mismo grosor, que cruza el telar de lado a lado y ondula entre una urdimbre de hilos
 verticales. Cada pendiente es un tramo del hilo, del color de su temática (estudios, trabajo, familia,
-vínculos, uno mismo, salud y cuerpo, sueños y proyectos u otros, detectada por palabras clave) y del largo
-de su frase, siempre con el mismo tamaño de letra, el mismo grosor y la misma separación entre líneas. Cuando
+vínculos, uno mismo, salud y cuerpo, sueños y proyectos u otros, detectada por palabras clave; si habla de dos
+temáticas, su hilo mezcla ambos colores, como dos hebras torcidas) y del largo de su frase, siempre con el mismo tamaño de letra, el mismo grosor y la misma separación entre líneas. Cuando
 el hilo llega al borde da la vuelta: si se habló mucho, la franja **se llena de líneas** y el telar se alarga. Las medias horas sin pendientes quedan vacías.
 Sobre el tejido van pasando las frases de a una, en orden de hora: cada una se escribe sobre su hilo
 y vuelve a ser hilo.

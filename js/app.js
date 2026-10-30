@@ -1,5 +1,5 @@
 import { DAY, lanzarRespuesta } from './main.js';
-import { TEMATICAS, guardarBorrador, guardarRespuesta, leerBorrador, limpiarDictado, temaPorId, tematicaDe } from './respuestas.js';
+import { TEMATICAS, guardarBorrador, guardarRespuesta, leerBorrador, limpiarDictado, temaPorId, tematicasDe } from './respuestas.js';
 
 // Una sola pantalla: registro a la izquierda y visualización (el telar) a la derecha.
 
@@ -29,10 +29,10 @@ function enviar() {
   if (reconocimiento) reconocimiento.onresult = null;
   detenerDictado();
   // Recién al enviar (ya registrado) se limpia lo dictado, para la siguiente persona.
-  const tema = temaPorId(temaManual ?? tematicaDe(texto));
+  const nombres = nombreTemas(temasDelCampo(texto));
   limpiarCampo();
   estado.textContent = 'Aprieta el botón y cuenta tu pendiente.';
-  aviso.textContent = `¡Gracias! Tu testimonio quedó en ${tema.nombre}. Mira cómo se teje en el telar →`;
+  aviso.textContent = `¡Gracias! Tu testimonio quedó en ${nombres}. Mira cómo se teje en el telar →`;
 }
 
 /** Vacía el campo, su borrador y la temática elegida (solo al enviar o al presionar Eliminar). */
@@ -197,6 +197,10 @@ function elegirTemaManual(temaId) {
   colorearSegunTema();
 }
 
+/** Temáticas del pendiente que se está dictando: la elegida a mano, o las detectadas (una o dos). */
+const temasDelCampo = (texto) => (temaManual ? [temaManual] : tematicasDe(texto)).map(temaPorId);
+const nombreTemas = (temas) => temas.map((tema) => tema.nombre).join(' y ');
+
 // El texto toma el color de su temática (el mismo con que se tejerá) y se muestra en cuál quedará.
 function colorearSegunTema() {
   const texto = campo.value.trim();
@@ -206,13 +210,21 @@ function colorearSegunTema() {
     temaPrevio.hidden = true;
     return;
   }
-  const tema = temaPorId(temaManual ?? tematicaDe(texto));
-  campo.style.color = tema.color;
-  campo.style.caretColor = tema.color;
-  temaPrevioNombre.textContent = tema.nombre + (temaManual ? ' (elegida por ti)' : '');
-  temaPrevioNombre.style.color = tema.color;
+  const temas = temasDelCampo(texto);
+  campo.style.color = temas[0].color;
+  campo.style.caretColor = temas[0].color;
+  // Cada temática con su color; con dos, el hilo se tejerá mezclando ambos.
+  temaPrevioNombre.replaceChildren(temas.length === 1 ? 'la temática ' : 'las temáticas ');
+  temas.forEach((tema, i) => {
+    if (i) temaPrevioNombre.append(' y ');
+    const nombre = document.createElement('span');
+    nombre.textContent = tema.nombre;
+    nombre.style.color = tema.color;
+    temaPrevioNombre.append(nombre);
+  });
+  if (temaManual) temaPrevioNombre.append(' (elegida por ti)');
   for (const boton of elegirTema.querySelectorAll('button')) {
-    boton.setAttribute('aria-pressed', String(boton.dataset.tema === tema.id));
+    boton.setAttribute('aria-pressed', String(temas.some((tema) => tema.id === boton.dataset.tema)));
   }
   temaPrevio.hidden = false;
 }
@@ -228,7 +240,10 @@ for (const tema of TEMATICAS) {
   muestra.style.background = tema.color;
   boton.append(muestra, tema.nombre);
   // Si se elige la misma que se detectó, no queda como "elegida a mano".
-  boton.addEventListener('click', () => elegirTemaManual(tema.id === tematicaDe(campo.value) ? null : tema.id));
+  boton.addEventListener('click', () => {
+    const detectadas = tematicasDe(campo.value);
+    elegirTemaManual(detectadas.length === 1 && detectadas[0] === tema.id ? null : tema.id);
+  });
   elegirTema.append(boton);
 }
 

@@ -37,6 +37,8 @@ export function guardarRespuesta(texto, tema = null) {
 
 /** Temática de un registro: la elegida a mano, si la hay; si no, la detectada en su texto. */
 export const temaDeRespuesta = (respuesta) => respuesta.tema ?? tematicaDe(respuesta.texto);
+/** Temáticas de un registro: la elegida a mano, o las que se detecten en su texto (una o dos). */
+export const temasDeRespuesta = (respuesta) => (respuesta.tema ? [respuesta.tema] : tematicasDe(respuesta.texto));
 
 /* ---------- Borrador: lo dictado y aún no enviado no se pierde ---------- */
 
@@ -97,24 +99,25 @@ export const TEMATICAS = [
 const sinTildes = (texto) => texto.normalize('NFD').replace(/\p{Diacritic}/gu, '');
 
 /**
- * Temática más probable de un pendiente: la que más raíces reconoce. En empate gana la primera de la lista,
- * por eso Familia va antes que Vínculos ("llamar a mi abuela" es de familia).
+ * Temáticas de un pendiente: la que más raíces reconoce y, si el texto también habla de otra, la segunda
+ * (un pendiente puede tener dos temáticas: su hilo se teje mezclando ambos colores). En empate gana la
+ * primera de la lista, por eso Familia va antes que Vínculos ("llamar a mi abuela" es de familia).
  */
-export function tematicaDe(texto) {
+export function tematicasDe(texto) {
   const palabras = sinTildes(texto.toLowerCase()).split(/[^a-z0-9ñ]+/).filter(Boolean);
-  let mejor = 'otros';
-  let puntos = 0;
-  for (const { id, raices } of TEMATICAS) {
-    // "ex" y otras raíces de 2 letras solo cuentan como palabra completa, para no confundir "examen" con "ex".
-    const coincide = (palabra, raiz) => (raiz.length <= 2 ? palabra === raiz : palabra.startsWith(raiz));
-    const n = palabras.filter((palabra) => raices.some((raiz) => coincide(palabra, raiz))).length;
-    if (n > puntos) {
-      mejor = id;
-      puntos = n;
-    }
-  }
-  return mejor;
+  // "ex" y otras raíces de 2 letras solo cuentan como palabra completa, para no confundir "examen" con "ex".
+  const coincide = (palabra, raiz) => (raiz.length <= 2 ? palabra === raiz : palabra.startsWith(raiz));
+  const puntajes = TEMATICAS.map(({ id, raices }) => ({
+    id,
+    n: palabras.filter((palabra) => raices.some((raiz) => coincide(palabra, raiz))).length,
+  }))
+    .filter(({ n }) => n > 0)
+    .sort((a, b) => b.n - a.n); // sort es estable: en empate queda el orden de la lista
+  return puntajes.length ? puntajes.slice(0, 2).map(({ id }) => id) : ['otros'];
 }
+
+/** Temática principal de un pendiente (la primera de tematicasDe). */
+export const tematicaDe = (texto) => tematicasDe(texto)[0];
 
 /** Datos de una temática por su id (nombre y color). */
 export const temaPorId = (id) => TEMATICAS.find((tema) => tema.id === id) ?? TEMATICAS.at(-1);

@@ -1,5 +1,5 @@
 import { EJEMPLOS } from './ejemplos.js';
-import { TEMATICAS, borrarRespuestas, cargarRespuestas, horaDe, temaDeRespuesta, temaPorId, tematicaDe } from './respuestas.js';
+import { TEMATICAS, borrarRespuestas, cargarRespuestas, horaDe, temaPorId, tematicasDe, temasDeRespuesta } from './respuestas.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -354,10 +354,10 @@ function dibujarFranja(row) {
     const t1 = t + p.largo;
     p.piezas = [];
     p.nodos = [];
-    const titulo = `${p.tema.nombre} · ${formatHour(p.hora)} · ${p.texto}`;
+    const titulo = `${p.temas.map((tema) => tema.nombre).join(' y ')} · ${formatHour(p.hora)} · ${p.texto}`;
     const trazo = (d, clase) => {
-      const nodo = el('path', { class: clase, d, 'data-tema': p.tema.id }, franja.g);
-      nodo.style.stroke = p.tema.color;
+      const nodo = el('path', { class: clase, d, 'data-temas': p.temas.map((tema) => tema.id).join(' ') }, franja.g);
+      nodo.style.stroke = pintura(p.temas);
       nodo.style.strokeWidth = grosor.toFixed(2);
       el('title', {}, nodo).textContent = titulo;
       if (p.oculto) nodo.classList.add('oculta');
@@ -418,11 +418,27 @@ function corteEn(texto, largo) {
   return candidatos.reduce((mejor, i) => (Math.abs(i - lo) < Math.abs(mejor - lo) ? i : mejor));
 }
 
+/**
+ * Color con que se pinta un pendiente: el de su temática o, si tiene dos, un hilo mezclado (franjas
+ * diagonales de ambos colores, como dos hebras torcidas). Cada mezcla se define una sola vez.
+ */
+const defs = el('defs', {}, svg);
+function pintura(temas, ancho = 4) {
+  if (temas.length === 1) return temas[0].color;
+  const id = `mezcla-${temas.map((tema) => tema.id).join('-')}-${ancho}`;
+  if (!defs.querySelector(`#${id}`)) {
+    const patron = el('pattern', { id, width: ancho * 2, height: ancho * 2, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' }, defs);
+    el('rect', { width: ancho, height: ancho * 2, fill: temas[0].color }, patron);
+    el('rect', { x: ancho, width: ancho, height: ancho * 2, fill: temas[1].color }, patron);
+  }
+  return `url(#${id})`;
+}
+
 /** Agrega un pendiente al hilo de su media hora. Con `oculto`, su hilo aparece cuando pasa su frase. */
-function colocar({ texto, hora, tema }, oculto = false, redibujar = true) {
+function colocar({ texto, hora, temas }, oculto = false, redibujar = true) {
   const limpio = recortar(texto);
-  // La temática elegida a mano (si la hay) manda sobre la detectada en el texto.
-  const pendiente = { texto: limpio, hora, tema: temaPorId(tema ?? tematicaDe(texto)), row: rowOf(hora), largo: medir(limpio), oculto };
+  // La temática elegida a mano (si la hay) manda sobre las detectadas en el texto (una o dos).
+  const pendiente = { texto: limpio, hora, temas: (temas ?? tematicasDe(texto)).map(temaPorId), row: rowOf(hora), largo: medir(limpio), oculto };
 
   const enOrden = (lista) => {
     const i = lista.findIndex((otro) => otro.hora > hora);
@@ -453,7 +469,7 @@ function cortarFraseEnCurso() {
 }
 
 async function pasarFrase(pendiente) {
-  const { tema, piezas, nodos } = pendiente;
+  const { temas, piezas, nodos } = pendiente;
   const miVuelta = vuelta;
   const vigente = () => miVuelta === vuelta;
 
@@ -473,7 +489,7 @@ async function pasarFrase(pendiente) {
       x: pieza.x.toFixed(1),
       y: pieza.y.toFixed(1),
       'font-size': TELAR.fontSize,
-      style: `fill: ${tema.color}`,
+      style: `fill: ${pintura(temas, 6)}`, // con dos temáticas, las letras también van mezcladas
     }, grupo);
     escrito.textContent = pieza.trozo;
     const largo = escrito.getComputedTextLength();
@@ -609,7 +625,7 @@ function calcularMolde() {
 /** Los registros reales (siempre) y, si se está simulando, también los de ejemplo; en orden de hora. */
 function pendientesDelDia() {
   const ejemplos = simular ? EJEMPLOS : [];
-  const reales = cargarRespuestas().map((respuesta) => ({ texto: respuesta.texto, hora: horaDe(respuesta), tema: temaDeRespuesta(respuesta) }));
+  const reales = cargarRespuestas().map((respuesta) => ({ texto: respuesta.texto, hora: horaDe(respuesta), temas: temasDeRespuesta(respuesta) }));
   return [...ejemplos, ...reales].sort((a, b) => a.hora - b.hora);
 }
 
@@ -658,7 +674,7 @@ document.querySelector('#btn-borrar-registros').addEventListener('click', () => 
 
 /** Un pendiente recién registrado se suma al telar y su frase es la próxima en pasar. */
 export function lanzarRespuesta(respuesta) {
-  urgentes.push(colocar({ texto: respuesta.texto, hora: horaDe(respuesta), tema: temaDeRespuesta(respuesta) }, true));
+  urgentes.push(colocar({ texto: respuesta.texto, hora: horaDe(respuesta), temas: temasDeRespuesta(respuesta) }, true));
 }
 
 // Se mide el largo de cada frase para ubicarla: hay que esperar a que cargue la tipografía de las frases,

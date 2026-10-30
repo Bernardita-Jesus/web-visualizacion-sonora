@@ -64,7 +64,7 @@
       <!-- Antes de enviar: en qué temática se registrará. Solo si no es la correcta, se elige otra a mano;
            si no, basta con Enviar. -->
       <div id="tema-previo" class="tema-previo" hidden>
-        <p aria-live="polite">Se registrará en la temática <strong id="tema-previo-nombre"></strong>.</p>
+        <p aria-live="polite">Se registrará en <strong id="tema-previo-nombre"></strong>.</p>
         <button id="btn-otra-tema" class="boton-otra-tema" type="button" aria-expanded="false" aria-controls="elegir-tema">
           ¿No es esa? Seleccionar manualmente
         </button>
@@ -119,6 +119,18 @@
                 <path class="trazo-muestra" d="M 3 20 Q 9 18 15 20 T 27 20 T 39 20 T 51 20" style="stroke: #8e3fd6; stroke-width: 3"></path>
               </svg>
               <span>Cada tramo es un pendiente, del largo de su frase. Más se habló, más líneas: el hilo da vuelta</span>
+            </li>
+            <li>
+              <svg class="icono icono-mezcla" viewBox="0 0 52 12" aria-hidden="true">
+                <defs>
+                  <pattern id="mezcla-muestra" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                    <rect width="3" height="6" fill="#e4572e"></rect>
+                    <rect x="3" width="3" height="6" fill="#1f5fd1"></rect>
+                  </pattern>
+                </defs>
+                <path d="M 3 6 Q 9 3 15 6 T 27 6 T 39 6 T 49 6" style="fill: none; stroke: url(#mezcla-muestra); stroke-width: 5; stroke-linecap: round"></path>
+              </svg>
+              <span>Hilo mezclado: el pendiente habla de dos temáticas</span>
             </li>
           </ul>
         </div>
