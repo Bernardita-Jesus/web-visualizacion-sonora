@@ -50,10 +50,19 @@ body {
   background: var(--surface);
 }
 
-.cabecera .pregunta {
+.cabecera-pregunta {
   flex: 1 1 auto;
   min-width: 0;
   margin-left: 1.5rem; /* la pregunta, un poco más hacia la derecha */
+}
+
+/* La bajada: breve, bajo la pregunta. */
+.bajada {
+  max-width: 46rem;
+  margin: 0.4rem 0 0;
+  color: var(--azul);
+  font-size: 0.95rem;
+  line-height: 1.4;
 }
 
 .cabecera-info {
@@ -71,7 +80,7 @@ body {
     text-align: left;
   }
 
-  .cabecera .pregunta {
+  .cabecera-pregunta {
     margin-left: 0;
   }
 }
@@ -113,30 +122,14 @@ body {
   min-height: 0;
 }
 
+/* El registro ocupa un tercio y el telar el resto: más ancho, para que se distingan sus puntadas. */
+.vista-registro {
+  flex-basis: 27%;
+}
+
 .vista-visualizacion {
+  flex: 1 1 auto;
   border-left: 1px solid var(--ink);
-}
-
-/* ---------- Reloj del registro ---------- */
-.reloj-registro {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.25rem 1rem;
-  margin: 0.25rem 0 0;
-  color: var(--azul);
-}
-
-.reloj-hora {
-  font-size: clamp(1.8rem, 3vw, 2.6rem);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
-}
-
-.reloj-franja {
-  margin: 0;
-  font-size: 0.95rem;
 }
 
 /* ---------- Pestaña del modo registro ---------- */
@@ -552,14 +545,14 @@ button:focus-visible {
   display: flex;
   flex-direction: row; /* simbología a la izquierda (bajo el título), telar a la derecha */
   align-items: stretch;
-  gap: 22px; /* el telar queda centrado: mismo aire a su izquierda que a su derecha */
-  padding: 16px 22px 12px 16px; /* arriba, a la altura del título del modo registro */
+  gap: 16px;
+  padding: 16px 12px 12px 16px; /* arriba, a la altura del título del modo registro */
 }
 
 /* Columna izquierda de la visualización: el título y, bajo él, la simbología. */
 .telar-lado {
   display: flex;
-  flex: 0 0 205px;
+  flex: 0 0 180px;
   flex-direction: column;
   order: -1; /* a la izquierda del telar */
   gap: 0.9rem;
@@ -572,9 +565,31 @@ button:focus-visible {
   padding: 0;
 }
 
+/* El título cabe en la columna angosta de la simbología. */
+.telar-lado .modo {
+  font-size: clamp(1.05rem, 1.3vw, 1.25rem);
+  letter-spacing: 0.05em;
+}
+
 /* Ningún elemento de la columna se aplasta: si no cabe, la columna se recorre bajando. */
 .telar-lado > * {
   flex-shrink: 0;
+  width: 180px; /* el contenido no se aplasta mientras la columna se repliega */
+}
+
+/* Con el telar completo, la columna de la simbología se repliega hacia la izquierda y desaparece
+   (el telar se corre a la izquierda y deja espacio a la derecha para los ovillos). */
+.telar-lado {
+  transition: flex-basis 1.6s ease, margin-right 1.6s ease, opacity 1.2s ease, transform 1.6s ease;
+}
+
+.plano-wrap.replegada .telar-lado {
+  flex-basis: 0;
+  margin-right: -16px; /* también se va el espacio entre la columna y el telar */
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(-60px);
+  pointer-events: none;
 }
 
 /* El telar ocupa todo el espacio que deja la simbología y se ve completo (sin tener que bajar). */
@@ -586,6 +601,12 @@ button:focus-visible {
   height: 100%; /* el telar empieza arriba, a la altura de los títulos */
 }
 
+/* Mientras se ven los ovillos, la simbología muestra la de los ovillos (y al revés). */
+body:not([data-opcion="2"]) .simbologia-ovillos,
+body[data-opcion="2"] .simbologia-telar {
+  display: none;
+}
+
 /* ---------- Simbología ---------- */
 /* Simbología en una franja debajo del plano. */
 .simbologia {
@@ -594,8 +615,8 @@ button:focus-visible {
   flex: none;
   flex-direction: column; /* en columna, justo bajo "Telar de testimonios" */
   gap: 1.4rem; /* aire entre la simbología del telar y la de las temáticas */
-  font-size: 0.9rem;
-  line-height: 1.35;
+  font-size: 0.78rem;
+  line-height: 1.3;
 }
 
 /* Título solo para lectores de pantalla: la simbología se entiende sola y así deja más alto al telar. */
@@ -629,7 +650,7 @@ button:focus-visible {
 
 .simbologia h2 {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -637,7 +658,7 @@ button:focus-visible {
 
 .simbologia h3 {
   margin: 0 0 0.35rem;
-  font-size: 0.85rem;
+  font-size: 0.74rem;
   font-weight: 600;
   color: var(--azul);
   opacity: 0.75;
@@ -849,7 +870,7 @@ button:focus-visible {
    El grosor lo pone el código: más delgado cuantas más pasadas tenga la franja. */
 .hebra {
   fill: none;
-  stroke-linecap: round;
+  stroke-linecap: butt; /* puntadas de borde recto: cada una es un día */
   animation: aparecer 0.8s ease-out both;
   transition: opacity 0.3s;
 }
@@ -862,9 +883,35 @@ button:focus-visible {
 
 /* …y en su lugar aparece el hilo en puntadas, al mismo ritmo, como una costura. */
 .hebra.cosiendo {
-  stroke-dasharray: 7 5;
   transition: none;
   animation: coser var(--coser, 1.5s) linear both;
+}
+
+/* Las líneas que vuelven se tejen de derecha a izquierda, y las vueltas del borde, de arriba abajo. */
+.hebra.cosiendo.al-reves {
+  animation-name: coser-al-reves;
+}
+
+.hebra.cosiendo.hacia-abajo {
+  animation-name: coser-hacia-abajo;
+}
+
+@keyframes coser-al-reves {
+  from {
+    clip-path: inset(-60% 0 -60% 100%);
+  }
+  to {
+    clip-path: inset(-60% 0 -60% 0);
+  }
+}
+
+@keyframes coser-hacia-abajo {
+  from {
+    clip-path: inset(-20% -60% 100% -60%);
+  }
+  to {
+    clip-path: inset(-20% -60% -20% -60%);
+  }
 }
 
 @keyframes coser {
@@ -899,12 +946,10 @@ button:focus-visible {
 
 .tejido[data-tema="estudios"] .hebra[data-temas~="estudios"],
 .tejido[data-tema="trabajo"] .hebra[data-temas~="trabajo"],
-.tejido[data-tema="familia"] .hebra[data-temas~="familia"],
 .tejido[data-tema="vinculos"] .hebra[data-temas~="vinculos"],
-.tejido[data-tema="uno-mismo"] .hebra[data-temas~="uno-mismo"],
+.tejido[data-tema="hobbies"] .hebra[data-temas~="hobbies"],
 .tejido[data-tema="salud"] .hebra[data-temas~="salud"],
-.tejido[data-tema="suenos"] .hebra[data-temas~="suenos"],
-.tejido[data-tema="otros"] .hebra[data-temas~="otros"] {
+.tejido[data-tema="proyectos"] .hebra[data-temas~="proyectos"] {
   opacity: 1;
 }
 
@@ -912,7 +957,7 @@ button:focus-visible {
 .simular {
   display: grid;
   gap: 0.35rem;
-  margin-top: 2rem; /* los botones de simulación, más abajo, separados de la simbología */
+  margin: 0; /* los botones de simulación, bajo el título y antes de la simbología */
   color: var(--azul);
 }
 
@@ -965,10 +1010,15 @@ button:focus-visible {
   height: 22px;
 }
 
-.simbologia .icono-mezcla {
+.simbologia .icono-tiempo {
   flex-basis: 52px;
   width: 52px;
-  height: 14px;
+  height: 22px;
+}
+
+.icono-tiempo path {
+  fill: none;
+  stroke-linecap: round;
 }
 
 .simbologia .icono-costura {
@@ -1053,7 +1103,7 @@ button:focus-visible {
   border-radius: 999px;
   background: transparent;
   color: var(--azul);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 
 .tema:hover,
@@ -1068,6 +1118,87 @@ button:focus-visible {
   width: 14px;
   height: 14px;
   border-radius: 50%;
+}
+
+/* El botón Simular registros, arriba en la barra, junto a los datos del taller. */
+.boton-cabecera {
+  flex: none;
+  margin-left: auto;
+}
+
+/* ---------- Opción 2: ovillos ---------- */
+.opciones {
+  display: flex;
+  gap: 0.4rem;
+  margin-left: auto; /* junto a los datos del taller, a la derecha */
+}
+
+.boton-opcion {
+  padding: 0.4rem 0.9rem;
+  border: 1.5px solid var(--title);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--title);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boton-opcion[aria-pressed="true"] {
+  background: var(--title);
+  color: var(--surface);
+}
+
+.patio-ovillos {
+  cursor: default;
+}
+
+.ovillo-nombre {
+  font-size: 40px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.ovillo-suma {
+  font-weight: 400;
+}
+
+.ovillo-vacio {
+  fill: none;
+  stroke-width: 2;
+  stroke-dasharray: 3 4;
+  opacity: 0.6;
+}
+
+/* La frase sobre su tramo de espiral: se destapa con una máscara que avanza por el mismo trazo. */
+.escritura-ovillo {
+  font-family: var(--font-serif);
+  dominant-baseline: central;
+  paint-order: stroke;
+  stroke: var(--patio-fill);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.destape {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 30;
+}
+
+.simbologia .icono-ovillo,
+.simbologia .icono-tamanos {
+  flex-basis: 40px;
+  width: 40px;
+  height: 28px;
+}
+
+.icono-tamanos circle {
+  fill: none;
+  stroke: var(--azul);
+  stroke-width: 1.5;
 }
 
 @media (prefers-reduced-motion: reduce) {

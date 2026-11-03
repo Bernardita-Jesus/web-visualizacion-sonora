@@ -1,5 +1,5 @@
-import { DAY, lanzarRespuesta } from './main.js';
-import { TEMATICAS, guardarBorrador, guardarRespuesta, leerBorrador, limpiarDictado, temaPorId, tematicasDe } from './respuestas.js';
+import { lanzarRespuesta } from './main.js';
+import { TEMATICAS, diasPospuesto, guardarBorrador, guardarRespuesta, leerBorrador, limpiarDictado, temaPorId, tematicasDe, tiempoEnPalabras } from './respuestas.js';
 
 // Una sola pantalla: registro a la izquierda y visualización (el telar) a la derecha.
 
@@ -172,6 +172,7 @@ botonBorrar.addEventListener('click', () => {
 
 const temaPrevio = document.querySelector('#tema-previo');
 const temaPrevioNombre = document.querySelector('#tema-previo-nombre');
+const tiempoPrevio = document.querySelector('#tiempo-previo');
 const botonOtraTema = document.querySelector('#btn-otra-tema');
 const elegirTema = document.querySelector('#elegir-tema');
 const CLAVE_TEMA_MANUAL = 'diseno-abierto:borrador-tema';
@@ -197,7 +198,7 @@ function elegirTemaManual(temaId) {
   colorearSegunTema();
 }
 
-/** Temáticas del pendiente que se está dictando: la elegida a mano, o las detectadas (una o dos). */
+/** Temáticas del pendiente que se está dictando: la elegida a mano, o la detectada. */
 const temasDelCampo = (texto) => (temaManual ? [temaManual] : tematicasDe(texto)).map(temaPorId);
 const nombreTemas = (temas) => temas.map((tema) => tema.nombre).join(' y ');
 
@@ -213,7 +214,7 @@ function colorearSegunTema() {
   const temas = temasDelCampo(texto);
   campo.style.color = temas[0].color;
   campo.style.caretColor = temas[0].color;
-  // Cada temática con su color; con dos, el hilo se tejerá mezclando ambos.
+  // La temática con su color.
   temaPrevioNombre.replaceChildren(temas.length === 1 ? 'la temática ' : 'las temáticas ');
   temas.forEach((tema, i) => {
     if (i) temaPrevioNombre.append(' y ');
@@ -223,6 +224,11 @@ function colorearSegunTema() {
     temaPrevioNombre.append(nombre);
   });
   if (temaManual) temaPrevioNombre.append(' (elegida por ti)');
+  // Cuánto lleva pospuesto (el largo de su hilo); si no se dice, se teje un hilo corto.
+  const dias = diasPospuesto(texto);
+  tiempoPrevio.textContent = dias == null
+    ? 'No dijiste cuánto tiempo lo has pospuesto: cuéntalo (por ejemplo, "hace dos meses") para que su hilo tenga ese largo.'
+    : `Lo has pospuesto ${tiempoEnPalabras(dias)}.`;
   for (const boton of elegirTema.querySelectorAll('button')) {
     boton.setAttribute('aria-pressed', String(temas.some((tema) => tema.id === boton.dataset.tema)));
   }
@@ -290,41 +296,3 @@ try {
 } catch {
   // Sin almacenamiento disponible: el registro empieza visible.
 }
-
-/* ---------- Reloj del registro ---------- */
-
-const relojHora = document.querySelector('#reloj-hora');
-const relojFranja = document.querySelector('#reloj-franja');
-
-/** Hora en formato de 12 horas: "11:42 AM". */
-function horaDoce(horas, minutos) {
-  return `${horas % 12 || 12}:${String(minutos).padStart(2, '0')} ${horas < 12 ? 'AM' : 'PM'}`;
-}
-
-// Muestra la hora real y en qué franja (media hora) del telar se tejerá un pendiente contado ahora:
-// el mismo cálculo que usa el telar al recibirlo.
-function actualizarReloj() {
-  const ahora = new Date();
-  const h = ahora.getHours();
-  const m = ahora.getMinutes();
-  relojHora.textContent = horaDoce(h, m);
-  relojHora.dateTime = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-
-  const hora = h + m / 60;
-  if (hora < DAY.start) {
-    relojFranja.textContent = `Aún no empieza la jornada: tu pendiente se tejerá en la primera franja (${horaDoce(DAY.start, 0)}).`;
-  } else if (hora >= DAY.end) {
-    const ultima = DAY.end - DAY.step;
-    relojFranja.textContent = `Ya terminó la jornada: tu pendiente se tejerá en la última franja (${horaDoce(Math.floor(ultima), (ultima % 1) * 60)}).`;
-  } else {
-    const inicio = Math.floor(hora / DAY.step) * DAY.step;
-    relojFranja.textContent = `Tu pendiente se tejerá en la franja de las ${horaDoce(Math.floor(inicio), Math.round((inicio % 1) * 60))}.`;
-  }
-}
-
-actualizarReloj();
-// Se actualiza al comienzo de cada minuto.
-setTimeout(() => {
-  actualizarReloj();
-  setInterval(actualizarReloj, 60 * 1000);
-}, (60 - new Date().getSeconds()) * 1000);

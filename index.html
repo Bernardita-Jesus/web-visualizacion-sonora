@@ -3,18 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Taller de Visualización Interactiva (Braulio, Bernardita y Benjamín): ¿qué tienes pendiente? Relatos anónimos tejidos en un telar, hora a hora, con el color de su temática.">
-  <title>¿Qué tienes pendiente? · Diseño Abierto</title>
+  <meta name="description" content="Taller de Visualización Interactiva (Braulio, Bernardita y Benjamín): ¿qué tienes pendiente y hace cuánto lo pospones? Relatos anónimos tejidos en un telar: cada puntada es un día pospuesto, con el color de su temática.">
+  <title>¿Qué tienes pendiente y hace cuánto lo pospones? · Diseño Abierto</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,600;0,800;1,400&family=Source+Serif+4:wght@400;600&display=swap">
   <link rel="stylesheet" href="css/styles.css">
   <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/ovillos.js"></script>
 </head>
 <body>
   <!-- ---------- Barra superior: la pregunta, el contexto y los nombres ---------- -->
   <header class="cabecera">
-    <h1 id="pregunta" class="pregunta">¿Qué tienes pendiente?</h1>
+    <div class="cabecera-pregunta">
+      <h1 id="pregunta" class="pregunta">¿Qué tienes pendiente y hace cuánto lo pospones?</h1>
+      <p class="bajada">Empezar algo cuesta y casi siempre lo dejamos para después. A fin de año solemos mirar lo que logramos y lo que sigue pendiente. Quizás sea un buen momento para retomar aquello que hemos postergado y comenzar.</p>
+    </div>
+    <!-- Simular registros: muestra testimonios de ejemplo en el telar; apagado, solo los reales. -->
+    <button id="btn-simular" class="boton-simular boton-cabecera" type="button" aria-pressed="false"
+            title="Apagado: el telar muestra solo los registros reales">Simular registros</button>
     <div class="cabecera-info">
       <p class="eyebrow">Diseño Abierto</p>
       <p class="eyebrow">Taller de Visualización Interactiva</p>
@@ -37,16 +44,11 @@
       <h2 class="modo">Modo registro</h2>
       <button id="btn-ocultar-registro" type="button" aria-controls="contenido-registro" aria-expanded="true">Ocultar ◂</button>
     </header>
-    <!-- Reloj: la hora real y la franja del telar donde se tejerá el pendiente que se cuente ahora. -->
-    <div class="reloj-registro" aria-live="off">
-      <time id="reloj-hora" class="reloj-hora">--:--</time>
-      <p id="reloj-franja" class="reloj-franja"></p>
-    </div>
 
     <form id="form-registro" class="registro" novalidate>
       <p class="anonimo">
         <strong>Todos los relatos son anónimos.</strong>
-        No registramos quién eres ni guardamos tu voz: solo el texto de tu pendiente y la hora.
+        No registramos quién eres ni guardamos tu voz: solo el texto de tu pendiente.
       </p>
 
       <div class="dictado">
@@ -64,7 +66,7 @@
       <!-- Antes de enviar: en qué temática se registrará. Solo si no es la correcta, se elige otra a mano;
            si no, basta con Enviar. -->
       <div id="tema-previo" class="tema-previo" hidden>
-        <p aria-live="polite">Se registrará en <strong id="tema-previo-nombre"></strong>.</p>
+        <p aria-live="polite">Se registrará en <strong id="tema-previo-nombre"></strong>. <span id="tiempo-previo"></span></p>
         <button id="btn-otra-tema" class="boton-otra-tema" type="button" aria-expanded="false" aria-controls="elegir-tema">
           ¿No es esa? Seleccionar manualmente
         </button>
@@ -86,29 +88,33 @@
       <!-- Columna izquierda: el título y, debajo, la simbología. El telar va a la derecha, desde arriba. -->
       <div class="telar-lado">
         <header class="bar">
-          <h2 class="modo">Telar de testimonios</h2>
+          <h2 id="titulo-visualizacion" class="modo">Telar de testimonios</h2>
         </header>
+
+        <!-- Borrar los registros reales guardados en este navegador (con confirmación). -->
+        <div class="simular">
+          <button id="btn-borrar-registros" class="boton-borrar" type="button">Borrar registros reales</button>
+        </div>
 
       <aside class="simbologia" aria-labelledby="simbologia-titulo">
         <h2 id="simbologia-titulo">Simbología</h2>
 
+        <div class="simbologia-grupo">
+          <h3>Hilo</h3>
+          <ul class="items">
+            <li>
+              <svg class="icono icono-tiempo" viewBox="0 0 52 22" aria-hidden="true">
+                <path d="M 3 5 L 14 5" style="stroke: #e0317a; stroke-width: 4; stroke-dasharray: 2.4 1.4"></path>
+                <path d="M 3 16 L 49 16" style="stroke: #e0317a; stroke-width: 4; stroke-dasharray: 2.4 1.4"></path>
+              </svg>
+              <span>Cada tramo es un pendiente, cosido en puntadas: <strong>cada puntada es un día</strong> que lleva pospuesto. Cada línea del telar es un año</span>
+            </li>
+          </ul>
+        </div>
+
         <div class="simbologia-grupo simbologia-telar">
           <h3>Telar</h3>
           <ul class="items">
-            <li>
-              <svg class="icono icono-hilos" viewBox="0 0 40 22" aria-hidden="true">
-                <rect x="0.5" y="0.5" width="39" height="9" rx="1"></rect>
-                <rect class="vacia" x="0.5" y="12.5" width="39" height="9" rx="1"></rect>
-              </svg>
-              <span>Franja = media hora (8 AM arriba, 7 PM abajo). Angosta y vacía: nadie habló</span>
-            </li>
-            <li>
-              <svg class="icono icono-costura" viewBox="0 0 52 12" aria-hidden="true">
-                <line class="costura-sombra" x1="2" x2="50" y1="6" y2="6"></line>
-                <line class="costura" x1="2" x2="50" y1="6" y2="6"></line>
-              </svg>
-              <span>Costura blanca: cambio de hora</span>
-            </li>
             <li>
               <svg class="icono icono-hebra" viewBox="0 0 84 22" aria-hidden="true">
                 <path class="trazo-muestra" d="M 3 4 Q 9 2 15 4 T 27 4 T 39 4 T 51 4 T 63 4 T 75 4" style="stroke: #e4572e; stroke-width: 3"></path>
@@ -118,19 +124,26 @@
                 <path class="trazo-muestra" d="M 3 12 A 4 4 0 0 0 3 20" style="stroke: #1f5fd1; stroke-width: 3"></path>
                 <path class="trazo-muestra" d="M 3 20 Q 9 18 15 20 T 27 20 T 39 20 T 51 20" style="stroke: #8e3fd6; stroke-width: 3"></path>
               </svg>
-              <span>Cada tramo es un pendiente, del largo de su frase. Más se habló, más líneas: el hilo da vuelta</span>
+              <span>Los pendientes van uno tras otro, en el orden en que se registraron; el hilo da vuelta en los bordes. Más largo el telar, más tiempo pospuesto</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="simbologia-grupo simbologia-ovillos">
+          <h3>Ovillos</h3>
+          <ul class="items">
+            <li>
+              <svg class="icono icono-ovillo" viewBox="-14 -14 28 28" aria-hidden="true">
+                <path d="M 2 0 A 2 2 0 0 1 -2.5 1 A 4 4 0 0 1 4.5 -3 A 6.5 6.5 0 0 1 -5 6 A 9 9 0 0 1 9 -6.5 A 11.5 11.5 0 0 1 -9 9.5" style="fill: none; stroke: #2e9d3f; stroke-width: 2; stroke-linecap: round"></path>
+              </svg>
+              <span>Cuando el telar se completa, sus hilos salen del cuadrado y se enrollan en un ovillo por temática</span>
             </li>
             <li>
-              <svg class="icono icono-mezcla" viewBox="0 0 52 12" aria-hidden="true">
-                <defs>
-                  <pattern id="mezcla-muestra" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                    <rect width="3" height="6" fill="#e4572e"></rect>
-                    <rect x="3" width="3" height="6" fill="#1f5fd1"></rect>
-                  </pattern>
-                </defs>
-                <path d="M 3 6 Q 9 3 15 6 T 27 6 T 39 6 T 49 6" style="fill: none; stroke: url(#mezcla-muestra); stroke-width: 5; stroke-linecap: round"></path>
+              <svg class="icono icono-tamanos" viewBox="0 0 40 22" aria-hidden="true">
+                <circle cx="7" cy="14" r="5"></circle>
+                <circle cx="26" cy="11" r="10"></circle>
               </svg>
-              <span>Hilo mezclado: el pendiente habla de dos temáticas</span>
+              <span>Cada ovillo suma el largo de sus tiritas: más grande, más tiempo se ha pospuesto en esa temática</span>
             </li>
           </ul>
         </div>
@@ -141,15 +154,9 @@
         </div>
       </aside>
 
-        <!-- Simular registros: muestra testimonios de ejemplo de toda la jornada; apagado, solo los reales. -->
-        <div class="simular">
-          <button id="btn-simular" class="boton-simular" type="button" aria-pressed="false">Simular registros</button>
-          <p class="simular-nota">Apagado: solo los registros reales.</p>
-          <button id="btn-borrar-registros" class="boton-borrar" type="button">Borrar registros reales</button>
-        </div>
       </div>
       <svg id="plano" viewBox="140 110 920 1170" preserveAspectRatio="xMidYMin meet" role="img"
-           aria-label="Telar de pendientes: una franja por cada media hora de la jornada, con hilos del color de cada temática; más hilos y más delgados donde más se habló"></svg>
+           aria-label="Telar de pendientes: un solo tejido continuo, con hilos del color de cada temática; el largo de cada tramo es cuánto tiempo lleva pospuesto"></svg>
     </main>
 
 
