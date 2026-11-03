@@ -9,7 +9,10 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
  * queda en parte fuera del borde) dejando espacio a la derecha, y sus hilos salen del cuadrado hacia ese espacio, donde se enrollan en un ovillo por temática. Cada ovillo es un solo hilo en espiral que parte en el centro con el primer pendiente
  * registrado y se enrolla hacia afuera. Cada hilo conserva su largo (el tiempo que lleva pospuesto, una
  * puntada por día), así que el tamaño del ovillo dice cuánto tiempo se ha postergado en esa temática.
- * Quedan un rato a la vista, todo vuelve a su lugar y el telar se teje de nuevo desde cero.
+ * Ya formados, quedan un momento a la vista; el rectángulo del telar se va del todo por la izquierda y,
+ * en ese espacio, entra un ovillo a la vez: su hilo se despliega y borda, en puntadas, las palabras más
+ * usadas en su temática (el ovillo se achica a medida que borda), y luego se va por la izquierda, de vuelta
+ * al telar. Cuando se han ido todos, el telar regresa con todos sus hilos y vuelve la simbología.
  */
 
 const OVILLO = {
@@ -18,18 +21,25 @@ const OVILLO = {
   margen: 28, // aire entre ovillos
   etiqueta: 84, // espacio bajo cada ovillo para su nombre y lo que suma
   letra: 24, // tamaño del nombre de cada ovillo
+  palabras: 4, // cuántas de las palabras más usadas escribe cada ovillo
   paso: 0.02, // resolución de la espiral (radianes)
 };
 
 const TIEMPOS = {
   mover: 2.5, // segundos en que la simbología se repliega y el telar se corre a la izquierda (y al volver)
   espacio: 0.5, // parte del ancho que queda libre a la derecha para los ovillos (el telar se sale por la izquierda)
-  salir: 10, // segundos que tarda cada hilo en salir del cuadrado y enrollarse
-  escalonado: 8, // los hilos no salen todos juntos: el último parte estos segundos después del primero
-  tirar: 0.5, // el hilo sale tirado desde su punta: el final parte esta fracción del viaje después que la punta
-  arco: 60, // cuánto se levantan los hilos en su viaje (en unidades del dibujo)
-  hold: 12, // segundos que los ovillos quedan a la vista antes de volver a tejer el telar
-  fundido: 1.5, // segundos en que los ovillos se desvanecen al volver
+  salir: 26, // segundos que tarda cada hilo en salir del cuadrado y quedar enrollado
+  llegar: 0.18, // parte de ese tiempo en que el hilo llega al ovillo (rápido); el resto, el ovillo lo enrolla (lento)
+  escalonado: 6, // los hilos no salen todos juntos: el último parte estos segundos después del primero
+  tirar: 0.25, // el hilo sale tirado desde su punta: el final parte esta fracción del viaje después que la punta
+  antesDePalabras: 5, // segundos que los ovillos quedan a la vista, recién formados, antes de bordar
+  salirTelar: 2.5, // segundos en que el rectángulo del telar se va por la izquierda (y vuelve)
+  llevar: 1.6, // segundos en que cada ovillo va al espacio del telar (y en que se va por la izquierda)
+  letrasPorSegundo: 7, // velocidad con que el hilo borda las palabras
+  porOvillo: 2.5, // segundos que las palabras bordadas quedan a la vista antes de que el ovillo vuelva
+  hold: 3, // segundos que los ovillos quedan a la vista después de bordar, antes de volver al telar
+  fundido: 1.5, // segundos en que las palabras y los nombres se desvanecen al volver
+  enTelar: 3, // segundos que el telar, ya de vuelta y completo, queda a la vista antes de volver a tejerse
 };
 
 const el = (name, attrs = {}, parent) => {
@@ -47,12 +57,14 @@ async function esperarMientras(segundos, vigente) {
 // no está pintando cuadros, por ejemplo en una pestaña de fondo o en pruebas).
 const siguienteCuadro = (fn) => setTimeout(() => fn(performance.now()), 16);
 const suave = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2); // entra y sale despacio
+const muySuave = (t) => (1 - Math.cos(Math.PI * t)) / 2; // sin aceleraciones bruscas: para los hilos
 
 /* ---------- La espiral ---------- */
 
 /**
  * Espiral de Arquímedes con `vuelta` de separación entre giros, recorrida en sentido horario. Devuelve
- * cómo ubicar un punto según cuánto hilo lleva enrollado (`puntoEn(s)`).
+ * dónde queda un punto según cuánto hilo lleva enrollado, en coordenadas polares (`polarEn(s)`: radio y
+ * ángulo acumulado, que sigue creciendo vuelta a vuelta).
  */
 function espiral(vuelta) {
   const b = vuelta / (2 * Math.PI);
@@ -73,9 +85,9 @@ function espiral(vuelta) {
     return (lo + t) * OVILLO.paso;
   };
   return {
-    puntoEn: (cx, cy, s) => {
+    polarEn: (s) => {
       const theta = anguloEn(s);
-      return [cx + radioEn(theta) * Math.cos(theta), cy + radioEn(theta) * Math.sin(theta)];
+      return [radioEn(theta), theta];
     },
   };
 }
@@ -143,6 +155,142 @@ function armarOvillos(telar) {
   const vuelta = lo;
   ordenar(ovillos, telar.area, radioCon(vuelta));
   return { ovillos, vuelta, grosor: Math.min(telar.grosor, vuelta * 0.6) };
+}
+
+/* ---------- Las palabras más usadas ---------- */
+
+// Palabras que no dicen de qué trata un pendiente: artículos, pronombres, conectores, verbos de todos los
+// días y lo que se dice del tiempo (eso ya está en el largo del hilo).
+const VACIAS = new Set(`
+  algo antes aunque cada casi como con cosa cosas cuando desde despues donde durante entre esta este esto
+  estoy hace hacer hasta hay llevo mas mismo mucho muy nada para pero poco porque pospongo pospuesto
+  pospuesta pospuse posponiendo posponer queda quiero sigo siempre sobre solo tambien tanto tener tengo
+  tiempo todavia todo toda todos todas vez veces nunca otra otro otros mucha muchas ahora entonces luego
+  anos ano meses semanas semana dias como dentro sola solo cual tienes tiene hacerlo dejarlo dejo
+  abro entero debe deberia encuentro paso decirle dejar deje dejando sigue seguir pedir pedirle mandar
+  esta estan estaba estoy hora horas cosa mismo vida volver
+  dos tres cuatro cinco seis siete ocho nueve diez once doce quince veinte medio media marzo verano
+`.split(/\s+/).filter(Boolean));
+const sinTildes = (texto) => texto.normalize('NFD').replace(/\p{Diacritic}/gu, '');
+
+// Sin verbos: se descartan los infinitivos (terminar, decir, dormir, también con "le", "lo", "me"…), los
+// gerundios (estudiando) y las formas que más se usan al contar un pendiente. Algunas palabras terminan
+// como un infinitivo pero no lo son (taller, lugar, hogar…): esas se quedan.
+const INFINITIVO = /(ar|er|ir)(me|te|se|le|les|lo|la|los|las|nos)?$/;
+const GERUNDIO = /(ando|iendo|yendo)(me|te|se|le|lo|la|los|las)?$/;
+const NO_SON_VERBOS = new Set(`
+  taller lugar hogar mujer ayer celular familiar escolar militar popular particular auxiliar similar
+  regular dolar collar altar azucar caracter placer cancer chofer bachiller sur
+`.split(/\s+/).filter(Boolean));
+const VERBOS = new Set(`
+  voy vas van fui fue iba hice hizo puedo pude siento senti creo dije dijo digo llamo llame veo vi
+  doy di sale salgo pongo puse empiezo empece termino aprendo leo escribo tomo
+  ando anda tenia tuve quise prometimos prometi nos juntamos armamos peleamos distanciamos postergo
+  postergue cuesta cueste duele dice gusta gustaria haria seria podria deberia necesito llevo lleva
+`.split(/\s+/).filter(Boolean));
+const esVerbo = (palabra) =>
+  !NO_SON_VERBOS.has(palabra) && (INFINITIVO.test(palabra) || GERUNDIO.test(palabra) || VERBOS.has(palabra));
+
+/** Las palabras que más se repiten en los pendientes de un ovillo (de 4 letras o más, sin las vacías ni verbos). */
+function palabrasFrecuentes(lista, cuantas) {
+  const conteo = new Map();
+  for (const { texto } of lista) {
+    for (const palabra of texto.toLowerCase().split(/[^\p{L}]+/u)) {
+      const simple = sinTildes(palabra);
+      if (palabra.length < 4 || VACIAS.has(simple) || esVerbo(simple)) continue;
+      conteo.set(palabra, (conteo.get(palabra) ?? 0) + 1);
+    }
+  }
+  return [...conteo.entries()].sort((a, b) => b[1] - a[1]).slice(0, cuantas).map(([palabra]) => palabra);
+}
+
+/** Ubica un ovillo en (x, y) con escala `escala` (sin moverlo de verdad: con una transformación). */
+function ubicarOvillo(ovillo, x, y, escala) {
+  ovillo.g.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${escala.toFixed(3)}) translate(${-ovillo.cx} ${-ovillo.cy})`);
+}
+
+/**
+ * Un ovillo va al espacio que dejó el telar y su hilo se despliega bordando, en puntadas y letra a letra,
+ * las palabras más usadas en su temática (una por línea). Un hilo une el ovillo con la aguja, y el ovillo
+ * se achica a medida que borda. Al terminar, las palabras quedan un momento y el ovillo se va por la
+ * izquierda, de vuelta al telar (hasta `xSalida`). Su nombre desaparece apenas el ovillo se mueve.
+ */
+async function bordarPalabras(capa, ovillo, espacio, xSalida, vigente) {
+  const palabras = palabrasFrecuentes(ovillo.lista, OVILLO.palabras);
+  if (!palabras.length) return;
+  const color = ovillo.tema.color;
+
+  // El ovillo a la izquierda del espacio; las palabras a su derecha, tan grandes como quepan.
+  const ox = espacio.x + espacio.ancho * 0.16;
+  const oy = espacio.y + espacio.alto / 2;
+  const escala = Math.min(1.6, (espacio.ancho * 0.13) / ovillo.radio, (espacio.alto * 0.35) / ovillo.radio);
+  const x0 = espacio.x + espacio.ancho * 0.34;
+  const ancho = espacio.x + espacio.ancho - x0;
+  const largo = Math.max(...palabras.map((palabra) => palabra.length));
+  const letra = Math.min(140, (espacio.alto * 0.85) / (palabras.length * 1.15), ancho / (largo * 0.56));
+  const y0 = oy - ((palabras.length - 1) * letra * 1.15) / 2;
+
+  // Apenas el ovillo se mueve, su nombre de abajo desaparece.
+  ovillo.rotuloG.style.transition = 'opacity 0.5s ease';
+  ovillo.rotuloG.style.opacity = '0';
+  await animar(TIEMPOS.llevar, (e) => {
+    ubicarOvillo(ovillo, ovillo.cx + (ox - ovillo.cx) * e, ovillo.cy + (oy - ovillo.cy) * e, 1 + (escala - 1) * e);
+  }, vigente);
+
+  // Las palabras bordadas: solo su contorno, en puntadas, que se destapa de izquierda a derecha.
+  const bordado = el('g', { class: 'bordado' }, capa);
+  const hilo = el('path', { class: 'hilo-aguja' }, capa);
+  hilo.style.stroke = color;
+  const lineas = palabras.map((palabra, i) => {
+    const id = `bordado-${ovillo.tema.id}-${i}`;
+    const recorte = el('clipPath', { id }, bordado);
+    const rect = el('rect', { x: x0 - letra, y: y0 + i * letra * 1.15 - letra, width: 0, height: letra * 2 }, recorte);
+    const texto = el('text', { x: x0, y: y0 + i * letra * 1.15, 'clip-path': `url(#${id})` }, bordado);
+    texto.textContent = palabra;
+    texto.style.stroke = color;
+    texto.style.fontSize = `${letra.toFixed(1)}px`;
+    texto.style.strokeWidth = (letra * 0.045).toFixed(2);
+    texto.style.strokeDasharray = `${(letra * 0.07).toFixed(2)} ${(letra * 0.045).toFixed(2)}`;
+    return { palabra, rect, y: y0 + i * letra * 1.15, largo: texto.getComputedTextLength() };
+  });
+  const totalLetras = palabras.join('').length;
+  let bordadas = 0;
+  for (const linea of lineas) {
+    const segundos = linea.palabra.length / TIEMPOS.letrasPorSegundo;
+    await animar(segundos, (e) => {
+      const xAguja = x0 + linea.largo * e;
+      linea.rect.setAttribute('width', (letra + linea.largo * e + 2).toFixed(1));
+      // El ovillo se achica a medida que su hilo se despliega.
+      const avance = (bordadas + linea.palabra.length * e) / totalLetras;
+      const s = escala * (1 - 0.55 * avance);
+      ubicarOvillo(ovillo, ox, oy, s);
+      const borde = ox + ovillo.radio * s;
+      hilo.setAttribute('d', `M ${borde.toFixed(1)} ${oy.toFixed(1)} C ${((borde + xAguja) / 2).toFixed(1)} ${oy.toFixed(1)} ${((borde + xAguja) / 2).toFixed(1)} ${linea.y.toFixed(1)} ${xAguja.toFixed(1)} ${linea.y.toFixed(1)}`);
+    }, vigente);
+    bordadas += linea.palabra.length;
+    if (!vigente()) break;
+  }
+  hilo.remove();
+  await esperarMientras(TIEMPOS.porOvillo, vigente);
+
+  // Las palabras se desvanecen y el ovillo se va por la izquierda, de vuelta al telar.
+  bordado.style.transition = `opacity ${TIEMPOS.fundido}s ease`;
+  bordado.style.opacity = '0';
+  const sFinal = escala * 0.45;
+  ovillo.g.style.transition = '';
+  await animar(TIEMPOS.llevar, (e) => {
+    ubicarOvillo(ovillo, ox + (xSalida - ox) * e, oy, sFinal);
+    ovillo.g.style.opacity = (1 - e).toFixed(3);
+  }, () => true);
+  bordado.remove();
+}
+
+/** Mueve el rectángulo del telar `dx` unidades a la izquierda y lo desvanece (o lo trae de vuelta). */
+function correrCuadrado(cuadrado, dx, opacidad) {
+  for (const nodo of cuadrado) {
+    nodo.setAttribute('transform', `translate(${(-dx).toFixed(1)} 0)`);
+    nodo.style.opacity = opacidad.toFixed(3);
+  }
 }
 
 /* ---------- Del telar a los ovillos ---------- */
@@ -233,23 +381,36 @@ alTerminarTelar(async (vigente, telar) => {
     alto: v.alto - margen * 2,
   };
   const { ovillos, vuelta, grosor } = armarOvillos({ ...telar, area });
-  const { puntoEn } = espiral(vuelta);
+  const { polarEn } = espiral(vuelta);
 
   // Cada hilo: dónde está en el telar y dónde quedará en su ovillo, con la misma cantidad de puntos.
   const capa = el('g', { class: 'tejido ovillos' }, svg);
   capa.dataset.tema = telar.tejido.dataset.tema ?? '';
   const viajes = [];
   for (const ovillo of ovillos) {
+    ovillo.g = el('g', { class: 'ovillo' }, capa);
     for (const p of ovillo.lista) {
       const cuantos = Math.max(12, Math.min(900, Math.round(p.largo / 8)));
       const desde = puntosEnTelar(p, cuantos);
       const hasta = Array.from({ length: cuantos }, (_, i) =>
-        puntoEn(ovillo.cx, ovillo.cy, p.enOvillo.s0 + ((p.enOvillo.s1 - p.enOvillo.s0) * i) / (cuantos - 1)));
-      const nodo = el('path', { class: 'hebra cosida', 'data-temas': p.temas[0].id }, capa);
+        polarEn(p.enOvillo.s0 + ((p.enOvillo.s1 - p.enOvillo.s0) * i) / (cuantos - 1)));
+      // El viaje se hace en coordenadas polares alrededor del centro del ovillo: cada punto gira mientras
+      // se acerca, así el hilo se enrolla en curvas redondas. Los ángulos se "desenrollan" a lo largo del
+      // hilo para que todos sus puntos giren juntos, y el giro total es el más corto.
+      const polares = desde.map(([x, y]) => [Math.hypot(x - ovillo.cx, y - ovillo.cy), Math.atan2(y - ovillo.cy, x - ovillo.cx)]);
+      for (let i = 1; i < cuantos; i++) {
+        while (polares[i][1] - polares[i - 1][1] > Math.PI) polares[i][1] -= 2 * Math.PI;
+        while (polares[i][1] - polares[i - 1][1] < -Math.PI) polares[i][1] += 2 * Math.PI;
+      }
+      const giros = polares.map(([, a], i) => hasta[i][1] - a);
+      const medio = giros.reduce((suma, g) => suma + g, 0) / cuantos;
+      const ajuste = -2 * Math.PI * Math.round(medio / (2 * Math.PI));
+      const camino = polares.map(([r0, a0], i) => ({ r0, a0, r1: hasta[i][0], giro: giros[i] + ajuste }));
+      const nodo = el('path', { class: 'hebra cosida', 'data-temas': p.temas[0].id }, ovillo.g);
       nodo.style.stroke = pintura(p.temas);
       nodo.style.strokeWidth = telar.grosor.toFixed(2);
       enPuntadas(nodo, p.largo / largoDeDias(1)); // las mismas puntadas: una por día
-      viajes.push({ nodo, desde, hasta, p });
+      viajes.push({ nodo, camino, p, ovillo });
     }
   }
   // El orden de partida es el orden en que se tejieron.
@@ -261,17 +422,32 @@ alTerminarTelar(async (vigente, telar) => {
   // El hilo se descose tirado desde su punta: cada punto parte un poco después que el anterior, así el
   // hilo se desenreda de a poco y sigue a su punta, que va primero al centro del ovillo.
   const dibujarViaje = (viaje, t) => {
-    const { desde, hasta } = viaje;
-    const n = desde.length;
-    let d = '';
+    const { camino, ovillo } = viaje;
+    const n = camino.length;
+    const puntos = [];
     for (let i = 0; i < n; i++) {
       const retraso = (i / Math.max(1, n - 1)) * TIEMPOS.tirar;
-      const e = suave(Math.min(1, Math.max(0, (t - retraso) / (1 - TIEMPOS.tirar))));
-      const arco = TIEMPOS.arco * Math.sin(Math.PI * e); // en el camino, el hilo se levanta un poco
-      const x = desde[i][0] + (hasta[i][0] - desde[i][0]) * e;
-      const y = desde[i][1] + (hasta[i][1] - desde[i][1]) * e - arco;
-      d += `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`;
+      const local = Math.min(1, Math.max(0, (t - retraso) / (1 - TIEMPOS.tirar)));
+      // Primero el hilo llega rápido, casi en línea recta, hasta su vuelta en el ovillo; después el ovillo
+      // gira despacio y lo enrolla hasta su lugar. Como el giro empieza cuando el hilo ya está cerca, no da
+      // vueltas grandes ni se sale de la pantalla.
+      const llegada = muySuave(Math.min(1, local / TIEMPOS.llegar));
+      const giroHecho = muySuave(Math.min(1, Math.max(0, (local - TIEMPOS.llegar * 0.8) / (1 - TIEMPOS.llegar * 0.8))));
+      const { r0, a0, r1, giro } = camino[i];
+      const r = r0 + (r1 - r0) * llegada;
+      const a = a0 + giro * giroHecho;
+      puntos.push([ovillo.cx + r * Math.cos(a), ovillo.cy + r * Math.sin(a)]);
     }
+    // Los puntos se unen con curvas (cada punto es el control entre los puntos medios vecinos): el hilo
+    // queda redondo aunque los puntos estén separados.
+    const f = (v) => v.toFixed(1);
+    let d = `M${f(puntos[0][0])} ${f(puntos[0][1])}`;
+    for (let i = 1; i < n - 1; i++) {
+      const [x, y] = puntos[i];
+      const [x2, y2] = puntos[i + 1];
+      d += `Q${f(x)} ${f(y)} ${f((x + x2) / 2)} ${f((y + y2) / 2)}`;
+    }
+    d += `L${f(puntos[n - 1][0])} ${f(puntos[n - 1][1])}`;
     viaje.nodo.setAttribute('d', d);
     viaje.nodo.style.strokeWidth = (telar.grosor + (grosor - telar.grosor) * suave(t)).toFixed(2);
   };
@@ -296,21 +472,56 @@ alTerminarTelar(async (vigente, telar) => {
     for (const viaje of viajes) dibujarViaje(viaje, 1);
 
     // Bajo cada ovillo: su temática, cuántas veces se repite y cuánto tiempo pospuesto suma.
-    for (const { tema, rotulo, cx, cy, radio } of ovillos) {
+    const rotulos = el('g', { class: 'rotulos' }, capa);
+    for (const ovillo of ovillos) {
+      const { tema, rotulo, cx, cy, radio } = ovillo;
+      ovillo.rotuloG = el('g', {}, rotulos);
       rotulo.forEach((linea, i) => {
-        const texto = el('text', { class: i ? 'ovillo-nombre ovillo-suma' : 'ovillo-nombre', x: cx, y: cy + radio + OVILLO.letra * (1 + i * 1.25) }, capa);
+        const texto = el('text', { class: i ? 'ovillo-nombre ovillo-suma' : 'ovillo-nombre', x: cx, y: cy + radio + OVILLO.letra * (1 + i * 1.25) }, ovillo.rotuloG);
         texto.style.fill = tema.color;
         texto.style.fontSize = `${i ? OVILLO.letra * 0.8 : OVILLO.letra}px`;
         texto.textContent = linea;
       });
     }
+    await esperarMientras(TIEMPOS.antesDePalabras, vigente);
+
+    // El rectángulo del telar se va del todo por la izquierda y desaparece.
+    const salida = vista.x + vista.ancho - v.x + 40; // cuánto se corre para quedar fuera de la vista
+    await animar(TIEMPOS.salirTelar, (e) => correrCuadrado(telar.cuadrado, salida * e, 1 - e), vigente);
+
+    // En ese espacio, un ovillo a la vez: los demás se atenúan y su hilo borda sus palabras.
+    const espacio = { x: v.x + margen, y: area.y, ancho: area.x - v.x - margen * 2, alto: area.alto };
+    // Al terminar, cada ovillo se va por la izquierda, de vuelta al telar.
+    const pendientesDeBordar = new Set(ovillos);
+    const atenuar = (destacado) => {
+      for (const ovillo of pendientesDeBordar) {
+        ovillo.g.style.transition = 'opacity 0.8s ease';
+        ovillo.g.style.opacity = destacado && ovillo !== destacado ? '0.25' : '';
+      }
+    };
+    const xSalida = v.x - 400;
+    for (const ovillo of ovillos) {
+      if (!vigente()) break;
+      atenuar(ovillo);
+      await bordarPalabras(capa, ovillo, espacio, xSalida, vigente);
+      pendientesDeBordar.delete(ovillo);
+    }
     await esperarMientras(TIEMPOS.hold, vigente);
-  } finally {
-    // De vuelta: los ovillos se desvanecen, la simbología vuelve y el telar regresa a su lugar.
-    capa.style.transition = `opacity ${TIEMPOS.fundido}s ease`;
-    capa.style.opacity = '0';
-    await esperar(TIEMPOS.fundido);
+    if (!vigente()) return;
+
+    // El telar regresa desde la izquierda con todos sus hilos (los que se fueron en los ovillos).
+    const conHilos = [...telar.cuadrado, telar.tejido];
+    correrCuadrado(conHilos, salida, 0);
+    telar.tejido.style.visibility = '';
+    await animar(TIEMPOS.salirTelar, (e) => correrCuadrado(conHilos, salida * (1 - e), e), vigente);
     capa.remove();
+
+  } finally {
+    // De vuelta: los hilos ya están en el telar; la simbología vuelve y el telar se centra en su lugar.
+    capa.style.transition = `opacity ${TIEMPOS.fundido}s ease`;
+    if (!vigente()) capa.style.opacity = '0';
+    correrCuadrado([...telar.cuadrado, telar.tejido], 0, 1);
+    for (const nodo of [...telar.cuadrado, telar.tejido]) nodo.removeAttribute('transform');
     planoWrap.classList.remove('replegada');
     mostrarSimbologia('telar');
     const izq1 = svg.getBoundingClientRect().left;
@@ -321,7 +532,10 @@ alTerminarTelar(async (vigente, telar) => {
       verTelar(svg, vista, k0 + (kFinal - k0) * e, izq1 + (izqFinal - izq1) * e, arriba);
     }, () => true);
     svg.setAttribute('preserveAspectRatio', 'xMidYMin meet');
+    // Los hilos del telar vuelven a verse en lugar de sus copias (están en el mismo lugar).
     telar.tejido.style.visibility = '';
+    capa.remove();
     telar.congelar(false);
+    await esperarMientras(TIEMPOS.enTelar, vigente);
   }
 });

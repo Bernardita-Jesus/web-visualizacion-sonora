@@ -87,8 +87,14 @@ La visualización es un ciclo en dos tiempos (`js/main.js` y `js/ovillos.js`):
    temática**, en ese espacio, donde queda enrollado en espiral (del centro hacia afuera). Los hilos parten uno
    tras otro, en el orden en que se tejieron, y conservan su largo y sus puntadas: **mientras más grande el
    ovillo, más tiempo se ha pospuesto en esa temática**. Bajo cada ovillo aparece su temática, cuántas veces
-   se repite y cuánto tiempo pospuesto suma (por ejemplo, "19 veces · 27 años"). Los ovillos quedan a la vista unos segundos, se desvanecen, la simbología y el telar vuelven a su
-   lugar, y el telar se teje de nuevo desde cero.
+   se repite y cuánto tiempo pospuesto suma (por ejemplo, "19 veces · 27 años"). Ya formados, quedan unos segundos a la vista.
+3. **Los ovillos bordan sus palabras.** El rectángulo del telar se va del todo por la izquierda y desaparece.
+   En ese espacio entra **un ovillo a la vez** (los demás se atenúan): su hilo se despliega y **borda, en
+   puntadas y letra a letra, las palabras más usadas** en los testimonios de su temática, una por línea. Un
+   hilo une el ovillo con la aguja y el ovillo se achica a medida que borda. Las palabras quedan un momento,
+   se desvanecen y el ovillo se va por la izquierda, de vuelta al telar; luego entra el siguiente.
+4. **Todo vuelve al telar.** Cuando se han ido todos los ovillos, el telar regresa desde la izquierda con todos
+   sus hilos, la simbología vuelve y el telar completo queda unos segundos a la vista antes de volver a tejerse.
 
 Los tiempos se ajustan en `TEJIDO` (`js/main.js`) y `TIEMPOS` (`js/ovillos.js`).
 

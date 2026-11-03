@@ -1,7 +1,7 @@
 /* ---------- Tokens ---------- */
 :root {
-  /* Todo en blanco hueso; textos pizarra y acento terracota, de la portada "Bitácora de voces". */
-  --bg: #f4efe6;
+  /* Todo en un blanco hueso tirado a café; textos pizarra y acento terracota, de la portada "Bitácora de voces". */
+  --bg: #ece1cf;
   --surface: var(--bg);
   --ink: #2f3742;
   --muted: #7b8591;
@@ -9,7 +9,7 @@
   --accent: #c4673f;
   --title: #b04e22; /* naranjo oscuro del título */
   --azul: #2b4a7e; /* textos del telar de testimonios, de la simbología y títulos de cada modo */
-  --patio-fill: var(--bg); /* el telar también va en blanco hueso */
+  --patio-fill: var(--bg); /* el telar también va en el mismo tono */
   --font: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
 }
@@ -34,6 +34,19 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font);
+}
+
+/* Un poco de grano sobre todo el fondo, como papel: ruido muy tenue encima de la página (no se puede
+   tocar: los clics pasan a través). */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.18;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.27 0 0 0 0 0.18 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
 }
 
 /* ---------- Barra superior ---------- */
@@ -708,8 +721,11 @@ body[data-opcion="2"] .simbologia-telar {
 
 .patio {
   fill: var(--patio-fill);
-  stroke: var(--title); /* el margen del telar, en el color del título */
-  stroke-width: 2;
+  stroke: #ffffff; /* el margen del telar: un hilo blanco, recto */
+  stroke-width: 4;
+  stroke-linejoin: round;
+  /* Una sombra tenue para que el hilo blanco se vea sobre el fondo claro. */
+  filter: drop-shadow(0 1px 1.2px rgb(47 55 66 / 0.35));
   cursor: zoom-in;
 }
 
@@ -806,9 +822,15 @@ body[data-opcion="2"] .simbologia-telar {
 }
 
 /* Urdimbre: hilos verticales tenues entre los que ondula la trama. */
+/* La urdimbre: hilos verticales blancos, rectos, tensos de arriba abajo. */
+.urdimbre {
+  filter: drop-shadow(0.6px 0 0.6px rgb(47 55 66 / 0.28));
+}
+
 .urdimbre line {
-  stroke: rgb(47 55 66 / 0.1);
-  stroke-width: 1;
+  stroke: #ffffff;
+  stroke-width: 1.8;
+  stroke-linecap: round;
 }
 
 /* Costura blanca en cada cambio de hora; la sombra tenue debajo hace que se vea sobre el fondo claro. */
@@ -1158,6 +1180,25 @@ body[data-opcion="2"] .simbologia-telar {
   font-weight: 600;
   text-anchor: middle;
   dominant-baseline: central;
+}
+
+/* Las palabras más usadas, bordadas por el hilo de cada ovillo: solo su contorno, en puntadas. */
+.bordado text {
+  fill: none;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 600;
+  dominant-baseline: central;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* El hilo que une el ovillo con la aguja mientras borda. */
+.hilo-aguja {
+  fill: none;
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+  stroke-linecap: round;
 }
 
 .ovillo-suma {

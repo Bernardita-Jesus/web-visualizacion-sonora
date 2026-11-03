@@ -51,9 +51,9 @@ const TEJIDO = {
   hold: 6, // segundos que el telar completo queda a la vista antes de enrollarse en ovillos
 };
 
-// Por ahora, para ir viendo el final: cada vuelta parte con el telar casi tejido y solo se tejen los
-// últimos pendientes. Para volver a tejerlo completo desde cero, poner `casiLleno` en false.
-const PRUEBA = { casiLleno: true, porTejer: 3 };
+// Por ahora, para ir viendo el final: cada vuelta parte con el telar casi tejido y solo se teje el
+// último pendiente (`porTejer`). Para volver a tejerlo completo desde cero, poner `casiLleno` en false.
+const PRUEBA = { casiLleno: true, porTejer: 1 };
 
 /** Al empezar una vuelta: todo sin tejer o, en modo de prueba, todo tejido salvo los últimos. */
 function empezarVuelta() {
@@ -312,6 +312,7 @@ async function ciclo() {
       vista: { x: MARCO.x - 10, y: MARCO.y - 10, ancho: MARCO.width + 20, alto: MARCO.height + 20 },
       ...medidas,
       tejido, // los hilos del telar
+      cuadrado: [marcoRect, urdimbre], // el rectángulo del telar (sin sus hilos)
       // Mientras están los ovillos, el telar no se reacomoda al cambiar el espacio (lo mueven ellos).
       congelar: (si) => {
         congelado = si;
