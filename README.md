@@ -64,6 +64,22 @@ La página es una sola pantalla dividida en dos mitades:
 
 Las respuestas se guardan en el navegador: solo aparecen en la visualización abierta en el mismo equipo.
 
+### Respaldar y subir los registros
+
+Bajo el título de la visualización hay tres botones para cuidar los registros reales:
+
+- **Descargar registros:** descarga una planilla (`registros-pendientes-AAAA-MM-DD.csv`, separada por punto y
+  coma) que se abre en Excel o Google Sheets. Tiene una fila por registro con las columnas `id`, `fecha`,
+  `texto`, `tematica_elegida` (si se eligió a mano), `tematica_detectada` y `dias_pospuesto` (estas dos son
+  solo para leer: se recalculan del texto). Sin registros, la planilla trae solo los títulos y sirve de
+  plantilla para llenar a mano.
+- **Subir registros:** sube una planilla descargada antes, o una hecha a mano con al menos la columna `texto`
+  (y, si se quiere, `fecha` y `tematica_elegida`, con el nombre de la temática). Sus registros **se suman** a
+  los del navegador; los que ya estaban (mismo `id`, o mismo texto y fecha) no se repiten, así que se puede
+  subir la misma planilla en otro computador o varias veces sin duplicar nada.
+- **Borrar registros reales:** borra los registros de este navegador (pide confirmación). Conviene descargar
+  el respaldo antes.
+
 Para ajustar la visualización (`js/main.js`):
 
 - Cuántos días caben en una línea (`diasPorLinea`: 365, una línea es un año; cada puntada es un día), cuánto de ella se ve (`puntada`), márgenes, grosor
@@ -90,7 +106,8 @@ La visualización es un ciclo en dos tiempos (`js/main.js` y `js/ovillos.js`):
    se repite y cuánto tiempo pospuesto suma (por ejemplo, "19 veces · 27 años"). Ya formados, quedan unos segundos a la vista.
 3. **Los ovillos bordan sus palabras.** El rectángulo del telar se va del todo por la izquierda y desaparece.
    En ese espacio entra **un ovillo a la vez** (los demás se atenúan): su hilo se despliega y **borda, en
-   puntadas y letra a letra, las palabras más usadas** en los testimonios de su temática, una por línea. Un
+   puntadas y letra a letra, las palabras más usadas** en los testimonios de su temática, una por línea (sin conectores,
+   artículos, pronombres ni verbos, y sin lo que se dice del tiempo; ver `VACIAS` y `VERBOS` en `js/ovillos.js`). Un
    hilo une el ovillo con la aguja y el ovillo se achica a medida que borda. Las palabras quedan un momento,
    se desvanecen y el ovillo se va por la izquierda, de vuelta al telar; luego entra el siguiente.
 4. **Todo vuelve al telar.** Cuando se han ido todos los ovillos, el telar regresa desde la izquierda con todos

@@ -159,37 +159,60 @@ function armarOvillos(telar) {
 
 /* ---------- Las palabras más usadas ---------- */
 
-// Palabras que no dicen de qué trata un pendiente: artículos, pronombres, conectores, verbos de todos los
-// días y lo que se dice del tiempo (eso ya está en el largo del hilo).
+// Palabras que no dicen de qué trata un pendiente: conectores (y, pero, aunque, porque, entonces…),
+// preposiciones, artículos, pronombres, adverbios y lo que se dice del tiempo (eso ya está en el largo del
+// hilo). Se comparan sin tildes.
 const VACIAS = new Set(`
-  algo antes aunque cada casi como con cosa cosas cuando desde despues donde durante entre esta este esto
-  estoy hace hacer hasta hay llevo mas mismo mucho muy nada para pero poco porque pospongo pospuesto
-  pospuesta pospuse posponiendo posponer queda quiero sigo siempre sobre solo tambien tanto tener tengo
-  tiempo todavia todo toda todos todas vez veces nunca otra otro otros mucha muchas ahora entonces luego
-  anos ano meses semanas semana dias como dentro sola solo cual tienes tiene hacerlo dejarlo dejo
-  abro entero debe deberia encuentro paso decirle dejar deje dejando sigue seguir pedir pedirle mandar
-  esta estan estaba estoy hora horas cosa mismo vida volver
-  dos tres cuatro cinco seis siete ocho nueve diez once doce quince veinte medio media marzo verano
+  ademas ahi ahora algo alguien algun alguna algunas alguno algunos alla alli antes aqui aquel aquella
+  asi aun aunque bajo bastante bien cada casi cerca como conmigo contigo contra cual cuales cualquier
+  cuando cuanto cuantos debajo dentro desde despues donde durante ella ellas ellos encima entonces entre
+  esas ese eso esos esta estas este esto estos hacia hasta incluso jamas lejos luego mal mas mediante
+  menos mientras mismo misma mismos mucha muchas mucho muchos nada nadie ninguna ninguno nosotros nuestra
+  nuestro nunca otra otras otro otros para pero poco pocos porque pues quien quienes quiza quizas segun
+  siempre sino sobre solamente solo tambien tampoco tanto tanta tantos tras todavia toda todas todo todos
+  unas unos usted ustedes vosotros sea osea entonces igual demasiado tal tales cierto cierta verdad
+  cosa cosas vida vez veces tiempo hora horas manera forma parte rato poquito harto
+  anos ano meses semanas semana dias hoy ayer manana temprano tarde noche pronto
+  dos tres cuatro cinco seis siete ocho nueve diez once doce quince veinte treinta medio media
+  enero febrero marzo abril mayo junio julio agosto septiembre octubre noviembre diciembre verano invierno
+  entero entera enorme grande grandes nuevo nueva primer primera primero ultimo ultima
 `.split(/\s+/).filter(Boolean));
 const sinTildes = (texto) => texto.normalize('NFD').replace(/\p{Diacritic}/gu, '');
 
-// Sin verbos: se descartan los infinitivos (terminar, decir, dormir, también con "le", "lo", "me"…), los
-// gerundios (estudiando) y las formas que más se usan al contar un pendiente. Algunas palabras terminan
-// como un infinitivo pero no lo son (taller, lugar, hogar…): esas se quedan.
-const INFINITIVO = /(ar|er|ir)(me|te|se|le|les|lo|la|los|las|nos)?$/;
-const GERUNDIO = /(ando|iendo|yendo)(me|te|se|le|lo|la|los|las)?$/;
+// Sin verbos. No es un análisis gramatical: se descartan las formas que delatan a un verbo por cómo
+// terminan (infinitivos: terminar, decir, dormir, también con "le", "lo", "me"…; gerundios: estudiando;
+// pasados y plurales verbales: llamaron, dejamos, quería, pospuse…) y una lista de formas comunes al
+// contar un pendiente. Algunas palabras terminan como verbo pero no lo son (taller, lugar, carrera…):
+// esas se quedan.
+const ENCLITICOS = '(me|te|se|le|les|lo|la|los|las|nos)?';
+const TERMINACIONES_VERBALES = [
+  new RegExp(`(ar|er|ir)${ENCLITICOS}$`), // infinitivo
+  new RegExp(`(ando|iendo|yendo)${ENCLITICOS}$`), // gerundio
+  /(aron|ieron|amos|emos|imos|aste|iste|asteis|isteis|aban|abas|aba|ais|eis|ian|ias)$/, // pasados y personas verbales
+  /(aria|eria|iria|arian|erian|irian|aremos|eremos|iremos|ara|era|ira|aran|eran|iran)$/, // futuro y condicional
+  /(ase|iese|ara|iera|asen|iesen|aran|ieran)$/, // subjuntivo
+];
 const NO_SON_VERBOS = new Set(`
   taller lugar hogar mujer ayer celular familiar escolar militar popular particular auxiliar similar
   regular dolar collar altar azucar caracter placer cancer chofer bachiller sur
+  carrera pera tijera bandera cartera escalera madera primavera frontera manera sera cera era
+  hora mira para clara cara vara barra guitarra jarra tiara
+  ceramica musica fisica quimica clinica tecnica practica
+  examenes amigas amigos idiomas temas problemas programas ruinas oficinas
+  dias tias mias guias via
 `.split(/\s+/).filter(Boolean));
 const VERBOS = new Set(`
-  voy vas van fui fue iba hice hizo puedo pude siento senti creo dije dijo digo llamo llame veo vi
-  doy di sale salgo pongo puse empiezo empece termino aprendo leo escribo tomo
-  ando anda tenia tuve quise prometimos prometi nos juntamos armamos peleamos distanciamos postergo
-  postergue cuesta cueste duele dice gusta gustaria haria seria podria deberia necesito llevo lleva
+  voy vas van vamos fui fue fuimos fueron iba iban hice hizo hago hace hacen puedo pude puede pueden
+  siento senti creo crei dije dijo digo dices llamo llame veo vi ve doy di sale salgo pongo puse empiezo
+  empece empieza termino termine aprendo aprendi leo lei escribo escribi tomo tome ando anda tengo tienes
+  tiene tienen tenia tuve quise quiero quieres quiere prometi prometio debo debes debe deberia necesito
+  llevo lleva llevan sigo sigue siguen dejo deje queda quedo estoy esta estan estaba estuve soy eres es
+  son fue sido estado he has ha hemos han habia hubo gusta gustaria cuesta costo duele dice dicen pospuse
+  pospongo pospone pospuesto pospuesta posponiendo postergo postergue encuentro encontre abro abri paso pase
+  vuelvo volvi conozco conoci se sabe sabia pienso pense espero espere intento intente trato trate
 `.split(/\s+/).filter(Boolean));
 const esVerbo = (palabra) =>
-  !NO_SON_VERBOS.has(palabra) && (INFINITIVO.test(palabra) || GERUNDIO.test(palabra) || VERBOS.has(palabra));
+  !NO_SON_VERBOS.has(palabra) && (VERBOS.has(palabra) || TERMINACIONES_VERBALES.some((regla) => regla.test(palabra)));
 
 /** Las palabras que más se repiten en los pendientes de un ovillo (de 4 letras o más, sin las vacías ni verbos). */
 function palabrasFrecuentes(lista, cuantas) {

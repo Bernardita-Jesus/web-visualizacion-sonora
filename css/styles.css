@@ -1013,6 +1013,12 @@ body[data-opcion="2"] .simbologia-telar {
   font-size: 0.78rem;
 }
 
+.registros-respaldo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
 .boton-borrar:hover {
   border-color: var(--title);
   background: transparent;

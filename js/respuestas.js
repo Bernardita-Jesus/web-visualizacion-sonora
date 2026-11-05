@@ -222,3 +222,122 @@ export function tiempoEnPalabras(dias) {
   const enteros = Math.floor(anos);
   return enteros === 0 ? 'medio año' : `${plural(enteros, 'año', 'años')}${anos % 1 ? ' y medio' : ''}`;
 }
+
+/* ---------- Respaldo: descargar los registros en una planilla y volver a subirlos ---------- */
+
+// Columnas de la planilla. Las que importan al volver a subirla son `texto` (obligatoria), `fecha` y
+// `tematica_elegida`; las demás son información para leer la planilla (se recalculan del texto).
+const COLUMNAS = ['id', 'fecha', 'texto', 'tematica_elegida', 'tematica_detectada', 'dias_pospuesto'];
+const SEPARADOR = ';'; // Excel en español abre bien las planillas separadas por punto y coma
+
+const celda = (valor) => {
+  const texto = String(valor ?? '');
+  return /[";\n\r,]/.test(texto) ? `"${texto.replace(/"/g, '""')}"` : texto;
+};
+
+/**
+ * Planilla (CSV) con todos los registros guardados en este navegador. Sin registros, queda solo la fila
+ * de títulos: sirve de plantilla para llenar a mano.
+ */
+export function planillaDeRespuestas() {
+  const filas = cargarRespuestas().map((respuesta) => {
+    const elegida = respuesta.tema && !ELIMINADAS.includes(respuesta.tema) ? temaPorId(respuesta.tema).nombre : '';
+    return [
+      respuesta.id,
+      respuesta.fecha,
+      respuesta.texto,
+      elegida,
+      temaPorId(tematicaDe(respuesta.texto)).nombre,
+      diasPospuesto(respuesta.texto) ?? '',
+    ];
+  });
+  // El BOM (﻿) hace que Excel lea bien los tildes y las eñes.
+  return `﻿${[COLUMNAS, ...filas].map((fila) => fila.map(celda).join(SEPARADOR)).join('\r\n')}\r\n`;
+}
+
+/** Lee un CSV (separado por punto y coma, coma o tabulación; con o sin comillas) como lista de filas. */
+function leerCSV(texto) {
+  const limpio = texto.replace(/^﻿/, '');
+  const primera = limpio.split(/\r?\n/, 1)[0];
+  const separador = [';', ',', '\t'].reduce((mejor, s) => (primera.split(s).length > primera.split(mejor).length ? s : mejor), ';');
+  const filas = [];
+  let fila = [];
+  let valor = '';
+  let entreComillas = false;
+  for (let i = 0; i < limpio.length; i++) {
+    const c = limpio[i];
+    if (entreComillas) {
+      if (c === '"' && limpio[i + 1] === '"') {
+        valor += '"';
+        i++;
+      } else if (c === '"') entreComillas = false;
+      else valor += c;
+    } else if (c === '"') entreComillas = true;
+    else if (c === separador) {
+      fila.push(valor);
+      valor = '';
+    } else if (c === '\n' || c === '\r') {
+      if (c === '\r' && limpio[i + 1] === '\n') i++;
+      fila.push(valor);
+      filas.push(fila);
+      fila = [];
+      valor = '';
+    } else valor += c;
+  }
+  if (valor || fila.length) {
+    fila.push(valor);
+    filas.push(fila);
+  }
+  return filas.filter((f) => f.some((v) => v.trim()));
+}
+
+/** Busca una temática por su id o por su nombre ("Vínculos", "vinculos"…); null si no es ninguna. */
+function temaPorNombre(nombre) {
+  const buscado = sinTildes(String(nombre ?? '').trim().toLowerCase());
+  if (!buscado) return null;
+  const tema = TEMATICAS.find((t) => t.id === buscado || sinTildes(t.nombre.toLowerCase()) === buscado);
+  return tema?.id ?? null;
+}
+
+/**
+ * Suma a los registros de este navegador los de una planilla (la que se descarga con
+ * planillaDeRespuestas, o una llenada a mano con al menos la columna `texto`). Los que ya estaban (mismo
+ * id, o mismo texto y fecha) no se repiten. Devuelve cuántos se agregaron y cuántos se saltaron.
+ */
+export function subirPlanilla(textoCSV) {
+  const [titulos, ...filas] = leerCSV(textoCSV);
+  if (!titulos) return { agregados: 0, repetidos: 0, invalidos: 0 };
+  const columna = (nombre) => titulos.findIndex((t) => sinTildes(t.trim().toLowerCase()) === nombre);
+  const [cId, cFecha, cTexto, cTema] = ['id', 'fecha', 'texto', 'tematica_elegida'].map(columna);
+  if (cTexto === -1) throw new Error('La planilla no tiene una columna "texto".');
+
+  const respuestas = cargarRespuestas();
+  const vistos = new Set(respuestas.flatMap((r) => [r.id, `${r.texto}|${r.fecha}`]));
+  let agregados = 0;
+  let repetidos = 0;
+  let invalidos = 0;
+  for (const fila of filas) {
+    const texto = (fila[cTexto] ?? '').trim();
+    if (!texto) {
+      invalidos += 1;
+      continue;
+    }
+    const fechaLeida = cFecha === -1 ? NaN : Date.parse(fila[cFecha]);
+    const fecha = Number.isNaN(fechaLeida) ? new Date().toISOString() : new Date(fechaLeida).toISOString();
+    const id = (cId !== -1 && fila[cId]?.trim()) || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    if (vistos.has(id) || vistos.has(`${texto}|${fecha}`)) {
+      repetidos += 1;
+      continue;
+    }
+    const respuesta = { id, texto, fecha };
+    const tema = cTema === -1 ? null : temaPorNombre(fila[cTema]);
+    if (tema) respuesta.tema = tema;
+    respuestas.push(respuesta);
+    vistos.add(id);
+    vistos.add(`${texto}|${fecha}`);
+    agregados += 1;
+  }
+  respuestas.sort((a, b) => a.fecha.localeCompare(b.fecha));
+  localStorage.setItem(KEY, JSON.stringify(respuestas));
+  return { agregados, repetidos, invalidos };
+}
