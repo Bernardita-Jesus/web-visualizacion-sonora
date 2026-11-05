@@ -296,3 +296,23 @@ try {
 } catch {
   // Sin almacenamiento disponible: el registro empieza visible.
 }
+
+/* ---------- Lienzo: la página se ve igual en cualquier pantalla ---------- */
+
+// Tamaño del lienzo en que está diseñada la página (el mismo de .lienzo en css/styles.css).
+const LIENZO = { ancho: 1600, alto: 900 };
+const lienzo = document.querySelector('#lienzo');
+
+/**
+ * Escala el lienzo completo para que quepa en la ventana, sin deformarlo y sin scroll, y lo centra: si la
+ * ventana es más alargada o más alta que el lienzo, el espacio que sobra queda como fondo.
+ */
+function ajustarLienzo() {
+  const escala = Math.min(window.innerWidth / LIENZO.ancho, window.innerHeight / LIENZO.alto);
+  const x = (window.innerWidth - LIENZO.ancho * escala) / 2;
+  const y = (window.innerHeight - LIENZO.alto * escala) / 2;
+  lienzo.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${escala.toFixed(4)})`;
+}
+
+ajustarLienzo();
+window.addEventListener('resize', ajustarLienzo);

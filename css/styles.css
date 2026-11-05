@@ -28,12 +28,25 @@ body {
 }
 
 body {
-  display: flex;
-  flex-direction: column;
-  height: 100dvh;
+  overflow: hidden; /* nunca hay scroll: el lienzo se escala para caber en la ventana */
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font);
+}
+
+/* Toda la página es un lienzo de tamaño fijo (1600 × 900) que se escala completo para caber en la
+   ventana: se ve igual, en las mismas proporciones, en cualquier computador. Si la ventana tiene otra
+   forma, sobra fondo arriba y abajo o a los lados (ver ajustarLienzo en js/app.js). */
+.lienzo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  width: 1600px;
+  height: 900px;
+  overflow: hidden;
+  transform-origin: 0 0;
 }
 
 /* Un poco de grano sobre todo el fondo, como papel: ruido muy tenue encima de la página (no se puede
@@ -83,25 +96,10 @@ body::after {
   text-align: right;
 }
 
-@media (max-width: 760px) {
-  .cabecera {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .cabecera-info {
-    text-align: left;
-  }
-
-  .cabecera-pregunta {
-    margin-left: 0;
-  }
-}
-
 .pregunta {
   margin: 0;
   color: var(--title);
-  font-size: clamp(1.5rem, 2.6vw, 2.5rem);
+  font-size: 40px;
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.01em;
@@ -218,7 +216,7 @@ body::after {
 .modo {
   margin: 0;
   color: var(--azul);
-  font-size: clamp(1.2rem, 1.8vw, 1.6rem);
+  font-size: 25.6px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -235,37 +233,6 @@ body::after {
 
 .vista-visualizacion .bar {
   padding-bottom: 8px;
-}
-
-@media (max-width: 760px) {
-  .escenario {
-    flex-direction: column;
-    overflow-y: auto;
-  }
-
-  .vista {
-    flex: 1 0 auto;
-  }
-
-  .vista-visualizacion {
-    min-height: 70dvh;
-    border-left: none;
-    border-top: 1px solid var(--ink);
-  }
-
-  /* En pantallas angostas, la pestaña oculta queda como una barra arriba. */
-  .escenario.registro-oculto .vista-registro {
-    flex: 0 0 44px;
-  }
-
-  .pestana-registro {
-    flex-direction: row;
-  }
-
-  .pestana-texto {
-    writing-mode: horizontal-tb;
-    transform: none;
-  }
 }
 
 .boton-modo {
@@ -317,7 +284,7 @@ body::after {
   background: var(--surface);
   color: var(--ink);
   font: inherit;
-  font-size: clamp(1.15rem, 2.5vw, 1.6rem);
+  font-size: 25.6px;
   resize: vertical;
 }
 
@@ -580,7 +547,7 @@ button:focus-visible {
 
 /* El título cabe en la columna angosta de la simbología. */
 .telar-lado .modo {
-  font-size: clamp(1.05rem, 1.3vw, 1.25rem);
+  font-size: 20px;
   letter-spacing: 0.05em;
 }
 
@@ -698,26 +665,6 @@ body[data-opcion="2"] .simbologia-telar {
   width: 28px;
   height: 28px;
 }
-
-@media (max-width: 760px) {
-  .plano-wrap {
-    flex-direction: column;
-  }
-
-  .telar-lado {
-    flex: none;
-  }
-
-  .simbologia .temas {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  #plano {
-    height: auto;
-    min-height: 420px;
-  }
-}
-
 
 .patio {
   fill: var(--patio-fill);

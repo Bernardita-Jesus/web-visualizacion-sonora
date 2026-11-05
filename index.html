@@ -13,6 +13,8 @@
   <script type="module" src="js/ovillos.js"></script>
 </head>
 <body>
+  <!-- Lienzo de tamaño fijo: se escala para caber en cualquier ventana, sin scroll (ver js/app.js). -->
+  <div id="lienzo" class="lienzo">
   <!-- ---------- Barra superior: la pregunta, el contexto y los nombres ---------- -->
   <header class="cabecera">
     <div class="cabecera-pregunta">
@@ -173,6 +175,7 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"></path></svg>
       <span class="visually-hidden">Registros</span>
     </button>
+  </div>
   </div>
 </body>
 </html>
