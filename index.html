@@ -91,14 +91,6 @@
           <h2 id="titulo-visualizacion" class="modo">Telar de testimonios</h2>
         </header>
 
-        <!-- Respaldo de los registros reales: descargarlos en una planilla, volver a subirla (se suman a los
-             que hay, sin repetirse) o borrarlos de este navegador (con confirmación). -->
-        <div class="simular registros-respaldo">
-          <button id="btn-descargar-registros" class="boton-borrar" type="button" title="Descarga una planilla (CSV, se abre en Excel o Google Sheets) con todos los registros guardados en este navegador">Descargar registros</button>
-          <button id="btn-subir-registros" class="boton-borrar" type="button" title="Sube una planilla descargada antes (o llenada a mano con la columna texto): sus registros se suman a los de este navegador">Subir registros</button>
-          <input id="archivo-registros" type="file" accept=".csv,text/csv,text/plain" hidden>
-          <button id="btn-borrar-registros" class="boton-borrar" type="button">Borrar registros reales</button>
-        </div>
 
       <aside class="simbologia" aria-labelledby="simbologia-titulo">
         <h2 id="simbologia-titulo">Simbología</h2>
@@ -165,6 +157,22 @@
 
 
   </section>
+  </div>
+  <!-- Respaldo de los registros reales, en un botoncito en la esquina: descargarlos en un documento de texto,
+       volver a subirlo (se suman a los que hay: los datos se van acumulando, sin repetirse) o borrarlos de
+       este navegador (con confirmación). -->
+  <div class="respaldo">
+    <div id="respaldo-menu" class="respaldo-menu" hidden>
+      <p class="respaldo-titulo">Registros</p>
+      <button id="btn-descargar-registros" class="boton-borrar" type="button" title="Descarga un documento de texto con todos los registros acumulados en este navegador, un testimonio por línea">Descargar respaldo</button>
+      <button id="btn-subir-registros" class="boton-borrar" type="button" title="Sube un respaldo (el documento de texto descargado, o uno escrito a mano con un testimonio por línea): sus registros se suman a los que ya hay, sin repetirse">Subir respaldo</button>
+      <input id="archivo-registros" type="file" accept=".txt,.csv,text/plain,text/csv" hidden>
+      <button id="btn-borrar-registros" class="boton-borrar" type="button">Borrar registros</button>
+    </div>
+    <button id="btn-respaldo" class="boton-respaldo" type="button" aria-expanded="false" aria-controls="respaldo-menu" title="Respaldar o subir registros">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"></path></svg>
+      <span class="visually-hidden">Registros</span>
+    </button>
   </div>
 </body>
 </html>

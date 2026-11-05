@@ -1013,12 +1013,6 @@ body[data-opcion="2"] .simbologia-telar {
   font-size: 0.78rem;
 }
 
-.registros-respaldo {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
 .boton-borrar:hover {
   border-color: var(--title);
   background: transparent;
@@ -1257,4 +1251,84 @@ body[data-opcion="2"] .simbologia-telar {
   .boton-dictar.escuchando svg {
     animation: none;
   }
+}
+
+/* ---------- Respaldo de registros: un botoncito en la esquina inferior derecha ---------- */
+.respaldo {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 101; /* sobre el grano del fondo */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.boton-respaldo {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--muted);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.boton-respaldo:hover,
+.boton-respaldo[aria-expanded="true"] {
+  border-color: var(--azul);
+  color: var(--azul);
+  opacity: 1;
+}
+
+.boton-respaldo svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.respaldo-menu {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 4px 14px rgb(47 55 66 / 0.12);
+}
+
+.respaldo-menu[hidden] {
+  display: none;
+}
+
+.respaldo-titulo {
+  margin: 0 0 2px;
+  color: var(--azul);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.respaldo-menu .boton-borrar {
+  justify-self: stretch;
+  text-align: left;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }

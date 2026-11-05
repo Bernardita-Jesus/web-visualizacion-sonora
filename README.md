@@ -66,18 +66,20 @@ Las respuestas se guardan en el navegador: solo aparecen en la visualización ab
 
 ### Respaldar y subir los registros
 
-Bajo el título de la visualización hay tres botones para cuidar los registros reales:
+En la esquina inferior derecha hay un botoncito (una flecha) que abre el menú **Registros**. Los registros
+son **acumulativos**: cada pendiente dictado y cada respaldo que se sube se suman a los que ya había, y el
+respaldo que se descarga trae siempre todo lo acumulado.
 
-- **Descargar registros:** descarga una planilla (`registros-pendientes-AAAA-MM-DD.csv`, separada por punto y
-  coma) que se abre en Excel o Google Sheets. Tiene una fila por registro con las columnas `id`, `fecha`,
-  `texto`, `tematica_elegida` (si se eligió a mano), `tematica_detectada` y `dias_pospuesto` (estas dos son
-  solo para leer: se recalculan del texto). Sin registros, la planilla trae solo los títulos y sirve de
-  plantilla para llenar a mano.
-- **Subir registros:** sube una planilla descargada antes, o una hecha a mano con al menos la columna `texto`
-  (y, si se quiere, `fecha` y `tematica_elegida`, con el nombre de la temática). Sus registros **se suman** a
-  los del navegador; los que ya estaban (mismo `id`, o mismo texto y fecha) no se repiten, así que se puede
-  subir la misma planilla en otro computador o varias veces sin duplicar nada.
-- **Borrar registros reales:** borra los registros de este navegador (pide confirmación). Conviene descargar
+- **Descargar respaldo:** descarga un **documento de texto** (`registros-pendientes-AAAA-MM-DD.txt`) con un
+  testimonio por línea: `fecha | temática | texto`, por ejemplo
+  `2026-11-05 18:57 | Vínculos | llamar a mi abuela, hace tres semanas`. Las líneas que empiezan con `#` son
+  explicaciones.
+- **Subir respaldo:** sube ese documento (o uno escrito a mano, con una línea por testimonio: basta el texto;
+  la fecha y la temática son opcionales). Sus registros **se suman** a los del navegador; los que ya estaban
+  (mismo texto y fecha) no se repiten, así que se puede subir el mismo respaldo varias veces o en otro
+  computador sin duplicar nada. Si la temática escrita no es la que se detecta del texto, queda como elegida
+  a mano. También acepta una planilla CSV con una columna `texto`.
+- **Borrar registros:** borra los registros de este navegador (pide confirmación). Conviene descargar
   el respaldo antes.
 
 Para ajustar la visualización (`js/main.js`):

@@ -223,36 +223,105 @@ export function tiempoEnPalabras(dias) {
   return enteros === 0 ? 'medio año' : `${plural(enteros, 'año', 'años')}${anos % 1 ? ' y medio' : ''}`;
 }
 
-/* ---------- Respaldo: descargar los registros en una planilla y volver a subirlos ---------- */
+/* ---------- Respaldo: descargar los registros en un documento de texto y volver a subirlos ---------- */
 
-// Columnas de la planilla. Las que importan al volver a subirla son `texto` (obligatoria), `fecha` y
-// `tematica_elegida`; las demás son información para leer la planilla (se recalculan del texto).
-const COLUMNAS = ['id', 'fecha', 'texto', 'tematica_elegida', 'tematica_detectada', 'dias_pospuesto'];
-const SEPARADOR = ';'; // Excel en español abre bien las planillas separadas por punto y coma
-
-const celda = (valor) => {
-  const texto = String(valor ?? '');
-  return /[";\n\r,]/.test(texto) ? `"${texto.replace(/"/g, '""')}"` : texto;
+const dosCifras = (n) => String(n).padStart(2, '0');
+/** Fecha y hora local en el formato del respaldo: "2026-11-05 18:57". */
+const fechaLegible = (iso) => {
+  const f = new Date(iso);
+  return `${f.getFullYear()}-${dosCifras(f.getMonth() + 1)}-${dosCifras(f.getDate())} ${dosCifras(f.getHours())}:${dosCifras(f.getMinutes())}`;
 };
+// Un registro es el mismo si tiene el mismo texto y la misma fecha (al minuto, como queda en el respaldo).
+const claveDe = (texto, iso) => `${texto.trim().toLowerCase()}|${fechaLegible(iso)}`;
 
 /**
- * Planilla (CSV) con todos los registros guardados en este navegador. Sin registros, queda solo la fila
- * de títulos: sirve de plantilla para llenar a mano.
+ * Documento de texto con todos los registros guardados en este navegador: un testimonio por línea, con su
+ * fecha y su temática ("2026-11-05 18:57 | Vínculos | llamar a mi abuela, hace tres semanas"). Las líneas
+ * que empiezan con # son explicaciones y no se leen al subirlo.
  */
-export function planillaDeRespuestas() {
-  const filas = cargarRespuestas().map((respuesta) => {
-    const elegida = respuesta.tema && !ELIMINADAS.includes(respuesta.tema) ? temaPorId(respuesta.tema).nombre : '';
-    return [
-      respuesta.id,
-      respuesta.fecha,
-      respuesta.texto,
-      elegida,
-      temaPorId(tematicaDe(respuesta.texto)).nombre,
-      diasPospuesto(respuesta.texto) ?? '',
-    ];
+export function textoDeRespuestas() {
+  const lineas = cargarRespuestas().map((respuesta) =>
+    [fechaLegible(respuesta.fecha), temaPorId(temaDeRespuesta(respuesta)).nombre, respuesta.texto.replace(/\s+/g, ' ').trim()].join(' | '));
+  return [
+    '# ¿Qué tienes pendiente y hace cuánto lo pospones? · Respaldo de los registros',
+    `# Descargado el ${fechaLegible(new Date().toISOString())} · ${lineas.length} ${lineas.length === 1 ? 'registro' : 'registros'}`,
+    '# Un testimonio por línea: fecha | temática | texto.',
+    '# Para agregar más, escribe una línea por testimonio (basta el texto; la fecha y la temática son opcionales).',
+    '',
+    ...lineas,
+    '',
+  ].join('\r\n');
+}
+
+/** Lee una línea del respaldo: "fecha | temática | texto", "temática | texto" o solo el texto. */
+function leerLinea(linea) {
+  const partes = linea.split(' | ').map((parte) => parte.trim());
+  let fecha = null;
+  let tema = null;
+  const coincide = partes[0].match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2}))?$/);
+  if (partes.length > 1 && coincide) {
+    const [, a, m, d, h = '12', min = '00'] = coincide;
+    fecha = new Date(+a, +m - 1, +d, +h, +min).toISOString();
+    partes.shift();
+  }
+  if (partes.length > 1 && temaPorNombre(partes[0])) tema = temaPorNombre(partes.shift());
+  return { fecha, tema, texto: partes.join(' | ').trim() };
+}
+
+/**
+ * Suma a los registros de este navegador los de un respaldo: el documento de texto que se descarga (o uno
+ * escrito a mano, una línea por testimonio) o una planilla CSV con una columna `texto`. Los datos se van
+ * acumulando: los que ya estaban (mismo texto y fecha) no se repiten. Devuelve cuántos se agregaron y
+ * cuántos ya estaban.
+ */
+export function subirRespaldo(contenido) {
+  const limpio = contenido.replace(/^\uFEFF/, '');
+  const filas = esPlanilla(limpio) ? filasDePlanilla(limpio) : limpio.split(/\r?\n/)
+    .map((linea) => linea.trim())
+    .filter((linea) => linea && !linea.startsWith('#'))
+    .map(leerLinea);
+
+  const respuestas = cargarRespuestas();
+  const vistos = new Set(respuestas.map((r) => claveDe(r.texto, r.fecha)));
+  let agregados = 0;
+  let repetidos = 0;
+  for (const { texto, fecha: leida, tema } of filas) {
+    if (!texto) continue;
+    const fecha = leida ?? new Date().toISOString();
+    if (vistos.has(claveDe(texto, fecha))) {
+      repetidos += 1;
+      continue;
+    }
+    const respuesta = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, texto, fecha };
+    // La temática solo queda fija si no es la que se detecta del texto (así se recalcula si mejoran las raíces).
+    if (tema && tema !== tematicaDe(texto)) respuesta.tema = tema;
+    respuestas.push(respuesta);
+    vistos.add(claveDe(texto, fecha));
+    agregados += 1;
+  }
+  respuestas.sort((a, b) => a.fecha.localeCompare(b.fecha));
+  localStorage.setItem(KEY, JSON.stringify(respuestas));
+  return { agregados, repetidos };
+}
+
+/* También se aceptan planillas CSV (por ejemplo, las que se descargaban antes), con una columna `texto`. */
+
+/** Es una planilla si su primera línea tiene una columna llamada exactamente "texto". */
+const esPlanilla = (texto) =>
+  texto.split(/\r?\n/, 1)[0].split(/[;,\t]/).some((celda) => sinTildes(celda.replace(/"/g, '').trim().toLowerCase()) === 'texto');
+
+function filasDePlanilla(texto) {
+  const [titulos, ...filas] = leerCSV(texto);
+  const columna = (nombre) => titulos.findIndex((t) => sinTildes(t.trim().toLowerCase()) === nombre);
+  const [cFecha, cTexto, cTema] = ['fecha', 'texto', 'tematica_elegida'].map(columna);
+  return filas.map((fila) => {
+    const fecha = cFecha === -1 ? NaN : Date.parse(fila[cFecha]);
+    return {
+      texto: (fila[cTexto] ?? '').trim(),
+      fecha: Number.isNaN(fecha) ? null : new Date(fecha).toISOString(),
+      tema: cTema === -1 ? null : temaPorNombre(fila[cTema]),
+    };
   });
-  // El BOM (﻿) hace que Excel lea bien los tildes y las eñes.
-  return `﻿${[COLUMNAS, ...filas].map((fila) => fila.map(celda).join(SEPARADOR)).join('\r\n')}\r\n`;
 }
 
 /** Lee un CSV (separado por punto y coma, coma o tabulación; con o sin comillas) como lista de filas. */
@@ -297,47 +366,4 @@ function temaPorNombre(nombre) {
   if (!buscado) return null;
   const tema = TEMATICAS.find((t) => t.id === buscado || sinTildes(t.nombre.toLowerCase()) === buscado);
   return tema?.id ?? null;
-}
-
-/**
- * Suma a los registros de este navegador los de una planilla (la que se descarga con
- * planillaDeRespuestas, o una llenada a mano con al menos la columna `texto`). Los que ya estaban (mismo
- * id, o mismo texto y fecha) no se repiten. Devuelve cuántos se agregaron y cuántos se saltaron.
- */
-export function subirPlanilla(textoCSV) {
-  const [titulos, ...filas] = leerCSV(textoCSV);
-  if (!titulos) return { agregados: 0, repetidos: 0, invalidos: 0 };
-  const columna = (nombre) => titulos.findIndex((t) => sinTildes(t.trim().toLowerCase()) === nombre);
-  const [cId, cFecha, cTexto, cTema] = ['id', 'fecha', 'texto', 'tematica_elegida'].map(columna);
-  if (cTexto === -1) throw new Error('La planilla no tiene una columna "texto".');
-
-  const respuestas = cargarRespuestas();
-  const vistos = new Set(respuestas.flatMap((r) => [r.id, `${r.texto}|${r.fecha}`]));
-  let agregados = 0;
-  let repetidos = 0;
-  let invalidos = 0;
-  for (const fila of filas) {
-    const texto = (fila[cTexto] ?? '').trim();
-    if (!texto) {
-      invalidos += 1;
-      continue;
-    }
-    const fechaLeida = cFecha === -1 ? NaN : Date.parse(fila[cFecha]);
-    const fecha = Number.isNaN(fechaLeida) ? new Date().toISOString() : new Date(fechaLeida).toISOString();
-    const id = (cId !== -1 && fila[cId]?.trim()) || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    if (vistos.has(id) || vistos.has(`${texto}|${fecha}`)) {
-      repetidos += 1;
-      continue;
-    }
-    const respuesta = { id, texto, fecha };
-    const tema = cTema === -1 ? null : temaPorNombre(fila[cTema]);
-    if (tema) respuesta.tema = tema;
-    respuestas.push(respuesta);
-    vistos.add(id);
-    vistos.add(`${texto}|${fecha}`);
-    agregados += 1;
-  }
-  respuestas.sort((a, b) => a.fecha.localeCompare(b.fecha));
-  localStorage.setItem(KEY, JSON.stringify(respuestas));
-  return { agregados, repetidos, invalidos };
 }

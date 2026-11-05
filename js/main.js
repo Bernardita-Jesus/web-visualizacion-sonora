@@ -6,8 +6,8 @@ import {
   cargarRespuestas,
   diasPospuesto,
   horaDe,
-  planillaDeRespuestas,
-  subirPlanilla,
+  subirRespaldo,
+  textoDeRespuestas,
   temaPorId,
   tematicasDe,
   temasDeRespuesta,
@@ -408,19 +408,27 @@ document.querySelector('#btn-borrar-registros').addEventListener('click', () => 
   tejerDia();
 });
 
-// Respaldo: descargar todos los registros reales en una planilla, para guardarla aparte.
+// El botoncito de la esquina abre y cierra el menú de respaldo.
+const botonRespaldo = document.querySelector('#btn-respaldo');
+const menuRespaldo = document.querySelector('#respaldo-menu');
+botonRespaldo.addEventListener('click', () => {
+  menuRespaldo.hidden = !menuRespaldo.hidden;
+  botonRespaldo.setAttribute('aria-expanded', String(!menuRespaldo.hidden));
+});
+
+// Respaldo: descargar todos los registros reales en un documento de texto, para guardarlo aparte.
 document.querySelector('#btn-descargar-registros').addEventListener('click', () => {
-  const archivo = new Blob([planillaDeRespuestas()], { type: 'text/csv;charset=utf-8' });
+  const archivo = new Blob([textoDeRespuestas()], { type: 'text/plain;charset=utf-8' });
   const enlace = document.createElement('a');
   enlace.href = URL.createObjectURL(archivo);
-  enlace.download = `registros-pendientes-${new Date().toISOString().slice(0, 10)}.csv`;
+  enlace.download = `registros-pendientes-${new Date().toISOString().slice(0, 10)}.txt`;
   document.body.append(enlace);
   enlace.click();
   enlace.remove();
   setTimeout(() => URL.revokeObjectURL(enlace.href), 1000);
 });
 
-// Subir una planilla de respaldo: sus registros se suman a los de este navegador (sin repetirse).
+// Subir un respaldo: sus registros se suman a los de este navegador (se acumulan, sin repetirse).
 const archivoRegistros = document.querySelector('#archivo-registros');
 document.querySelector('#btn-subir-registros').addEventListener('click', () => archivoRegistros.click());
 archivoRegistros.addEventListener('change', async () => {
@@ -428,14 +436,13 @@ archivoRegistros.addEventListener('change', async () => {
   archivoRegistros.value = ''; // así se puede volver a subir el mismo archivo
   if (!archivo) return;
   try {
-    const { agregados, repetidos, invalidos } = subirPlanilla(await archivo.text());
+    const { agregados, repetidos } = subirRespaldo(await archivo.text());
     const partes = [`Se agregaron ${agregados} ${agregados === 1 ? 'registro' : 'registros'}.`];
     if (repetidos) partes.push(`${repetidos} ya estaban y no se repitieron.`);
-    if (invalidos) partes.push(`${invalidos} filas sin texto se saltaron.`);
     window.alert(partes.join(' '));
     if (agregados) tejerDia();
   } catch (error) {
-    window.alert(`No se pudo leer la planilla: ${error.message}`);
+    window.alert(`No se pudo leer el respaldo: ${error.message}`);
   }
 });
 
