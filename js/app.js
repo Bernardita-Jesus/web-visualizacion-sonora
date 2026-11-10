@@ -273,3 +273,10 @@ ajustarLienzo();
 window.addEventListener('resize', ajustarLienzo);
 
 document.querySelector('#btn-calibrar').addEventListener('click', abrirCalibracion);
+// Para revisar la segunda instancia sin registrar nada: la grilla con un testimonio de ejemplo (botón del
+// menú, o abriendo la página con ?ver=recorte en la dirección).
+const verRecorteDeEjemplo = () =>
+  mostrarRecorte({ texto: 'llamar a mi abuela, lo he pospuesto tres meses', fecha: new Date().toISOString() });
+document.querySelector('#btn-ver-recorte').addEventListener('click', verRecorteDeEjemplo);
+// (Se espera a que la página esté armada y escalada, para ubicar la grilla bajo la cabecera.)
+if (new URLSearchParams(window.location.search).get('ver') === 'recorte') window.addEventListener('load', verRecorteDeEjemplo);

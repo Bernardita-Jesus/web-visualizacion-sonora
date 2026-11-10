@@ -4,7 +4,7 @@ import { DIAS_SIN_DATO, diasPospuesto, temaDeRespuesta, temaPorId, tiempoEnPalab
  * La instancia de recorte: después de dar su testimonio, la persona ve a pantalla completa una grilla en
  * centímetros reales. Le dice en qué temática quedó su testimonio y de qué color es, y cuánta tela cortar:
  * dos centímetros por cada mes que lleva pospuesto. Apoya la tela sobre la pantalla, desde el 0, y la corta
- * donde marca la tijera. Si la tira no cabe en una fila, la grilla sigue en la fila de abajo (la tela se
+ * donde marca la tijera, y la agrega al telar físico con el resto de los registros. Si la tira no cabe en una fila, la grilla sigue en la fila de abajo (la tela se
  * corre, como el hilo que da la vuelta en el telar).
  *
  * Para que los centímetros sean reales hay que calibrar la pantalla una vez (menú Registros → Calibrar
@@ -15,7 +15,7 @@ const RECORTE = {
   diasPorCm: 365 / 24, // dos centímetros por mes pospuesto
   maxCm: 120, // la tira más larga (5 años)
   minCm: 2,
-  altoTira: 4, // alto de la tira dibujada, en cm
+  altoTira: 2, // alto de la tira dibujada, en cm
   cerrarSola: 240, // segundos tras los que la grilla se cierra sola, si nadie aprieta "Listo"
 };
 
@@ -51,7 +51,10 @@ export function cmDeTela(dias) {
 
 const capa = document.querySelector('#recorte');
 const mensaje = capa.querySelector('#recorte-mensaje');
-const instruccion = capa.querySelector('#recorte-instruccion');
+const muestra = capa.querySelector('#paso-muestra');
+const pasoTela = capa.querySelector('#paso-tela');
+const pasoCorte = capa.querySelector('#paso-corte');
+const pasoCuenta = capa.querySelector('#paso-cuenta');
 const grilla = capa.querySelector('#recorte-grilla');
 const aviso = capa.querySelector('#recorte-aviso');
 let cierre = null;
@@ -123,6 +126,33 @@ function dibujarGrilla(cm, color) {
   }
 }
 
+/**
+ * Ubica la capa de recorte bajo el rectángulo de arriba (que sigue a la vista, con la pregunta), en el
+ * espacio del registro y los ovillos, con los mismos márgenes. La capa va fuera del lienzo escalado para
+ * que sus centímetros sean reales, así que se mide dónde quedó ese espacio en la pantalla.
+ */
+function ubicarCapa() {
+  const lienzo = document.querySelector('#lienzo').getBoundingClientRect();
+  const cabecera = document.querySelector('.cabecera').getBoundingClientRect();
+  const registro = document.querySelector('.vista-registro .modo').getBoundingClientRect();
+  const margen = registro.left - lienzo.left; // el mismo margen que el registro, a ambos lados
+  // Los textos se achican o agrandan con el lienzo (está diseñado a 1600 px de ancho), como el resto de la página.
+  capa.style.setProperty('--escala', (lienzo.width / 1600).toFixed(4));
+  // Solo el mensaje ("Tu pendiente fue clasificado como…") sube un poco; lo demás queda en su lugar.
+  mensaje.style.marginTop = `${-(registro.top - cabecera.bottom) * 0.5}px`;
+  mensaje.style.marginBottom = `${(registro.top - cabecera.bottom) * 0.5}px`;
+  Object.assign(capa.style, {
+    top: `${cabecera.bottom - 1}px`, // repite la línea de abajo de la cabecera (ver border-top en el CSS)
+    left: `${lienzo.left}px`,
+    width: `${lienzo.width}px`,
+    bottom: `${window.innerHeight - lienzo.bottom}px`,
+    right: 'auto',
+    paddingTop: `${registro.top - cabecera.bottom}px`, // los pasos y la grilla, a la altura del registro
+    paddingLeft: `${margen}px`,
+    paddingRight: `${margen}px`,
+  });
+}
+
 /** Muestra la grilla de recorte para un testimonio recién enviado. */
 export function mostrarRecorte(respuesta) {
   const tema = temaPorId(temaDeRespuesta(respuesta));
@@ -136,14 +166,20 @@ export function mostrarRecorte(respuesta) {
   nombre.textContent = tema.nombre;
   const color = document.createElement('strong');
   color.textContent = tema.colorNombre;
-  mensaje.append('Tu testimonio fue clasificado como ', nombre, ', que corresponde al color ', color, '.');
+  mensaje.append('Tu pendiente fue clasificado como ', nombre, ', que corresponde al color ', color, '.');
 
-  instruccion.textContent = dias == null
-    ? `No dijiste cuánto tiempo lo has pospuesto: toma un trozo de tela de color ${tema.colorNombre} y córtalo de ${cm} cm.`
-    : `Lo has pospuesto ${tiempoEnPalabras(dias)}. Toma un trozo de tela de color ${tema.colorNombre}, apóyalo sobre la grilla desde el 0 y córtalo de ${cm} cm (dos centímetros por cada mes).`;
+  // Los tres pasos: la tela de su color, apoyarla desde el 0 y cortarla en tantos centímetros.
+  muestra.style.background = tema.color;
+  const negrita = (texto) => Object.assign(document.createElement('strong'), { textContent: texto });
+  pasoTela.replaceChildren('Toma un trozo de tela de color ', negrita(tema.colorNombre));
+  pasoCorte.replaceChildren('Córtala en ', negrita(`${cm} cm`));
+  pasoCuenta.textContent = dias == null
+    ? 'no dijiste cuánto lo has pospuesto'
+    : `${tiempoEnPalabras(dias)} · 2 cm por mes`;
   aviso.hidden = estaCalibrado();
 
   capa.hidden = false;
+  ubicarCapa();
   dibujarGrilla(cm, tema.color);
   clearTimeout(cierre);
   cierre = setTimeout(cerrarRecorte, RECORTE.cerrarSola * 1000);
@@ -155,8 +191,13 @@ export function cerrarRecorte() {
 }
 
 capa.querySelector('#btn-recorte-listo').addEventListener('click', cerrarRecorte);
+// Al cambiar el tamaño de la ventana, se vuelve a ubicar después de que el lienzo se reescale.
 window.addEventListener('resize', () => {
-  if (!capa.hidden && capa.dataset.cm) dibujarGrilla(+capa.dataset.cm, capa.style.getPropertyValue('--color-tema'));
+  setTimeout(() => {
+    if (capa.hidden || !capa.dataset.cm) return;
+    ubicarCapa();
+    dibujarGrilla(+capa.dataset.cm, capa.style.getPropertyValue('--color-tema'));
+  }, 50);
 });
 
 /* ---------- Calibración: que un centímetro en pantalla sea un centímetro real ---------- */

@@ -1365,15 +1365,17 @@ body[data-opcion="2"] .simbologia-telar {
   font-weight: 400;
 }
 
-/* ---------- Instancia de recorte: grilla en centímetros reales, a pantalla completa ---------- */
+/* ---------- Instancia de recorte: grilla en centímetros reales, bajo el rectángulo de arriba ---------- */
+/* Su lugar exacto (bajo la cabecera, con los márgenes del registro) lo calcula ubicarCapa en js/recorte.js. */
 .recorte {
   position: fixed;
   inset: 0;
   z-index: 99; /* bajo el grano del fondo, sobre todo lo demás */
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 24px 28px;
+  gap: calc(10px * var(--escala, 1));
+  padding: 24px 28px 28px; /* arriba y a los lados se ajusta en ubicarCapa */
+  border-top: 1px solid var(--ink); /* la misma línea bajo el rectángulo de arriba */
   background: var(--bg);
   color: var(--ink);
 }
@@ -1391,26 +1393,89 @@ body[data-opcion="2"] .simbologia-telar {
 .recorte-mensaje {
   margin: 0;
   color: var(--azul);
-  font-size: 30px;
+  font-size: calc(22px * var(--escala, 1)); /* los textos siguen la escala del lienzo, como el resto */
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .recorte-mensaje strong {
   color: var(--color-tema);
 }
 
-.recorte-instruccion {
-  margin: 0;
-  max-width: 70ch;
-  font-size: 19px;
-  line-height: 1.4;
+.recorte-pasos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(14px * var(--escala, 1)) calc(40px * var(--escala, 1));
+  margin: calc(6px * var(--escala, 1)) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: calc(15px * var(--escala, 1));
+}
+
+.recorte-pasos li {
+  display: flex;
+  align-items: center;
+  gap: calc(10px * var(--escala, 1));
+}
+
+.paso-numero {
+  display: grid;
+  place-items: center;
+  width: calc(24px * var(--escala, 1));
+  height: calc(24px * var(--escala, 1));
+  border-radius: 50%;
+  background: var(--azul);
+  color: var(--surface);
+  font-size: calc(13px * var(--escala, 1));
+  font-weight: 700;
+}
+
+/* La muestra de tela: un retazo del color de la temática, con borde picado como tela cortada. */
+.paso-muestra {
+  width: calc(40px * var(--escala, 1));
+  height: calc(28px * var(--escala, 1));
+  border-radius: 2px;
+  clip-path: polygon(0 0, 100% 0, 92% 25%, 100% 50%, 92% 75%, 100% 100%, 0 100%);
+}
+
+.paso-icono {
+  width: calc(36px * var(--escala, 1));
+  height: calc(36px * var(--escala, 1));
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.paso-icono .paso-grilla {
+  stroke: var(--line);
+  stroke-width: 1.2;
+}
+
+.paso-icono .paso-flecha {
+  stroke: var(--color-tema);
+  stroke-width: 3;
+}
+
+.paso-texto {
+  line-height: 1.25;
+}
+
+.paso-texto strong {
+  color: var(--color-tema);
+}
+
+.paso-texto small {
+  display: block;
+  color: var(--muted);
+  font-size: calc(12px * var(--escala, 1));
 }
 
 .recorte-aviso {
   margin: 0;
   color: var(--title);
-  font-size: 14px;
+  font-size: calc(12px * var(--escala, 1));
 }
 
 .recorte-grilla {
@@ -1445,7 +1510,7 @@ body[data-opcion="2"] .simbologia-telar {
 
 .recorte-grilla .numero {
   fill: var(--ink);
-  font-size: 14px;
+  font-size: calc(12px * var(--escala, 1));
   font-weight: 600;
   text-anchor: middle;
 }
@@ -1459,20 +1524,21 @@ body[data-opcion="2"] .simbologia-telar {
 .recorte-grilla .tijera,
 .recorte-grilla .sigue {
   fill: var(--ink);
-  font-size: 20px;
+  font-size: calc(15px * var(--escala, 1));
   font-weight: 600;
   dominant-baseline: central;
 }
 
 .recorte-grilla .inicio {
   fill: var(--muted);
-  font-size: 13px;
+  font-size: calc(11px * var(--escala, 1));
   text-anchor: end;
   dominant-baseline: central;
 }
 
 .recorte-listo {
   align-self: flex-end;
+  font-size: calc(15px * var(--escala, 1));
 }
 
 /* Calibración */

@@ -98,11 +98,11 @@ instancias:
 
 1. **El testimonio:** el modo registro, a todo el ancho. La página siempre parte sin simulación.
 2. **La grilla de recorte** (`js/recorte.js`): al enviar un testimonio aparece a pantalla completa una grilla
-   en centímetros que dice, por ejemplo, *"Tu testimonio fue clasificado como Vínculos, que corresponde al
+   en centímetros que dice, por ejemplo, *"Tu pendiente fue clasificado como Vínculos, que corresponde al
    color rosado. Lo has pospuesto 3 años. Toma un trozo de tela de color rosado, apóyalo sobre la grilla
    desde el 0 y córtalo de 72 cm"*. Siguiendo la lógica del telar, **dos centímetros de tela son un mes
    pospuesto** (mínimo 2 cm, máximo 120 cm). La tira se dibuja del color de la temática; si no cabe en una
-   fila, sigue en la de abajo y una tijera marca dónde cortar. Se cierra con "Listo, ya corté mi tela" (o
+   fila, sigue en la de abajo y una tijera marca dónde cortar. El último paso es agregar la tira al telar, junto a los demás pendientes. Se cierra con "Listo, ya la agregué al telar" (o
    sola, a los 4 minutos).
 
 **Ovillos a la derecha** (`js/panel-ovillos.js`): el registro ocupa la pantalla y, a la derecha, se ven
