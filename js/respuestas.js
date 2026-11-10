@@ -20,12 +20,11 @@ export function cargarRespuestas() {
   }
 }
 
-/** Guarda un registro. `tema` solo se pasa si se eligió a mano (si no, se detecta del texto). */
-export function guardarRespuesta(texto, tema = null) {
+/** Guarda un registro: solo el texto y la fecha (la temática se detecta del texto). */
+export function guardarRespuesta(texto) {
   const respuestas = cargarRespuestas();
   const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const respuesta = { id, texto, fecha: new Date().toISOString() };
-  if (tema) respuesta.tema = tema;
   respuestas.push(respuesta);
   try {
     localStorage.setItem(KEY, JSON.stringify(respuestas));
@@ -37,9 +36,11 @@ export function guardarRespuesta(texto, tema = null) {
 
 /** Temática de un registro: la elegida a mano, si la hay; si no, la detectada en su texto. */
 export const temaDeRespuesta = (respuesta) => temasDeRespuesta(respuesta)[0];
-/** Temáticas de un registro: la elegida a mano, o la que se detecte en su texto. */
-export const temasDeRespuesta = (respuesta) =>
-  respuesta.tema && !ELIMINADAS.includes(respuesta.tema) ? [respuesta.tema] : tematicasDe(respuesta.texto);
+/**
+ * Temática de un registro: siempre la que se detecta en su texto (no se elige ni se cambia a mano; si un
+ * registro antiguo traía una temática elegida, no se toma en cuenta).
+ */
+export const temasDeRespuesta = (respuesta) => tematicasDe(respuesta.texto);
 
 /* ---------- Borrador: lo dictado y aún no enviado no se pierde ---------- */
 
@@ -285,7 +286,7 @@ export function subirRespaldo(contenido) {
   const vistos = new Set(respuestas.map((r) => claveDe(r.texto, r.fecha)));
   let agregados = 0;
   let repetidos = 0;
-  for (const { texto, fecha: leida, tema } of filas) {
+  for (const { texto, fecha: leida } of filas) {
     if (!texto) continue;
     const fecha = leida ?? new Date().toISOString();
     if (vistos.has(claveDe(texto, fecha))) {
@@ -293,8 +294,6 @@ export function subirRespaldo(contenido) {
       continue;
     }
     const respuesta = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, texto, fecha };
-    // La temática solo queda fija si no es la que se detecta del texto (así se recalcula si mejoran las raíces).
-    if (tema && tema !== tematicaDe(texto)) respuesta.tema = tema;
     respuestas.push(respuesta);
     vistos.add(claveDe(texto, fecha));
     agregados += 1;

@@ -70,8 +70,8 @@ body::after {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem 2rem;
-  /* Rectángulo horizontal de borde a borde, pegado arriba. */
-  padding: 20px 24px;
+  /* Rectángulo horizontal de borde a borde, pegado arriba, con aire arriba y abajo. */
+  padding: 40px 24px 36px;
   border-bottom: 1px solid var(--ink);
   background: var(--surface);
 }
@@ -79,13 +79,13 @@ body::after {
 .cabecera-pregunta {
   flex: 1 1 auto;
   min-width: 0;
-  margin-left: 1.5rem; /* la pregunta, un poco más hacia la derecha */
+  margin-left: 96px; /* alineada con el modo registro: 24 de la cabecera + 96 = 120 */
 }
 
 /* La bajada: breve, bajo la pregunta. */
 .bajada {
   max-width: 46rem;
-  margin: 0.4rem 0 0;
+  margin: 1.6rem 0 0; /* aire para la costura bajo las palabras destacadas */
   color: var(--azul);
   font-size: 0.95rem;
   line-height: 1.4;
@@ -103,6 +103,14 @@ body::after {
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.01em;
+}
+
+/* En la pregunta se destacan "Qué" y "hace cuánto": subrayados con una costura en puntadas. */
+.pregunta .destacado {
+  text-decoration: underline dashed 4px;
+  text-decoration-color: var(--title); /* la costura, del mismo color que la pregunta */
+  text-underline-offset: 8px;
+  text-decoration-skip-ink: none;
 }
 
 .cabecera-info .eyebrow {
@@ -1298,14 +1306,63 @@ body[data-opcion="2"] .simbologia-telar {
   display: none;
 }
 
+/* Sin telar: el registro ocupa la pantalla, centrado, y los ovillos van en una columna angosta a la
+   derecha, uno sobre otro (sin dividir la pantalla). */
+.sin-telar .escenario {
+  position: relative;
+}
+
 .sin-telar .vista-registro {
   flex: 1 1 auto;
 }
 
+/* El registro a la izquierda y los ovillos a la derecha, con el mismo aire hacia su borde (120 px). */
 .sin-telar .contenido-registro {
   width: 100%;
   max-width: 760px;
-  margin: 0 auto;
+  margin: 36px 0 0 104px; /* un poco más abajo; a la izquierda, 16 de la vista + 104 = 120 */
+}
+
+.vista-ovillos {
+  display: none;
+}
+
+.sin-telar .vista-ovillos {
+  position: absolute;
+  top: 52px; /* a la misma altura que el registro */
+  right: 104px; /* el mismo aire con el borde (120 px) que el registro a la izquierda: el dibujo ya trae 16 px */
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  width: 290px;
+}
+
+.ovillos-titulo {
+  margin: 0 0 18px;
+  text-align: center;
+  color: var(--azul);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.panel-ovillos {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+
+.panel-rotulo {
+  font-size: 16px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.panel-rotulo-dato {
+  font-size: 13px;
+  font-weight: 400;
 }
 
 /* ---------- Instancia de recorte: grilla en centímetros reales, a pantalla completa ---------- */

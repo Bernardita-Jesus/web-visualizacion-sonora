@@ -77,8 +77,8 @@ respaldo que se descarga trae siempre todo lo acumulado.
 - **Subir respaldo:** sube ese documento (o uno escrito a mano, con una línea por testimonio: basta el texto;
   la fecha y la temática son opcionales). Sus registros **se suman** a los del navegador; los que ya estaban
   (mismo texto y fecha) no se repiten, así que se puede subir el mismo respaldo varias veces o en otro
-  computador sin duplicar nada. Si la temática escrita no es la que se detecta del texto, queda como elegida
-  a mano. También acepta una planilla CSV con una columna `texto`.
+  computador sin duplicar nada. La temática escrita en el respaldo es solo informativa: al subirlo, la
+  temática se vuelve a detectar del texto. También acepta una planilla CSV con una columna `texto`.
 - **Borrar registros:** borra los registros de este navegador (pide confirmación). Conviene descargar
   el respaldo antes.
 
@@ -104,6 +104,12 @@ instancias:
    pospuesto** (mínimo 2 cm, máximo 120 cm). La tira se dibuja del color de la temática; si no cabe en una
    fila, sigue en la de abajo y una tijera marca dónde cortar. Se cierra con "Listo, ya corté mi tela" (o
    sola, a los 4 minutos).
+
+**Ovillos a la derecha** (`js/panel-ovillos.js`): el registro ocupa la pantalla y, a la derecha, se ven
+los ovillos en tres filas de dos, uno por temática, con todos los testimonios acumulados. Cada testimonio es un tramo del hilo tan largo como el tiempo
+pospuesto (una puntada por día), así que el ovillo más grande es donde más tiempo se ha postergado; bajo
+cada uno va su temática, cuántas veces se repite y cuánto suma. Al cerrar la grilla de recorte, el hilo del
+testimonio recién dado se enrolla en su ovillo.
 
 **Calibrar centímetros:** cada pantalla tiene otra densidad de píxeles, así que hay que calibrarla una vez
 (menú Registros, en la esquina inferior derecha → *Calibrar centímetros*): se pone una regla sobre la

@@ -15,7 +15,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
  * al telar. Cuando se han ido todos, el telar regresa con todos sus hilos y vuelve la simbología.
  */
 
-const OVILLO = {
+export const OVILLO = {
   centro: 4, // radio donde empieza el hilo de cada ovillo
   gap: 6, // separación entre un pendiente y el siguiente en el mismo hilo (la misma del telar)
   margen: 28, // aire entre ovillos
@@ -66,7 +66,7 @@ const muySuave = (t) => (1 - Math.cos(Math.PI * t)) / 2; // sin aceleraciones br
  * dónde queda un punto según cuánto hilo lleva enrollado, en coordenadas polares (`polarEn(s)`: radio y
  * ángulo acumulado, que sigue creciendo vuelta a vuelta).
  */
-function espiral(vuelta) {
+export function espiral(vuelta) {
   const b = vuelta / (2 * Math.PI);
   const radioEn = (theta) => OVILLO.centro + b * theta;
   const largo = [0];
@@ -129,7 +129,7 @@ function ordenar(ovillos, area, radioDe) {
  * Arma los ovillos (uno por temática con pendientes) y elige la separación entre vueltas más amplia
  * (hasta el doble de la del telar) con que caben todos en el lugar del telar. El largo de cada hilo no cambia.
  */
-function armarOvillos(telar) {
+export function armarOvillos(telar) {
   const ovillos = TEMATICAS.map((tema) => ({ tema, lista: telar.tejidos.filter((p) => p.temas[0].id === tema.id) }))
     .filter((ovillo) => ovillo.lista.length);
   for (const ovillo of ovillos) {

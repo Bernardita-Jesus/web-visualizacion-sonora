@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="css/styles.css">
   <script type="module" src="js/app.js"></script>
   <script type="module" src="js/ovillos.js"></script>
+  <script type="module" src="js/panel-ovillos.js"></script>
 </head>
 <body>
   <!-- Lienzo de tamaño fijo: se escala para caber en cualquier ventana, sin scroll (ver js/app.js). -->
@@ -18,7 +19,7 @@
   <!-- ---------- Barra superior: la pregunta, el contexto y los nombres ---------- -->
   <header class="cabecera">
     <div class="cabecera-pregunta">
-      <h1 id="pregunta" class="pregunta">¿Qué tienes pendiente y hace cuánto lo pospones?</h1>
+      <h1 id="pregunta" class="pregunta">¿<span class="destacado">Qué</span> tienes pendiente y <span class="destacado">hace cuánto</span> lo pospones?</h1>
       <p class="bajada">Empezar algo cuesta y casi siempre lo dejamos para después. A fin de año solemos mirar lo que logramos y lo que sigue pendiente. Quizás sea un buen momento para retomar aquello que hemos postergado y comenzar.</p>
     </div>
     <!-- Simular registros: muestra testimonios de ejemplo en el telar; apagado, solo los reales. -->
@@ -80,6 +81,14 @@
   </section>
 
   <!-- ---------- Visualización ---------- -->
+  <!-- Los ovillos a la derecha (mientras el telar está escondido): tres filas de dos, un ovillo por temática
+       con todos los testimonios acumulados. Ver js/panel-ovillos.js. -->
+  <section id="vista-ovillos" class="vista vista-ovillos">
+    <h2 class="ovillos-titulo">Ovillos</h2>
+    <svg id="panel-ovillos" class="panel-ovillos" preserveAspectRatio="xMidYMin meet" role="img"
+         aria-label="Ovillos de pendientes: un ovillo por temática, más grande donde más tiempo se ha pospuesto"></svg>
+  </section>
+
   <section id="vista-visualizacion" class="vista vista-visualizacion">
     <main class="plano-wrap">
       <!-- Columna izquierda: el título y, debajo, la simbología. El telar va a la derecha, desde arriba. -->
