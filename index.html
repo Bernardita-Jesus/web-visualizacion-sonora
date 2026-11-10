@@ -65,14 +65,9 @@
       </div>
 
       <textarea id="respuesta" name="respuesta" aria-labelledby="pregunta" rows="3" readonly placeholder="Tu pendiente aparecerá aquí cuando lo dictes"></textarea>
-      <!-- Antes de enviar: en qué temática se registrará. Solo si no es la correcta, se elige otra a mano;
-           si no, basta con Enviar. -->
+      <!-- Antes de enviar: en qué temática se registrará (se detecta sola, no se elige a mano). -->
       <div id="tema-previo" class="tema-previo" hidden>
         <p aria-live="polite">Se registrará en <strong id="tema-previo-nombre"></strong>. <span id="tiempo-previo"></span></p>
-        <button id="btn-otra-tema" class="boton-otra-tema" type="button" aria-expanded="false" aria-controls="elegir-tema">
-          ¿No es esa? Seleccionar manualmente
-        </button>
-        <div id="elegir-tema" class="elegir-tema" role="group" aria-label="Elegir la temática" hidden></div>
       </div>
 
       <div class="acciones">
@@ -105,7 +100,11 @@
                 <path d="M 3 5 L 14 5" style="stroke: #e0317a; stroke-width: 4; stroke-dasharray: 2.4 1.4"></path>
                 <path d="M 3 16 L 49 16" style="stroke: #e0317a; stroke-width: 4; stroke-dasharray: 2.4 1.4"></path>
               </svg>
-              <span>Cada tramo es un pendiente, cosido en puntadas: <strong>cada puntada es un día</strong> que lleva pospuesto. Cada línea del telar es un año</span>
+              <span class="lista-simbologia">
+                <span>Cada tramo es un pendiente, cosido en puntadas.</span>
+                <span>Cada puntada es un día que lleva pospuesto.</span>
+                <span>Cada línea del telar representa un año.</span>
+              </span>
             </li>
           </ul>
         </div>
@@ -170,6 +169,7 @@
       <button id="btn-subir-registros" class="boton-borrar" type="button" title="Sube un respaldo (el documento de texto descargado, o uno escrito a mano con un testimonio por línea): sus registros se suman a los que ya hay, sin repetirse">Subir respaldo</button>
       <input id="archivo-registros" type="file" accept=".txt,.csv,text/plain,text/csv" hidden>
       <button id="btn-borrar-registros" class="boton-borrar" type="button">Borrar registros</button>
+      <button id="btn-calibrar" class="boton-borrar" type="button" title="Ajusta la grilla de recorte para que sus centímetros sean reales en esta pantalla">Calibrar centímetros</button>
     </div>
     <button id="btn-respaldo" class="boton-respaldo" type="button" aria-expanded="false" aria-controls="respaldo-menu" title="Respaldar o subir registros">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"></path></svg>
@@ -177,5 +177,31 @@
     </button>
   </div>
   </div>
+
+  <!-- Instancia de recorte: tras dar el testimonio, a pantalla completa (fuera del lienzo, para que los
+       centímetros sean reales). Ver js/recorte.js. -->
+  <section id="recorte" class="recorte" hidden aria-live="polite">
+    <header class="recorte-cabecera">
+      <p id="recorte-mensaje" class="recorte-mensaje"></p>
+      <p id="recorte-instruccion" class="recorte-instruccion"></p>
+      <p id="recorte-aviso" class="recorte-aviso" hidden>Esta pantalla no está calibrada: los centímetros pueden no ser exactos (menú Registros → Calibrar centímetros).</p>
+    </header>
+    <svg id="recorte-grilla" class="recorte-grilla" aria-label="Grilla en centímetros para cortar la tela"></svg>
+    <button id="btn-recorte-listo" class="boton-modo recorte-listo" type="button">Listo, ya corté mi tela</button>
+  </section>
+
+  <!-- Calibración de la grilla: se ajusta la barra hasta que mida 10 cm con una regla. -->
+  <section id="calibrar" class="calibrar" hidden>
+    <div class="calibrar-caja">
+      <h2>Calibrar centímetros</h2>
+      <p>Pon una regla sobre la pantalla y mueve el control hasta que la barra mida exactamente <strong>10 cm</strong>.</p>
+      <div id="calibrar-barra" class="calibrar-barra"></div>
+      <input id="calibrar-deslizador" type="range" min="15" max="120" step="0.1" aria-label="Píxeles por centímetro">
+      <div class="calibrar-botones">
+        <button id="btn-calibrar-guardar" class="boton-modo" type="button">Guardar</button>
+        <button id="btn-calibrar-cancelar" class="boton-modo boton-secundario" type="button">Cancelar</button>
+      </div>
+    </div>
+  </section>
 </body>
 </html>

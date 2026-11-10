@@ -1279,3 +1279,182 @@ body[data-opcion="2"] .simbologia-telar {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+/* Simbología en puntos: cada idea en su línea, con una viñeta. */
+.lista-simbologia {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.lista-simbologia > span::before {
+  content: "· ";
+  font-weight: 700;
+}
+
+/* ---------- Telar escondido: solo el registro (ver MOSTRAR_TELAR en js/main.js) ---------- */
+.sin-telar .vista-visualizacion,
+.sin-telar #btn-simular,
+.sin-telar #btn-ocultar-registro {
+  display: none;
+}
+
+.sin-telar .vista-registro {
+  flex: 1 1 auto;
+}
+
+.sin-telar .contenido-registro {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* ---------- Instancia de recorte: grilla en centímetros reales, a pantalla completa ---------- */
+.recorte {
+  position: fixed;
+  inset: 0;
+  z-index: 99; /* bajo el grano del fondo, sobre todo lo demás */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px 28px;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.recorte[hidden],
+.calibrar[hidden] {
+  display: none;
+}
+
+.recorte-cabecera {
+  display: grid;
+  gap: 6px;
+}
+
+.recorte-mensaje {
+  margin: 0;
+  color: var(--azul);
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.recorte-mensaje strong {
+  color: var(--color-tema);
+}
+
+.recorte-instruccion {
+  margin: 0;
+  max-width: 70ch;
+  font-size: 19px;
+  line-height: 1.4;
+}
+
+.recorte-aviso {
+  margin: 0;
+  color: var(--title);
+  font-size: 14px;
+}
+
+.recorte-grilla {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  border: 1px solid var(--line);
+  background: #fbf7f0;
+}
+
+.grilla-fondo line {
+  stroke: rgb(47 55 66 / 0.12);
+  stroke-width: 1;
+}
+
+.grilla-fondo line.cinco {
+  stroke: rgb(47 55 66 / 0.25);
+}
+
+.grilla-fondo line.diez {
+  stroke: rgb(47 55 66 / 0.45);
+}
+
+.recorte-grilla .tira {
+  opacity: 0.85;
+}
+
+.recorte-grilla .marca {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.recorte-grilla .numero {
+  fill: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+.recorte-grilla .corte {
+  stroke: var(--ink);
+  stroke-width: 2.5;
+  stroke-dasharray: 8 5;
+}
+
+.recorte-grilla .tijera,
+.recorte-grilla .sigue {
+  fill: var(--ink);
+  font-size: 20px;
+  font-weight: 600;
+  dominant-baseline: central;
+}
+
+.recorte-grilla .inicio {
+  fill: var(--muted);
+  font-size: 13px;
+  text-anchor: end;
+  dominant-baseline: central;
+}
+
+.recorte-listo {
+  align-self: flex-end;
+}
+
+/* Calibración */
+.calibrar {
+  position: fixed;
+  inset: 0;
+  z-index: 102;
+  display: grid;
+  place-items: center;
+  background: rgb(47 55 66 / 0.35);
+}
+
+.calibrar-caja {
+  display: grid;
+  gap: 14px;
+  max-width: 90vw;
+  padding: 24px 28px;
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.calibrar-caja h2 {
+  margin: 0;
+  color: var(--azul);
+  font-size: 22px;
+}
+
+.calibrar-caja p {
+  margin: 0;
+}
+
+.calibrar-barra {
+  height: 24px;
+  background: var(--title);
+  border-radius: 2px;
+}
+
+.calibrar-botones {
+  display: flex;
+  gap: 10px;
+}

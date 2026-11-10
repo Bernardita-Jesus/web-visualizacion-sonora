@@ -1,5 +1,6 @@
-import { lanzarRespuesta } from './main.js';
-import { TEMATICAS, diasPospuesto, guardarBorrador, guardarRespuesta, leerBorrador, limpiarDictado, temaPorId, tematicasDe, tiempoEnPalabras } from './respuestas.js';
+import { MOSTRAR_TELAR, lanzarRespuesta } from './main.js';
+import { abrirCalibracion, mostrarRecorte } from './recorte.js';
+import { diasPospuesto, guardarBorrador, guardarRespuesta, leerBorrador, limpiarDictado, temaPorId, tematicasDe, tiempoEnPalabras } from './respuestas.js';
 
 // Una sola pantalla: registro a la izquierda y visualización (el telar) a la derecha.
 
@@ -17,8 +18,8 @@ function enviar() {
     return;
   }
 
-  // Anónimo: solo se guarda el texto y la hora, nunca quién habla. La temática va solo si se eligió a mano.
-  const respuesta = guardarRespuesta(texto, temaManual);
+  // Anónimo: solo se guarda el texto y la hora, nunca quién habla. La temática se detecta del texto.
+  const respuesta = guardarRespuesta(texto);
   if (!respuesta) {
     aviso.textContent = 'No se pudo guardar el pendiente en este navegador.';
     return;
@@ -32,14 +33,17 @@ function enviar() {
   const nombres = nombreTemas(temasDelCampo(texto));
   limpiarCampo();
   estado.textContent = 'Aprieta el botón y cuenta tu pendiente.';
-  aviso.textContent = `¡Gracias! Tu testimonio quedó en ${nombres}. Mira cómo se teje en el telar →`;
+  aviso.textContent = MOSTRAR_TELAR
+    ? `¡Gracias! Tu testimonio quedó en ${nombres}. Mira cómo se teje en el telar →`
+    : `¡Gracias! Tu testimonio quedó en ${nombres}.`;
+  // La segunda instancia: la grilla para cortar la tela del largo de lo pospuesto.
+  mostrarRecorte(respuesta);
 }
 
-/** Vacía el campo, su borrador y la temática elegida (solo al enviar o al presionar Eliminar). */
+/** Vacía el campo y su borrador (solo al enviar o al presionar Eliminar). */
 function limpiarCampo() {
   campo.value = '';
   guardarBorrador('');
-  elegirTemaManual(null);
   actualizarBorrar();
   colorearSegunTema();
 }
@@ -173,33 +177,16 @@ botonBorrar.addEventListener('click', () => {
 const temaPrevio = document.querySelector('#tema-previo');
 const temaPrevioNombre = document.querySelector('#tema-previo-nombre');
 const tiempoPrevio = document.querySelector('#tiempo-previo');
-const botonOtraTema = document.querySelector('#btn-otra-tema');
-const elegirTema = document.querySelector('#elegir-tema');
-const CLAVE_TEMA_MANUAL = 'diseno-abierto:borrador-tema';
-
-// Temática elegida a mano para el pendiente que se está dictando (null: la detectada en el texto).
-let temaManual = null;
+// La temática ya no se elige a mano: siempre es la que se detecta en el texto. Se olvida la que hubiera
+// quedado elegida de antes.
 try {
-  temaManual = localStorage.getItem(CLAVE_TEMA_MANUAL) || null;
+  localStorage.removeItem('diseno-abierto:borrador-tema');
 } catch {
   // Sin almacenamiento.
 }
 
-function elegirTemaManual(temaId) {
-  temaManual = temaId;
-  try {
-    if (temaId) localStorage.setItem(CLAVE_TEMA_MANUAL, temaId);
-    else localStorage.removeItem(CLAVE_TEMA_MANUAL);
-  } catch {
-    // Sin almacenamiento: la elección vale igual mientras no se recargue la página.
-  }
-  elegirTema.hidden = true;
-  botonOtraTema.setAttribute('aria-expanded', 'false');
-  colorearSegunTema();
-}
-
-/** Temáticas del pendiente que se está dictando: la elegida a mano, o la detectada. */
-const temasDelCampo = (texto) => (temaManual ? [temaManual] : tematicasDe(texto)).map(temaPorId);
+/** Temática del pendiente que se está dictando (la detectada en el texto). */
+const temasDelCampo = (texto) => tematicasDe(texto).map(temaPorId);
 const nombreTemas = (temas) => temas.map((tema) => tema.nombre).join(' y ');
 
 // El texto toma el color de su temática (el mismo con que se tejerá) y se muestra en cuál quedará.
@@ -223,40 +210,13 @@ function colorearSegunTema() {
     nombre.style.color = tema.color;
     temaPrevioNombre.append(nombre);
   });
-  if (temaManual) temaPrevioNombre.append(' (elegida por ti)');
   // Cuánto lleva pospuesto (el largo de su hilo); si no se dice, se teje un hilo corto.
   const dias = diasPospuesto(texto);
   tiempoPrevio.textContent = dias == null
     ? 'No dijiste cuánto tiempo lo has pospuesto: cuéntalo (por ejemplo, "hace dos meses") para que su hilo tenga ese largo.'
     : `Lo has pospuesto ${tiempoEnPalabras(dias)}.`;
-  for (const boton of elegirTema.querySelectorAll('button')) {
-    boton.setAttribute('aria-pressed', String(temas.some((tema) => tema.id === boton.dataset.tema)));
-  }
   temaPrevio.hidden = false;
 }
-
-// Botones de temáticas para elegir a mano (solo se muestran si se pide).
-for (const tema of TEMATICAS) {
-  const boton = document.createElement('button');
-  boton.type = 'button';
-  boton.className = 'tema-opcion';
-  boton.dataset.tema = tema.id;
-  const muestra = document.createElement('span');
-  muestra.className = 'tema-color';
-  muestra.style.background = tema.color;
-  boton.append(muestra, tema.nombre);
-  // Si se elige la misma que se detectó, no queda como "elegida a mano".
-  boton.addEventListener('click', () => {
-    const detectadas = tematicasDe(campo.value);
-    elegirTemaManual(detectadas.length === 1 && detectadas[0] === tema.id ? null : tema.id);
-  });
-  elegirTema.append(boton);
-}
-
-botonOtraTema.addEventListener('click', () => {
-  elegirTema.hidden = !elegirTema.hidden;
-  botonOtraTema.setAttribute('aria-expanded', String(!elegirTema.hidden));
-});
 
 // Si había un borrador sin enviar (por ejemplo, se recargó la página), vuelve al campo.
 campo.value = leerBorrador();
@@ -280,21 +240,16 @@ function mostrarRegistro(visible) {
   pestana.setAttribute('aria-expanded', String(visible));
   botonOcultar.setAttribute('aria-expanded', String(visible));
   if (!visible) detenerDictado();
-  // Se recuerda en este navegador si se dejó oculto (es solo una comodidad: si falla, no pasa nada).
-  try {
-    localStorage.setItem(CLAVE_OCULTO, visible ? '' : '1');
-  } catch {
-    // Sin almacenamiento disponible.
-  }
 }
 
 botonOcultar.addEventListener('click', () => mostrarRegistro(false));
 pestana.addEventListener('click', () => mostrarRegistro(true));
 
+// Siempre parte con el modo registro abierto (se olvida si la última vez se dejó oculto).
 try {
-  if (localStorage.getItem(CLAVE_OCULTO)) mostrarRegistro(false);
+  localStorage.removeItem(CLAVE_OCULTO);
 } catch {
-  // Sin almacenamiento disponible: el registro empieza visible.
+  // Sin almacenamiento disponible.
 }
 
 /* ---------- Lienzo: la página se ve igual en cualquier pantalla ---------- */
@@ -316,3 +271,5 @@ function ajustarLienzo() {
 
 ajustarLienzo();
 window.addEventListener('resize', ajustarLienzo);
+
+document.querySelector('#btn-calibrar').addEventListener('click', abrirCalibracion);

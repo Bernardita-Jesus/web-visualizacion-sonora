@@ -50,7 +50,7 @@ const TEJIDO = {
   maxSew: 25, // segundos máximos (los pospuestos por muchos años no detienen el telar)
   turn: 0.5, // segundos en que se teje la vuelta del hilo en el borde (junto a su línea de arriba)
   pause: 0.8, // respiro antes del siguiente
-  hold: 6, // segundos que el telar completo queda a la vista antes de enrollarse en ovillos
+  hold: 20, // segundos que el telar completo queda a la vista antes de enrollarse en ovillos
 };
 
 // Por ahora, para ir viendo el final: cada vuelta parte con el telar casi tejido y solo se teje el
@@ -71,6 +71,11 @@ const POR_DIA = ANCHO / TELAR.diasPorLinea;
 const ONDA = ANCHO / Math.max(1, Math.round(ANCHO / TELAR.waveLength));
 
 const svg = document.querySelector('#plano');
+
+// Por ahora el telar queda escondido: la pantalla muestra el registro y, al dar un testimonio, la grilla
+// para cortar la tela (js/recorte.js). Para volver a mostrar el telar, poner true.
+export const MOSTRAR_TELAR = false;
+document.body.classList.toggle('sin-telar', !MOSTRAR_TELAR);
 
 /* ---------- Utilidades ---------- */
 
@@ -296,6 +301,10 @@ async function ciclo() {
   for (;;) {
     const miVuelta = vuelta;
     const vigente = () => miVuelta === vuelta;
+    if (!MOSTRAR_TELAR) {
+      await esperar(1); // escondido, el telar no se teje
+      continue;
+    }
     const siguiente = urgentes.shift() ?? tejidos.find((p) => p.oculto);
     if (siguiente) {
       await coserPendiente(siguiente);
@@ -332,11 +341,12 @@ async function ciclo() {
 /* ---------- Simular registros (ejemplos) o solo los reales ---------- */
 
 const CLAVE_SIMULAR = 'diseno-abierto:simular';
+// Siempre parte con los registros reales (sin simulación), aunque la última vez se haya dejado prendida.
 let simular = false;
 try {
-  simular = localStorage.getItem(CLAVE_SIMULAR) === '1';
+  localStorage.removeItem(CLAVE_SIMULAR);
 } catch {
-  // Sin almacenamiento: parte mostrando solo los registros reales.
+  // Sin almacenamiento: no hay nada que olvidar.
 }
 
 /** Los registros reales (siempre) y, si se está simulando, también los de ejemplo; en orden de registro. */
@@ -385,11 +395,6 @@ function mostrarModoSimulacion() {
 
 botonSimular.addEventListener('click', () => {
   simular = !simular;
-  try {
-    localStorage.setItem(CLAVE_SIMULAR, simular ? '1' : '');
-  } catch {
-    // Sin almacenamiento: no se recuerda, pero el cambio funciona igual.
-  }
   mostrarModoSimulacion();
   tejerDia();
 });

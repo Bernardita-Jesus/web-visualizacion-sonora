@@ -39,7 +39,7 @@ const TIEMPOS = {
   porOvillo: 2.5, // segundos que las palabras bordadas quedan a la vista antes de que el ovillo vuelva
   hold: 3, // segundos que los ovillos quedan a la vista después de bordar, antes de volver al telar
   fundido: 1.5, // segundos en que las palabras y los nombres se desvanecen al volver
-  enTelar: 3, // segundos que el telar, ya de vuelta y completo, queda a la vista antes de volver a tejerse
+  enTelar: 12, // segundos que el telar, ya de vuelta y completo, queda a la vista antes de volver a tejerse
 };
 
 const el = (name, attrs = {}, parent) => {

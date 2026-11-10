@@ -48,8 +48,8 @@ La página es una sola pantalla dividida en dos mitades:
   El pendiente solo se agrega con voz: el campo no se puede escribir.
   Lo dictado se va sumando y se guarda como borrador: no se pierde hasta presionar Enviar o Eliminar pendiente.
   Antes de enviar se muestra en qué temática se registrará y cuánto tiempo dice que lo ha pospuesto (si no lo
-  dice, se le sugiere contarlo); solo si la temática no es la correcta se elige otra a mano
-  (no hace falta tocar nada más: basta con Enviar). Lo dictado queda en el campo hasta presionar Enviar, o se borra con Eliminar pendiente.
+  dice, se le sugiere contarlo). La temática se detecta sola: no se elige a mano (basta con Enviar).
+  El modo registro siempre parte abierto. Lo dictado queda en el campo hasta presionar Enviar, o se borra con Eliminar pendiente.
   El dictado usa la Web Speech API (Chrome, Edge, Safari) y necesita internet.
   Se dicta en español de Chile (`es-CL`). Al guardar se quitan las muletillas ("eh", "o sea", "cachai", "po"…),
   y la temática reconoce palabras del habla chilena (pega, pituto, pololo, tata, guagua, carrete, la u, solemne…).
@@ -90,6 +90,24 @@ Para ajustar la visualización (`js/main.js`):
 - Cómo se lee el tiempo pospuesto en el texto: `diasPospuesto` en `js/respuestas.js` (ver más abajo).
 - Temáticas, colores y palabras clave: `TEMATICAS` en `js/respuestas.js`.
 - Textos de ejemplo: `js/ejemplos.js`.
+
+## Recortar la tela (por ahora, sin telar)
+
+Por ahora **el telar queda escondido** (`MOSTRAR_TELAR = false` en `js/main.js`) y la página tiene dos
+instancias:
+
+1. **El testimonio:** el modo registro, a todo el ancho. La página siempre parte sin simulación.
+2. **La grilla de recorte** (`js/recorte.js`): al enviar un testimonio aparece a pantalla completa una grilla
+   en centímetros que dice, por ejemplo, *"Tu testimonio fue clasificado como Vínculos, que corresponde al
+   color rosado. Lo has pospuesto 3 años. Toma un trozo de tela de color rosado, apóyalo sobre la grilla
+   desde el 0 y córtalo de 72 cm"*. Siguiendo la lógica del telar, **dos centímetros de tela son un mes
+   pospuesto** (mínimo 2 cm, máximo 120 cm). La tira se dibuja del color de la temática; si no cabe en una
+   fila, sigue en la de abajo y una tijera marca dónde cortar. Se cierra con "Listo, ya corté mi tela" (o
+   sola, a los 4 minutos).
+
+**Calibrar centímetros:** cada pantalla tiene otra densidad de píxeles, así que hay que calibrarla una vez
+(menú Registros, en la esquina inferior derecha → *Calibrar centímetros*): se pone una regla sobre la
+pantalla y se mueve el control hasta que la barra mida 10 cm. Queda guardado en ese navegador.
 
 ## Del telar a los ovillos
 
@@ -156,10 +174,8 @@ completa, para que *examen* no se confunda con *ex*.
 Ejemplo: "tengo que estudiar para la prueba y pedirle un aumento a mi jefe". *estudiar* y *prueba* suman 2
 para Estudios, y *jefe* suma 1 para Trabajo. Resultado: Estudios.
 
-**4. La elección a mano.** Antes de enviar, el registro muestra la temática detectada ("Se registrará en
-las temáticas Estudios y Trabajo"). Si no es la correcta, se puede elegir otra con "¿No es esa?
-Seleccionar manualmente". La elegida a mano se guarda con el registro (`tema`) y manda sobre la detectada,
-y el hilo queda de un solo color. Si no se elige, se guarda solo el texto y la temática se vuelve a
+**4. Sin elección a mano.** Antes de enviar, el registro muestra la temática detectada ("Se registrará en
+la temática Estudios"), pero no se puede cambiar: se guarda solo el texto y la temática se vuelve a
 calcular cada vez que se teje el telar. Así, si se mejoran las raíces, los registros antiguos también
 se reclasifican.
 
