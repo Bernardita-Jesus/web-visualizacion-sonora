@@ -50,8 +50,8 @@
 
     <form id="form-registro" class="registro" novalidate>
       <p class="anonimo">
-        <strong>Todos los relatos son anónimos.</strong>
-        No registramos quién eres ni guardamos tu voz: solo el texto de tu pendiente.
+        Todos los <span class="subrayado">relatos son anónimos</span>.
+        Tu relato servirá para <span class="subrayado">categorizar</span><br>y <span class="subrayado">registrar la extensión</span> de tu pendiente.
       </p>
 
       <div class="dictado">
@@ -72,7 +72,7 @@
       </div>
 
       <div class="acciones">
-        <button class="boton-modo" type="submit">Enviar</button>
+        <button class="boton-modo boton-enviar" type="submit">Enviar</button>
         <button id="btn-borrar" class="boton-modo boton-secundario" type="button" disabled>Eliminar pendiente</button>
       </div>
       <p id="registro-aviso" class="registro-aviso" role="status"></p>
@@ -81,10 +81,10 @@
   </section>
 
   <!-- ---------- Visualización ---------- -->
-  <!-- Los ovillos a la derecha (mientras el telar está escondido): tres filas de dos, un ovillo por temática
+  <!-- Los ovillos a la derecha (mientras el telar está escondido): tres columnas de dos, un ovillo por temática
        con todos los testimonios acumulados. Ver js/panel-ovillos.js. -->
   <section id="vista-ovillos" class="vista vista-ovillos">
-    <h2 class="ovillos-titulo">Ovillos</h2>
+    <h2 class="modo ovillos-titulo">Ovillos por categoría</h2>
     <svg id="panel-ovillos" class="panel-ovillos" preserveAspectRatio="xMidYMin meet" role="img"
          aria-label="Ovillos de pendientes: un ovillo por temática, más grande donde más tiempo se ha pospuesto"></svg>
   </section>
@@ -191,6 +191,7 @@
        centímetros sean reales). Ver js/recorte.js. -->
   <section id="recorte" class="recorte" hidden aria-live="polite">
     <header class="recorte-cabecera">
+      <div class="recorte-instrucciones">
       <p id="recorte-mensaje" class="recorte-mensaje"></p>
       <!-- Las instrucciones, en tres pasos con íconos (los textos los pone js/recorte.js). -->
       <ol class="recorte-pasos">
@@ -227,6 +228,12 @@
         </li>
       </ol>
       <p id="recorte-aviso" class="recorte-aviso" hidden>Esta pantalla no está calibrada: los centímetros pueden no ser exactos (menú Registros → Calibrar centímetros).</p>
+      </div>
+      <!-- El telar que se arma en la instalación, en miniatura: las tiras ya agregadas y dónde va la nueva. -->
+      <figure class="mini-telar">
+        <svg id="mini-telar" aria-label="Telar en miniatura: dónde agregar tu tira"></svg>
+        <figcaption id="mini-telar-texto"></figcaption>
+      </figure>
     </header>
     <svg id="recorte-grilla" class="recorte-grilla" aria-label="Grilla en centímetros para cortar la tela"></svg>
     <button id="btn-recorte-listo" class="boton-modo recorte-listo" type="button">Listo, ya la agregué al telar</button>

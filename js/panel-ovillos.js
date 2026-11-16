@@ -3,19 +3,19 @@ import { espiral } from './ovillos.js';
 import { TEMATICAS, tiempoEnPalabras } from './respuestas.js';
 
 /*
- * Los ovillos a la derecha del registro (mientras el telar está escondido): tres filas de dos, un ovillo por
+ * Los ovillos a la derecha del registro (mientras el telar está escondido): tres columnas de dos, un ovillo por
  * temática con todos los testimonios acumulados y, bajo cada uno, su nombre. Cada testimonio es un tramo del hilo, tan largo como el tiempo que
  * lleva pospuesto (una puntada por día), así que el ovillo más grande es la temática en que más tiempo se
  * ha postergado. Cuando llega un testimonio nuevo, su hilo se enrolla en su ovillo.
  */
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
-const COLUMNAS = 2; // tres filas de dos
-const CELDA = 140; // ancho de cada ovillo con su aire
-const FILA = 200; // alto de cada fila: el ovillo y, debajo, su nombre
+const COLUMNAS = 3; // tres columnas de dos ovillos (dos filas)
+const CELDA = 228; // ancho de cada ovillo con su aire (las columnas, bien separadas)
+const FILA = 280; // alto de cada fila: el ovillo y, debajo, su nombre
 const ANCHO = CELDA * COLUMNAS; // tamaño del dibujo (unidades del viewBox)
 const ALTO = FILA * Math.ceil(TEMATICAS.length / COLUMNAS);
-const RADIO_MAX = 54; // el ovillo más grande
+const RADIO_MAX = 70; // el ovillo más grande
 const ROTULO = 64; // alto reservado bajo el ovillo para su nombre
 const HILO = { separacion: 12, grosor: 4, centro: 3, gap: 6 }; // las mismas medidas del telar
 const ENROLLAR = 4; // segundos en que el hilo de un testimonio nuevo se enrolla en su ovillo

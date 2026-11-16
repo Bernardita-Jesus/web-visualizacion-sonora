@@ -4,6 +4,7 @@ import {
   TEMATICAS,
   borrarRespuestas,
   cargarRespuestas,
+  diasDeRespuesta,
   diasPospuesto,
   horaDe,
   subirRespaldo,
@@ -230,8 +231,9 @@ function dibujar() {
 export const pintura = (temas) => temas[0].color;
 
 /** Agrega un pendiente al tejido. Con `oculto`, su hilo aparece cuando se cose por primera vez. */
-function colocar({ texto, hora, temas }, oculto = false, redibujar = true) {
-  const dias = diasPospuesto(texto);
+function colocar({ texto, hora, temas, dias: diasDados }, oculto = false, redibujar = true) {
+  // Los registros reales traen sus días (su texto no se guarda); los de ejemplo, su texto.
+  const dias = diasDados !== undefined ? diasDados : diasPospuesto(texto);
   // La temática elegida a mano (si la hay) manda sobre la detectada en el texto.
   const pendiente = { texto, hora, temas: (temas ?? tematicasDe(texto)).map(temaPorId), dias, largo: largoDeDias(dias), oculto };
   const i = tejidos.findIndex((otro) => otro.hora > hora);
@@ -352,7 +354,7 @@ try {
 /** Los registros reales (siempre) y, si se está simulando, también los de ejemplo; en orden de registro. */
 function pendientesDelDia() {
   const ejemplos = simular ? EJEMPLOS : [];
-  const reales = cargarRespuestas().map((respuesta) => ({ texto: respuesta.texto, hora: horaDe(respuesta), temas: temasDeRespuesta(respuesta) }));
+  const reales = cargarRespuestas().map((respuesta) => ({ texto: '', hora: horaDe(respuesta), temas: temasDeRespuesta(respuesta), dias: diasDeRespuesta(respuesta) }));
   return [...ejemplos, ...reales].sort((a, b) => a.hora - b.hora);
 }
 
@@ -378,7 +380,7 @@ const oyentes = [];
  */
 export function alCambiarPendientes(fn) {
   oyentes.push(fn);
-  if (tejidos.length) fn(tejidos, null);
+  fn(tejidos, null); // también sin pendientes: así se dibuja lo que corresponde a un día vacío
 }
 
 function avisar(nuevo) {
@@ -453,7 +455,7 @@ archivoRegistros.addEventListener('change', async () => {
 
 /** Un pendiente recién registrado se suma al telar y es el próximo en coserse. */
 export function lanzarRespuesta(respuesta) {
-  urgentes.push(colocar({ texto: respuesta.texto, hora: horaDe(respuesta), temas: temasDeRespuesta(respuesta) }, true));
+  urgentes.push(colocar({ texto: '', hora: horaDe(respuesta), temas: temasDeRespuesta(respuesta), dias: diasDeRespuesta(respuesta) }, true));
 }
 
 // El telar aparece completo desde el comienzo: todos los hilos, siempre.

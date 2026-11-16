@@ -74,6 +74,12 @@ body::after {
   padding: 40px 24px 36px;
   border-bottom: 1px solid var(--ink);
   background: var(--surface);
+  transition: transform 0.7s ease;
+}
+
+/* Mientras se dan las instrucciones de recorte, el rectángulo de arriba sube y se esconde. */
+.instrucciones .cabecera {
+  transform: translateY(-100%);
 }
 
 .cabecera-pregunta {
@@ -103,6 +109,12 @@ body::after {
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.01em;
+}
+
+/* En el aviso del registro se destacan las ideas clave, con el color de la pregunta. */
+.anonimo .subrayado {
+  color: var(--title);
+  font-weight: 700;
 }
 
 /* En la pregunta se destacan "Qué" y "hace cuánto": subrayados con una costura en puntadas. */
@@ -263,6 +275,19 @@ body::after {
   color: var(--surface);
 }
 
+/* Enviar, del mismo naranjo oscuro que el botón de dictar y la pregunta. */
+.boton-enviar {
+  border-color: var(--title);
+  background: var(--title);
+  color: var(--surface);
+}
+
+.boton-enviar:hover {
+  border-color: #93401b;
+  background: #93401b;
+  color: var(--surface);
+}
+
 .boton-modo:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 3px;
@@ -285,7 +310,8 @@ body::after {
 }
 
 .registro textarea {
-  width: 100%;
+  width: 620px; /* un poco más ancho que el aviso de arriba */
+  margin-top: 3.25rem; /* más abajo del botón de dictar */
   padding: 1rem 1.25rem;
   border: 1.5px solid var(--ink);
   border-radius: 12px;
@@ -297,6 +323,7 @@ body::after {
 }
 
 .anonimo {
+  width: fit-content; /* el rectángulo llega solo hasta donde termina el texto */
   margin: 0;
   padding: 0.9rem 1.1rem;
   border-left: 3px solid var(--accent);
@@ -306,7 +333,7 @@ body::after {
 }
 
 .anonimo strong {
-  color: var(--title);
+  color: var(--ink); /* solo las palabras destacadas van en color */
 }
 
 .registro textarea[readonly] {
@@ -415,10 +442,10 @@ body::after {
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1.5rem 0.75rem 0.75rem;
-  border: 1.5px solid var(--ink);
+  border: 1.5px solid var(--title);
   border-radius: 999px;
-  background: var(--surface);
-  color: var(--ink);
+  background: var(--title); /* el naranjo oscuro de la pregunta */
+  color: var(--surface);
   font-size: 1.15rem;
 }
 
@@ -426,25 +453,25 @@ body::after {
   width: 44px;
   height: 44px;
   padding: 4px;
-  border: 1.5px solid var(--ink);
+  border: 1.5px solid var(--surface);
   border-radius: 50%;
   background: var(--surface);
 }
 
 .boton-dictar rect {
-  fill: var(--ink);
+  fill: var(--title);
 }
 
 .boton-dictar path {
   fill: none;
-  stroke: var(--ink);
+  stroke: var(--title);
   stroke-width: 2;
   stroke-linecap: round;
 }
 
 .boton-dictar:hover {
-  background: var(--surface);
-  color: var(--ink);
+  background: #93401b; /* un poco más oscuro al pasar el mouse */
+  color: var(--surface);
 }
 
 .boton-dictar:disabled {
@@ -453,9 +480,17 @@ body::after {
 }
 
 .boton-dictar.escuchando {
-  border-color: var(--accent);
-  background: var(--accent);
+  border-color: var(--azul);
+  background: var(--azul); /* mientras escucha, azul: se nota que está grabando */
   color: var(--surface);
+}
+
+.boton-dictar.escuchando rect {
+  fill: var(--azul);
+}
+
+.boton-dictar.escuchando path {
+  stroke: var(--azul);
 }
 
 .boton-dictar.escuchando svg {
@@ -1329,27 +1364,23 @@ body[data-opcion="2"] .simbologia-telar {
 
 .sin-telar .vista-ovillos {
   position: absolute;
-  top: 52px; /* a la misma altura que el registro */
-  right: 104px; /* el mismo aire con el borde (120 px) que el registro a la izquierda: el dibujo ya trae 16 px */
+  top: 60.5px; /* el título "Ovillos" a la misma altura que "Modo registro" */
+  right: 120px; /* ocupa el espacio hasta el margen derecho (el mismo del registro a la izquierda) */
   bottom: 16px;
   display: flex;
   flex-direction: column;
-  width: 290px;
+  width: 585px;
 }
 
 .ovillos-titulo {
-  margin: 0 0 18px;
-  text-align: center;
-  color: var(--azul);
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  margin: 0 0 24px; /* los ovillos, un poco más abajo del título; el mismo estilo de "Modo registro" (clase .modo) */
 }
 
 .panel-ovillos {
+  /* Los ovillos se abren más que el título: un poco más a la izquierda y más a la derecha. */
   flex: 1;
-  width: 100%;
+  width: calc(100% + 100px);
+  margin-left: -40px;
   min-height: 0;
 }
 
@@ -1375,7 +1406,6 @@ body[data-opcion="2"] .simbologia-telar {
   flex-direction: column;
   gap: calc(10px * var(--escala, 1));
   padding: 24px 28px 28px; /* arriba y a los lados se ajusta en ubicarCapa */
-  border-top: 1px solid var(--ink); /* la misma línea bajo el rectángulo de arriba */
   background: var(--bg);
   color: var(--ink);
 }
@@ -1386,8 +1416,78 @@ body[data-opcion="2"] .simbologia-telar {
 }
 
 .recorte-cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: calc(32px * var(--escala, 1));
+}
+
+.recorte-instrucciones {
   display: grid;
   gap: 6px;
+  min-width: 0;
+}
+
+/* El telar de la instalación en miniatura, al lado de las instrucciones. */
+.mini-telar {
+  flex: none;
+  display: grid;
+  gap: calc(6px * var(--escala, 1));
+  width: calc(320px * var(--escala, 1));
+  margin: 0;
+}
+
+.mini-telar svg {
+  width: 100%;
+  height: auto;
+  max-height: calc(220px * var(--escala, 1));
+}
+
+.mini-telar figcaption {
+  color: var(--ink);
+  font-size: calc(14px * var(--escala, 1));
+  line-height: 1.3;
+}
+
+.mini-telar figcaption strong {
+  color: var(--color-tema);
+}
+
+.mini-marco {
+  fill: var(--patio-fill);
+  stroke: #ffffff;
+  stroke-width: 2.5;
+  filter: drop-shadow(0 1px 1px rgb(47 55 66 / 0.35));
+}
+
+.mini-urdimbre {
+  stroke: #ffffff;
+  stroke-width: 0.8;
+}
+
+.mini-numero {
+  fill: var(--muted);
+  font-weight: 600;
+  text-anchor: end;
+  dominant-baseline: central;
+}
+
+.mini-tira {
+  opacity: 0.85;
+}
+
+/* La tira nueva: parpadea con un borde, para que se vea dónde va. */
+.mini-nueva {
+  opacity: 1;
+  stroke: var(--ink);
+  stroke-width: 1.2;
+  animation: mini-parpadeo 1.2s ease-in-out infinite;
+}
+
+@keyframes mini-parpadeo {
+  50% {
+    opacity: 0.35;
+  }
 }
 
 .recorte-mensaje {
@@ -1499,8 +1599,23 @@ body[data-opcion="2"] .simbologia-telar {
   stroke: rgb(47 55 66 / 0.45);
 }
 
+/* El borde de la tira a recortar, en línea segmentada. */
+.recorte-grilla .tira-borde {
+  fill: none;
+  stroke: var(--ink);
+  stroke-dasharray: 6 4;
+  stroke-linecap: butt;
+}
+
+.recorte-grilla .tira-inicio {
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
 .recorte-grilla .tira {
-  opacity: 0.85;
+  fill: none;
+  stroke-linecap: butt;
 }
 
 .recorte-grilla .marca {
@@ -1580,4 +1695,25 @@ body[data-opcion="2"] .simbologia-telar {
 .calibrar-botones {
   display: flex;
   gap: 10px;
+}
+
+/* El borde de ambas pantallas (el registro y las instrucciones de recorte), en línea segmentada, como la
+   línea de corte de un molde. */
+.lienzo::before,
+.recorte::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  border: 2px dashed var(--ink);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.lienzo::before {
+  inset: 7px;
+}
+
+.recorte::before {
+  inset: calc(7px * var(--escala, 1));
+  border-width: calc(2px * var(--escala, 1));
 }

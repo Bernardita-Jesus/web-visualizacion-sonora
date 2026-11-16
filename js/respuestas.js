@@ -1,7 +1,7 @@
 /**
- * Pendientes del modo registro. Son anónimos: solo se guarda el texto y la hora, nunca quién habla
- * ni su voz. Por ahora se guardan en el navegador (localStorage): solo se ven en la visualización
- * abierta en el mismo computador o tablet.
+ * Pendientes del modo registro. Son anónimos: no se guarda quién habla, ni su voz, ni lo que dice. Del
+ * texto dictado solo se saca su temática y cuánto tiempo lleva pospuesto, y el texto se descarta. Se
+ * guardan en el navegador (localStorage): solo se ven en el mismo computador o tablet.
  */
 const KEY = 'diseno-abierto:respuestas';
 
@@ -12,6 +12,16 @@ try {
   // Sin acceso al almacenamiento: no hay nada que borrar.
 }
 
+/** Un registro: su temática y cuántos días lleva pospuesto, sacados del texto (que no se guarda). */
+function registroDe(texto, fecha) {
+  return {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    fecha,
+    tema: tematicaDe(texto),
+    dias: diasPospuesto(texto),
+  };
+}
+
 export function cargarRespuestas() {
   try {
     return JSON.parse(localStorage.getItem(KEY)) ?? [];
@@ -20,11 +30,10 @@ export function cargarRespuestas() {
   }
 }
 
-/** Guarda un registro: solo el texto y la fecha (la temática se detecta del texto). */
+/** Guarda un registro: la temática, el tiempo pospuesto y la fecha. El texto se usa y se descarta. */
 export function guardarRespuesta(texto) {
   const respuestas = cargarRespuestas();
-  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const respuesta = { id, texto, fecha: new Date().toISOString() };
+  const respuesta = registroDe(texto, new Date().toISOString());
   respuestas.push(respuesta);
   try {
     localStorage.setItem(KEY, JSON.stringify(respuestas));
@@ -34,13 +43,11 @@ export function guardarRespuesta(texto) {
   }
 }
 
-/** Temática de un registro: la elegida a mano, si la hay; si no, la detectada en su texto. */
+/** Temática de un registro (la que se detectó en su texto al registrarlo). */
 export const temaDeRespuesta = (respuesta) => temasDeRespuesta(respuesta)[0];
-/**
- * Temática de un registro: siempre la que se detecta en su texto (no se elige ni se cambia a mano; si un
- * registro antiguo traía una temática elegida, no se toma en cuenta).
- */
-export const temasDeRespuesta = (respuesta) => tematicasDe(respuesta.texto);
+export const temasDeRespuesta = (respuesta) => [respuesta.tema];
+/** Cuántos días lleva pospuesto (null si no lo dijo). */
+export const diasDeRespuesta = (respuesta) => respuesta.dias ?? null;
 
 /* ---------- Borrador: lo dictado y aún no enviado no se pierde ---------- */
 
@@ -232,29 +239,29 @@ const fechaLegible = (iso) => {
   const f = new Date(iso);
   return `${f.getFullYear()}-${dosCifras(f.getMonth() + 1)}-${dosCifras(f.getDate())} ${dosCifras(f.getHours())}:${dosCifras(f.getMinutes())}`;
 };
-// Un registro es el mismo si tiene el mismo texto y la misma fecha (al minuto, como queda en el respaldo).
-const claveDe = (texto, iso) => `${texto.trim().toLowerCase()}|${fechaLegible(iso)}`;
+// Un registro es el mismo si tiene la misma fecha (al minuto, como queda en el respaldo), temática y tiempo.
+const claveDe = (r) => `${fechaLegible(r.fecha)}|${r.tema}|${r.dias ?? ''}`;
 
 /**
- * Documento de texto con todos los registros guardados en este navegador: un testimonio por línea, con su
- * fecha y su temática ("2026-11-05 18:57 | Vínculos | llamar a mi abuela, hace tres semanas"). Las líneas
- * que empiezan con # son explicaciones y no se leen al subirlo.
+ * Documento de texto con todos los registros guardados en este navegador: uno por línea, con su fecha, su
+ * temática y cuánto tiempo lleva pospuesto ("2026-11-05 18:57 | Vínculos | 3 semanas"). No trae lo que
+ * dijo cada persona: eso no se guarda. Las líneas que empiezan con # son explicaciones.
  */
 export function textoDeRespuestas() {
   const lineas = cargarRespuestas().map((respuesta) =>
-    [fechaLegible(respuesta.fecha), temaPorId(temaDeRespuesta(respuesta)).nombre, respuesta.texto.replace(/\s+/g, ' ').trim()].join(' | '));
+    [fechaLegible(respuesta.fecha), temaPorId(temaDeRespuesta(respuesta)).nombre, tiempoEnPalabras(diasDeRespuesta(respuesta))].join(' | '));
   return [
     '# ¿Qué tienes pendiente y hace cuánto lo pospones? · Respaldo de los registros',
     `# Descargado el ${fechaLegible(new Date().toISOString())} · ${lineas.length} ${lineas.length === 1 ? 'registro' : 'registros'}`,
-    '# Un testimonio por línea: fecha | temática | texto.',
-    '# Para agregar más, escribe una línea por testimonio (basta el texto; la fecha y la temática son opcionales).',
+    '# Un registro por línea: fecha | temática | cuánto tiempo lo ha pospuesto.',
+    '# Para agregar más, escribe una línea por registro (por ejemplo: "Vínculos | 3 meses", o un pendiente dicho con sus palabras).',
     '',
     ...lineas,
     '',
   ].join('\r\n');
 }
 
-/** Lee una línea del respaldo: "fecha | temática | texto", "temática | texto" o solo el texto. */
+/** Lee una línea del respaldo: "fecha | temática | tiempo", "temática | tiempo" o un pendiente con sus palabras. */
 function leerLinea(linea) {
   const partes = linea.split(' | ').map((parte) => parte.trim());
   let fecha = null;
@@ -283,19 +290,22 @@ export function subirRespaldo(contenido) {
     .map(leerLinea);
 
   const respuestas = cargarRespuestas();
-  const vistos = new Set(respuestas.map((r) => claveDe(r.texto, r.fecha)));
+  const vistos = new Set(respuestas.map(claveDe));
   let agregados = 0;
   let repetidos = 0;
-  for (const { texto, fecha: leida } of filas) {
+  for (const { texto, fecha: leida, tema } of filas) {
     if (!texto) continue;
-    const fecha = leida ?? new Date().toISOString();
-    if (vistos.has(claveDe(texto, fecha))) {
+    // Del texto (o del tiempo escrito, "3 meses") se saca el tiempo pospuesto; la temática escrita manda
+    // si la hay (es la que se detectó al registrarlo), si no se detecta del texto. El texto no se guarda.
+    const respuesta = registroDe(texto, leida ?? new Date().toISOString());
+    if (tema) respuesta.tema = tema;
+    if (/^sin tiempo dicho$/i.test(texto)) respuesta.dias = null;
+    if (vistos.has(claveDe(respuesta))) {
       repetidos += 1;
       continue;
     }
-    const respuesta = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, texto, fecha };
     respuestas.push(respuesta);
-    vistos.add(claveDe(texto, fecha));
+    vistos.add(claveDe(respuesta));
     agregados += 1;
   }
   respuestas.sort((a, b) => a.fecha.localeCompare(b.fecha));
@@ -365,4 +375,17 @@ function temaPorNombre(nombre) {
   if (!buscado) return null;
   const tema = TEMATICAS.find((t) => t.id === buscado || sinTildes(t.nombre.toLowerCase()) === buscado);
   return tema?.id ?? null;
+}
+
+/* ---------- Los registros guardados antes con su texto: se convierten y el texto se borra ---------- */
+
+try {
+  const guardados = JSON.parse(localStorage.getItem(KEY)) ?? [];
+  if (guardados.some((r) => 'texto' in r)) {
+    const convertidos = guardados.map((r) =>
+      'texto' in r ? { id: r.id, fecha: r.fecha, tema: tematicaDe(r.texto), dias: diasPospuesto(r.texto) } : r);
+    localStorage.setItem(KEY, JSON.stringify(convertidos));
+  }
+} catch {
+  // Sin almacenamiento o datos ilegibles: no hay nada que convertir.
 }

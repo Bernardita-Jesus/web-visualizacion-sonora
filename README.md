@@ -12,7 +12,8 @@ tras otro, en el orden en que se registraron, en un solo tejido continuo que ond
 verticales; cuando el hilo llega al borde da la vuelta, así que **el telar se alarga con todo lo que la comunidad ha
 pospuesto**. No hay texto ni horas: solo hilo. El telar se teje lento, de a un pendiente, y al
 completarse sus hilos salen del cuadrado y forman un ovillo por temática (ver *Del telar a los ovillos*).
-Todos los relatos son anónimos: solo se guarda el texto, nunca quién habla ni su voz.
+Todos los relatos son anónimos: no se guarda quién habla, ni su voz, ni lo que dice. Del texto dictado solo
+se saca su temática y cuánto tiempo lleva pospuesto, y el texto se descarta.
 Sin dependencias ni paso de compilación: HTML, CSS, JavaScript (módulos ES) y SVG.
 
 ## Ejecutar en local
@@ -71,14 +72,16 @@ son **acumulativos**: cada pendiente dictado y cada respaldo que se sube se suma
 respaldo que se descarga trae siempre todo lo acumulado.
 
 - **Descargar respaldo:** descarga un **documento de texto** (`registros-pendientes-AAAA-MM-DD.txt`) con un
-  testimonio por línea: `fecha | temática | texto`, por ejemplo
-  `2026-11-05 18:57 | Vínculos | llamar a mi abuela, hace tres semanas`. Las líneas que empiezan con `#` son
-  explicaciones.
-- **Subir respaldo:** sube ese documento (o uno escrito a mano, con una línea por testimonio: basta el texto;
-  la fecha y la temática son opcionales). Sus registros **se suman** a los del navegador; los que ya estaban
-  (mismo texto y fecha) no se repiten, así que se puede subir el mismo respaldo varias veces o en otro
-  computador sin duplicar nada. La temática escrita en el respaldo es solo informativa: al subirlo, la
-  temática se vuelve a detectar del texto. También acepta una planilla CSV con una columna `texto`.
+  registro por línea: `fecha | temática | tiempo pospuesto`, por ejemplo `2026-11-05 18:57 | Vínculos | 3 semanas`.
+  No trae lo que dijo cada persona, porque eso no se guarda. Las líneas que empiezan con `#` son explicaciones.
+- **Subir respaldo:** sube ese documento (o uno escrito a mano, con una línea por registro, como
+  `Vínculos | 3 meses`, o un pendiente dicho con sus palabras, del que se saca la temática y el tiempo).
+  Sus registros **se suman** a los del navegador; los que ya estaban (misma fecha, temática y tiempo) no se
+  repiten, así que se puede subir el mismo respaldo varias veces o en otro computador sin duplicar nada.
+  También acepta una planilla CSV con una columna `texto`.
+
+Los registros guardados antes con su texto se convierten solos al abrir la página: se les saca la temática y
+el tiempo, y el texto se borra.
 - **Borrar registros:** borra los registros de este navegador (pide confirmación). Conviene descargar
   el respaldo antes.
 
@@ -101,15 +104,22 @@ instancias:
    en centímetros que dice, por ejemplo, *"Tu pendiente fue clasificado como Vínculos, que corresponde al
    color rosado. Lo has pospuesto 3 años. Toma un trozo de tela de color rosado, apóyalo sobre la grilla
    desde el 0 y córtalo de 72 cm"*. Siguiendo la lógica del telar, **dos centímetros de tela son un mes
-   pospuesto** (mínimo 2 cm, máximo 120 cm). La tira se dibuja del color de la temática; si no cabe en una
-   fila, sigue en la de abajo y una tijera marca dónde cortar. El último paso es agregar la tira al telar, junto a los demás pendientes. Se cierra con "Listo, ya la agregué al telar" (o
+   pospuesto** (mínimo 2 cm, máximo 120 cm). La tira se dibuja del color de la temática, de 1 cm de ancho; cada fila
+   es un año (24 cm) y, si es más larga, baja dando la vuelta con una curva, como el hilo del telar. Una
+   tijera marca dónde cortar. Al mostrarse las instrucciones, el rectángulo de arriba sube y la grilla ocupa
+   toda la pantalla; al cerrar, vuelve. El último paso es agregar la tira al telar, junto a los demás pendientes. Se cierra con "Listo, ya la agregué al telar" (o
    sola, a los 4 minutos).
 
 **Ovillos a la derecha** (`js/panel-ovillos.js`): el registro ocupa la pantalla y, a la derecha, se ven
-los ovillos en tres filas de dos, uno por temática, con todos los testimonios acumulados. Cada testimonio es un tramo del hilo tan largo como el tiempo
+los ovillos en tres columnas de dos, uno por temática, con todos los testimonios acumulados. Cada testimonio es un tramo del hilo tan largo como el tiempo
 pospuesto (una puntada por día), así que el ovillo más grande es donde más tiempo se ha postergado; bajo
 cada uno va su temática, cuántas veces se repite y cuánto suma. Al cerrar la grilla de recorte, el hilo del
 testimonio recién dado se enrolla en su ovillo.
+
+**Telar en miniatura:** al lado de las instrucciones se ve el telar de la instalación en pequeño (filas de
+48 cm, es decir, dos años de tela por fila; `anchoTelar` en `js/recorte.js`), con las tiras de todos los
+registros en el orden en que se dieron. La tira nueva parpadea en su lugar y un texto dice dónde va: *"Tu tira
+va en la fila 3, desde los 30 cm"*.
 
 **Calibrar centímetros:** cada pantalla tiene otra densidad de píxeles, así que hay que calibrarla una vez
 (menú Registros, en la esquina inferior derecha → *Calibrar centímetros*): se pone una regla sobre la
