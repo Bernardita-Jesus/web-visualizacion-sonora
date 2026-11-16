@@ -4,7 +4,7 @@
 
 Maqueta para el Diseño Abierto: las respuestas a *¿Qué tienes pendiente y hace cuánto lo pospones?* se tejen en un **telar**.
 Cada pendiente es un tramo de **hilo**, siempre del mismo grosor, del color de su temática (estudios, trabajo,
-vínculos (amigos, pareja y familia), salud y cuerpo, proyectos o hobbies, detectada por palabras clave). **Su largo es cuánto tiempo lleva
+vínculos (amigos, pareja y familia), salud, proyectos o pasatiempos, detectada por palabras clave). **Su largo es cuánto tiempo lleva
 pospuesto**: el hilo va en puntadas y **cada puntada es un día**, así que lo pospuesto unas semanas es un trazo
 corto y **cada línea horizontal es un año** (365 puntadas). Las puntadas se distinguen con
 zoom o en pantalla completa; a la vista normal se ven como la textura del hilo. Los pendientes van uno
@@ -170,9 +170,9 @@ palabras que la delatan. Por ejemplo:
 | Estudios | `estudi`, `tesis`, `ramo`, `prueb`, `solemne`, `certamen`, `entrega`, `profe`, `beca` |
 | Trabajo | `trabaj`, `pega`, `jef`, `pituto`, `sueldo`, `cliente`, `renunci`, `postul` |
 | Vínculos | `mama`, `herman`, `abuel`, `amig`, `polol`, `pareja`, `carrete`, `perdon`, `convers`, `llamar`, `ex` |
-| Salud y cuerpo | `medic`, `dentist`, `gimnasio`, `deporte`, `dormir`, `terapia`, `psicolog`, `nadar` |
+| Salud | `medic`, `dentist`, `gimnasio`, `deporte`, `dormir`, `terapia`, `psicolog`, `nadar` |
 | Proyectos | `proyecto`, `emprend`, `negocio`, `crear`, `ingles`, `viaj`, `ahorr` |
-| Hobbies | `hobby`, `dibuj`, `pintar`, `leer`, `novela`, `musica`, `guitarra`, `cocin`, `ceramica`, `tejer` |
+| Pasatiempos | `hobby`, `dibuj`, `pintar`, `leer`, `novela`, `musica`, `guitarra`, `cocin`, `ceramica`, `tejer` |
 
 Una raíz reconoce todas las palabras que empiezan con ella: `estudi` reconoce *estudiar*, *estudios*
 y *estudiando*. Las raíces de dos letras o menos (como `ex` o `u`, de "la u") cuentan solo como palabra

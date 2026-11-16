@@ -1581,9 +1581,20 @@ body[data-opcion="2"] .simbologia-telar {
   font-size: calc(12px * var(--escala, 1));
 }
 
+.recorte-cuerpo {
+  display: flex;
+  flex: 1;
+  gap: calc(28px * var(--escala, 1));
+  min-height: 0;
+}
+
+.recorte-cuerpo .mini-telar {
+  align-self: flex-start;
+}
+
 .recorte-grilla {
   flex: 1;
-  width: 100%;
+  min-width: 0;
   min-height: 0;
   border: 1px solid var(--line);
   background: #fbf7f0;
@@ -1627,10 +1638,11 @@ body[data-opcion="2"] .simbologia-telar {
 }
 
 .recorte-grilla .numero {
-  fill: var(--ink);
-  font-size: calc(12px * var(--escala, 1));
-  font-weight: 600;
+  fill: #ffffff; /* sobre la tela, en blanco */
+  font-size: calc(13px * var(--escala, 1));
+  font-weight: 700;
   text-anchor: middle;
+  dominant-baseline: central;
 }
 
 .recorte-grilla .corte {

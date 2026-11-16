@@ -36,13 +36,13 @@ export const EJEMPLOS = [
   { hora: 16.2, texto: 'agradecerle a una amiga que me ayudó cuando estaba mal, lo pospuse dos años y nunca le dije lo importante que fue' },
   { hora: 18.7, texto: 'reencontrarme con mis amigos del colegio, llevamos tres años posponiendo la junta y nunca nos juntamos' },
 
-  // Hobbies
+  // Pasatiempos
   { hora: 8.2, texto: 'volver a dibujar por gusto, lo pospuse desde que entré a la carrera, hace cuatro años, y ahora me cuesta tomar el lápiz' },
   { hora: 12.1, texto: 'retomar la guitarra, la pospuse dos años y está guardada en el clóset con una cuerda cortada' },
   { hora: 15.1, texto: 'aprender a tejer a crochet, lo pospuse seis meses y tengo los palillos y la lana esperando en un cajón' },
   { hora: 18.7, texto: 'volver a sacar fotos con la cámara de mi abuelo, lo pospuse tres años y ni siquiera sé si todavía funciona' },
 
-  // Salud y cuerpo
+  // Salud
   { hora: 10.6, texto: 'ir al dentista, pospuse la hora cinco meses aunque me duele una muela, me da miedo y nunca tengo tiempo' },
   { hora: 12.2, texto: 'volver al gimnasio y hacer deporte, pagué la matrícula en marzo y lo pospuse siete meses, fui solo dos veces' },
   { hora: 16.3, texto: 'dormir más de seis horas, lo pospongo hace un año, me acuesto tarde y ando cansado todo el día' },

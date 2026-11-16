@@ -228,13 +228,16 @@
       </ol>
       <p id="recorte-aviso" class="recorte-aviso" hidden>Esta pantalla no está calibrada: los centímetros pueden no ser exactos (menú Registros → Calibrar centímetros).</p>
       </div>
+    </header>
+    <!-- La grilla, pegada a la izquierda, y a su lado el telar en miniatura con el lugar de la tira. -->
+    <div class="recorte-cuerpo">
+      <svg id="recorte-grilla" class="recorte-grilla" aria-label="Grilla en centímetros para cortar la tela"></svg>
       <!-- El telar que se arma en la instalación, en miniatura: las tiras ya agregadas y dónde va la nueva. -->
       <figure class="mini-telar">
         <svg id="mini-telar" aria-label="Telar en miniatura: dónde agregar tu tira"></svg>
         <figcaption id="mini-telar-texto"></figcaption>
       </figure>
-    </header>
-    <svg id="recorte-grilla" class="recorte-grilla" aria-label="Grilla en centímetros para cortar la tela"></svg>
+    </div>
     <button id="btn-recorte-listo" class="boton-modo recorte-listo" type="button">Listo, ya la agregué al telar</button>
   </section>
 

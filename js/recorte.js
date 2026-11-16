@@ -94,61 +94,103 @@ function dibujarGrilla(cm, color) {
     el('line', { x1: 0, x2: width, y1: y, y2: y, class: n % 10 === 0 ? 'diez' : n % 5 === 0 ? 'cinco' : '' }, fondo);
   }
 
-  // Cuántos cm caben por fila (un año, si la pantalla alcanza) y dónde empieza la tira.
-  const izquierda = 3 * k;
-  const porFila = Math.max(5, Math.min(RECORTE.cmPorFila, Math.floor((width - izquierda - 2.5 * k) / k)));
-  const filas = Math.ceil(cm / porFila);
-  const paso = RECORTE.entreFilas * k; // de una fila a la siguiente
+  // La tira avanza por filas y da la vuelta en cada borde con una curva (media vuelta). Los centímetros se
+  // cuentan a lo largo de TODA la tira, también en las curvas: cada curva es tela que también se corta.
+  const izquierda = 2.3 * k; // la tira, pegada a la izquierda (solo el espacio para "apoya aquí")
+  const R = (RECORTE.entreFilas * k) / 2; // radio de la curva (hasta el centro de la tira)
+  const porFila = Math.max(5, Math.min(RECORTE.cmPorFila, Math.floor((width - izquierda - R - 2 * k) / k)));
+  const curva = (Math.PI * R) / k; // cm de tela que tiene cada vuelta
+  const paso = 2 * R; // de una fila a la siguiente
+  // Cuántas filas ocupa: cada fila tiene `porFila` cm rectos y, si sigue, una curva.
+  let filas = 1;
+  for (let resto = cm - porFila; resto > 0; resto -= curva + porFila) filas += 1;
   const arriba = Math.max(1.5 * k, Math.round((height - (filas - 1) * paso) / 2 / k) * k);
-  const xDe = (f, c) => (f % 2 === 0 ? izquierda + c * k : izquierda + (porFila - c) * k); // c: cm dentro de la fila
   const yDe = (f) => arriba + f * paso;
+  const xDe = (f, c) => (f % 2 === 0 ? izquierda + c * k : izquierda + (porFila - c) * k); // c: cm rectos en la fila
 
-  // La tira: un solo trazo que avanza por las filas y da la vuelta con una curva en cada borde.
-  let d = `M ${xDe(0, 0)} ${yDe(0)}`;
-  for (let f = 0; f < filas; f++) {
-    const largo = Math.min(porFila, cm - f * porFila);
-    d += ` L ${xDe(f, largo)} ${yDe(f)}`;
-    if (f < filas - 1) d += ` A ${paso / 2} ${paso / 2} 0 0 ${f % 2 === 0 ? 1 : 0} ${xDe(f, largo)} ${yDe(f + 1)}`;
+  /**
+   * Dónde queda el centímetro `s` de la tira: el punto, hacia dónde mira el borde de arriba (la normal, para
+   * las marcas y el corte) y si cae en un tramo recto o en una curva.
+   */
+  function puntoEn(s) {
+    for (let f = 0; ; f++) {
+      if (s <= porFila || f === filas - 1) return { x: xDe(f, s), y: yDe(f), nx: 0, ny: -1, recto: true, fila: f };
+      s -= porFila;
+      if (s <= curva) {
+        const t = s / curva; // cuánto de la media vuelta lleva
+        const derecha = f % 2 === 0; // las filas pares terminan a la derecha y dan la vuelta por ese lado
+        const cx = xDe(f, porFila);
+        const cy = yDe(f) + R;
+        const a = derecha ? -Math.PI / 2 + Math.PI * t : -Math.PI / 2 - Math.PI * t;
+        return { x: cx + R * Math.cos(a), y: cy + R * Math.sin(a), nx: Math.cos(a), ny: Math.sin(a), recto: false, fila: f };
+      }
+      s -= curva;
+    }
   }
+
+  // El trazo de la tira, hasta los `cm` exactos (puede terminar a mitad de una curva).
+  const fin = puntoEn(cm);
+  let d = `M ${xDe(0, 0)} ${yDe(0)}`;
+  for (let f = 0, s = cm; ; f++) {
+    const recto = Math.min(porFila, s);
+    d += ` L ${xDe(f, recto)} ${yDe(f)}`;
+    s -= recto;
+    if (s <= 0) break;
+    const enCurva = Math.min(curva, s);
+    const p = puntoEn(cm - s + enCurva);
+    d += ` A ${R} ${R} 0 0 ${f % 2 === 0 ? 1 : 0} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`;
+    s -= enCurva;
+    if (s <= 0) break;
+  }
+
   // El borde de la tira, en línea segmentada: el mismo trazo un poco más ancho, debajo; la tira lo tapa y
   // solo se ven sus orillas (y una línea en el comienzo).
   const anchoTira = RECORTE.altoTira * k;
+  const mitad = anchoTira / 2;
   const borde = el('path', { d, class: 'tira-borde' }, grilla);
   borde.style.strokeWidth = `${anchoTira + 4}`;
   const tira = el('path', { d, class: 'tira' }, grilla);
   tira.style.stroke = color;
   tira.style.strokeWidth = `${anchoTira}`;
-  el('line', { x1: xDe(0, 0), x2: xDe(0, 0), y1: yDe(0) - anchoTira / 2 - 2, y2: yDe(0) + anchoTira / 2 + 2, class: 'tira-inicio' }, grilla);
+  el('line', { x1: xDe(0, 0), x2: xDe(0, 0), y1: yDe(0) - mitad - 2, y2: yDe(0) + mitad + 2, class: 'tira-inicio' }, grilla);
 
-  // Los centímetros, contados desde el comienzo de la tira, sobre cada fila.
-  const mitad = (RECORTE.altoTira * k) / 2;
-  for (let f = 0; f < filas; f++) {
-    const largo = Math.min(porFila, cm - f * porFila);
-    for (let c = 0; c <= largo; c++) {
-      const total = f * porFila + c;
-      const x = xDe(f, c);
-      const y = yDe(f) - mitad;
-      const marca = total % 5 === 0 ? 0.45 : 0.22;
-      el('line', { x1: x, x2: x, y1: y - marca * k, y2: y, class: 'marca' }, grilla);
-      // Cada 5 cm y al final (sin un número de 5 pegado al del final, para que no se encimen).
-      if ((total % 5 === 0 && (c > 0 || f === 0) && cm - total >= 2) || total === cm) {
-        const numero = el('text', { x, y: y - 0.65 * k, class: 'numero' }, grilla);
-        numero.textContent = `${total}`;
-      }
+  // Los centímetros, a lo largo de la tira: una marca por centímetro en el borde de afuera (también en las
+  // curvas) y el número cada 5 en los tramos rectos.
+  for (let c = 0; c <= cm; c++) {
+    const p = puntoEn(c);
+    const largo = (c % 5 === 0 ? 0.45 : 0.22) * k;
+    const bx = p.x + p.nx * mitad;
+    const by = p.y + p.ny * mitad;
+    el('line', { x1: bx, y1: by, x2: bx + p.nx * largo, y2: by + p.ny * largo, class: 'marca' }, grilla);
+    // El número va dentro de la tira, sobre la tela, para que no quede apretado entre una fila y la otra.
+    if (p.recto && ((c % 5 === 0 && cm - c >= 2) || c === cm)) {
+      const haciaDerecha = p.fila % 2 === 0;
+      const alComienzo = c === 0;
+      const alFinal = c === cm;
+      // En los extremos, el número se corre hacia adentro de la tira para no salirse de ella.
+      const dentro = alComienzo ? 1 : alFinal ? -1 : 0;
+      const x = p.x + dentro * (haciaDerecha ? 1 : -1) * 0.2 * k;
+      const numero = el('text', { x, y: p.y, class: 'numero' }, grilla);
+      numero.style.textAnchor = !dentro ? 'middle' : (dentro > 0) === haciaDerecha ? 'start' : 'end';
+      numero.textContent = `${c}`;
     }
   }
 
-  // Donde empieza: "apoya aquí"; donde termina: la tijera y la línea de corte.
+  // Donde empieza: "apoya aquí"; donde termina: la línea de corte (atravesando la tira) y la tijera.
   const inicio = el('text', { x: izquierda - 0.3 * k, y: yDe(0), class: 'inicio' }, grilla);
   inicio.textContent = 'apoya aquí →';
-  const fUltima = filas - 1;
-  const xFin = xDe(fUltima, cm - fUltima * porFila);
-  const yFin = yDe(fUltima);
-  el('line', { x1: xFin, x2: xFin, y1: yFin - mitad - 0.9 * k, y2: yFin + mitad + 0.9 * k, class: 'corte' }, grilla);
-  const haciaDerecha = fUltima % 2 === 0;
-  const tijera = el('text', { x: xFin + (haciaDerecha ? 0.4 : -0.4) * k, y: yFin + mitad + 0.9 * k, class: 'tijera' }, grilla);
-  tijera.style.textAnchor = haciaDerecha ? 'start' : 'end';
+  const largoCorte = mitad + 0.9 * k;
+  el('line', {
+    x1: fin.x - fin.nx * largoCorte, y1: fin.y - fin.ny * largoCorte,
+    x2: fin.x + fin.nx * largoCorte, y2: fin.y + fin.ny * largoCorte,
+    class: 'corte',
+  }, grilla);
+  // La frase va bajo el corte, centrada, pero sin salirse nunca de la grilla.
+  const tijera = el('text', { x: fin.x, y: Math.max(fin.y, fin.y + fin.ny * largoCorte, fin.y - fin.ny * largoCorte) + 0.6 * k, class: 'tijera' }, grilla);
   tijera.textContent = `✂ corta aquí · ${cm} cm`;
+  const anchoFrase = tijera.getComputedTextLength();
+  tijera.style.textAnchor = 'middle';
+  tijera.setAttribute('x', Math.min(width - anchoFrase / 2 - 0.4 * k, Math.max(anchoFrase / 2 + 0.4 * k, fin.x)).toFixed(1));
 }
 
 const cabecera = document.querySelector('.cabecera');
