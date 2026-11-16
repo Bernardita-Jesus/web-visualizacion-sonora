@@ -4,7 +4,7 @@
 
 Maqueta para el Diseño Abierto: las respuestas a *¿Qué tienes pendiente y hace cuánto lo pospones?* se tejen en un **telar**.
 Cada pendiente es un tramo de **hilo**, siempre del mismo grosor, del color de su temática (estudios, trabajo,
-vínculos (amigos, pareja y familia), salud, proyectos o pasatiempos, detectada por palabras clave). **Su largo es cuánto tiempo lleva
+vínculos (amigos, pareja y familia), salud o pasatiempos, detectada por palabras clave). **Su largo es cuánto tiempo lleva
 pospuesto**: el hilo va en puntadas y **cada puntada es un día**, así que lo pospuesto unas semanas es un trazo
 corto y **cada línea horizontal es un año** (365 puntadas). Las puntadas se distinguen con
 zoom o en pantalla completa; a la vista normal se ven como la textura del hilo. Los pendientes van uno
@@ -171,7 +171,6 @@ palabras que la delatan. Por ejemplo:
 | Trabajo | `trabaj`, `pega`, `jef`, `pituto`, `sueldo`, `cliente`, `renunci`, `postul` |
 | Vínculos | `mama`, `herman`, `abuel`, `amig`, `polol`, `pareja`, `carrete`, `perdon`, `convers`, `llamar`, `ex` |
 | Salud | `medic`, `dentist`, `gimnasio`, `deporte`, `dormir`, `terapia`, `psicolog`, `nadar` |
-| Proyectos | `proyecto`, `emprend`, `negocio`, `crear`, `ingles`, `viaj`, `ahorr` |
 | Pasatiempos | `hobby`, `dibuj`, `pintar`, `leer`, `novela`, `musica`, `guitarra`, `cocin`, `ceramica`, `tejer` |
 
 Una raíz reconoce todas las palabras que empiezan con ella: `estudi` reconoce *estudiar*, *estudios*
@@ -185,7 +184,7 @@ completa, para que *examen* no se confunda con *ex*.
 3. Las temáticas se ordenan por puntaje. Si hay empate, gana la que va primero en la lista; por ejemplo, en
    "entregar la práctica", *entregar* es de Estudios y *práctica* de Trabajo, y gana Estudios.
 4. Se queda con la de más puntaje: cada pendiente tiene una sola temática. Si ninguna calza, va a la **más cercana**: la temática con más palabras que empiezan con las
-   mismas 4 letras que alguna de sus raíces ("biblioteca"…). Si tampoco hay ninguna, va a Proyectos.
+   mismas 4 letras que alguna de sus raíces ("biblioteca"…). Si tampoco hay ninguna, va a Pasatiempos.
 
 Ejemplo: "tengo que estudiar para la prueba y pedirle un aumento a mi jefe". *estudiar* y *prueba* suman 2
 para Estudios, y *jefe* suma 1 para Trabajo. Resultado: Estudios.

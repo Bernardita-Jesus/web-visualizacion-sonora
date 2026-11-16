@@ -107,7 +107,10 @@ function dibujar(pendientes, nuevo) {
   const grosor = Math.min(HILO.grosor, vuelta * 0.6);
   const { polarEn } = espiral(vuelta);
   ovillos.forEach((ovillo, i) => {
-    const cx = (i % COLUMNAS) * CELDA + CELDA / 2;
+    // Una fila incompleta (por ejemplo, la segunda con dos ovillos) va centrada bajo la de arriba.
+    const fila = Math.floor(i / COLUMNAS);
+    const enFila = Math.min(COLUMNAS, ovillos.length - fila * COLUMNAS);
+    const cx = (i % COLUMNAS) * CELDA + CELDA / 2 + ((COLUMNAS - enFila) * CELDA) / 2;
     const cy = Math.floor(i / COLUMNAS) * FILA + (FILA - ROTULO) / 2;
     const g = el('g', { class: 'ovillo' }, capa);
     // Sin testimonios: un círculo punteado, a la espera de su primer hilo.

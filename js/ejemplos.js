@@ -48,7 +48,7 @@ export const EJEMPLOS = [
   { hora: 16.3, texto: 'dormir más de seis horas, lo pospongo hace un año, me acuesto tarde y ando cansado todo el día' },
   { hora: 17.7, texto: 'empezar terapia con una psicóloga, lo pospuse dos años, siempre encuentro una excusa para no pedir la hora' },
 
-  // Proyectos
+  // Proyectos personales (van a Pasatiempos o Trabajo)
   { hora: 9.7, texto: 'viajar a Japón, lo pospongo desde chica, como quince años, y tengo una lista de lugares que quiero conocer' },
   { hora: 13.45, texto: 'aprender inglés de verdad, lo he pospuesto cinco años y siempre lo dejo para el próximo verano' },
   { hora: 15.2, texto: 'armar una banda de música y tocar en vivo, lo pospuse tres años, tengo canciones escritas que nadie ha escuchado' },

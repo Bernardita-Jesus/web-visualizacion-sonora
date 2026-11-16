@@ -37,14 +37,6 @@ function pxPorCm() {
   return PX_POR_CM_CSS;
 }
 
-const estaCalibrado = () => {
-  try {
-    return Boolean(localStorage.getItem(CLAVE_CALIBRACION));
-  } catch {
-    return false;
-  }
-};
-
 /** Centímetros de tela para un pendiente: dos por mes pospuesto (con un mínimo y un máximo). */
 export function cmDeTela(dias) {
   const cm = Math.round((dias ?? DIAS_SIN_DATO) / RECORTE.diasPorCm);
@@ -60,7 +52,6 @@ const pasoTela = capa.querySelector('#paso-tela');
 const pasoCorte = capa.querySelector('#paso-corte');
 const pasoCuenta = capa.querySelector('#paso-cuenta');
 const grilla = capa.querySelector('#recorte-grilla');
-const aviso = capa.querySelector('#recorte-aviso');
 let cierre = null;
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -319,7 +310,6 @@ export function mostrarRecorte(respuesta) {
   pasoCuenta.textContent = dias == null
     ? 'no dijiste cuánto lo has pospuesto'
     : `${tiempoEnPalabras(dias)} · 2 cm por mes`;
-  aviso.hidden = estaCalibrado();
 
   // Aparece bajo el rectángulo de arriba y, mientras ese rectángulo sube, la capa sube con él hasta ocupar
   // toda la pantalla; la grilla se dibuja de nuevo cuando termina de subir.

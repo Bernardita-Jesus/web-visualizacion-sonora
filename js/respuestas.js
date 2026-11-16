@@ -96,11 +96,10 @@ export function horaDe(respuesta) {
  */
 export const TEMATICAS = [
   { id: 'estudios', nombre: 'Estudios', color: '#e4572e', colorNombre: 'naranjo', raices: ['estudi', 'tesis', 'ramo', 'prueb', 'solemne', 'ayudantia', 'facu', 'u', 'examen', 'certamen', 'carrera', 'titul', 'universidad', 'clase', 'curso', 'entrega', 'taller', 'tarea', 'nota', 'semestre', 'profe', 'apunte', 'inform', 'investig', 'portafolio', 'bitacora', 'beca', 'intercambio'] },
-  { id: 'trabajo', nombre: 'Trabajo', color: '#1f5fd1', colorNombre: 'azul', raices: ['trabaj', 'pega', 'jef', 'pituto', 'pegita', 'chamba', 'turno', 'boleta', 'honorario', 'empleo', 'sueldo', 'cliente', 'oficina', 'contrato', 'renunci', 'practica', 'postul', 'curriculum', 'freelance', 'encargo'] },
+  { id: 'trabajo', nombre: 'Trabajo', color: '#1f5fd1', colorNombre: 'azul', raices: ['trabaj', 'pega', 'jef', 'pituto', 'pegita', 'chamba', 'turno', 'boleta', 'honorario', 'empleo', 'sueldo', 'cliente', 'oficina', 'contrato', 'renunci', 'practica', 'postul', 'curriculum', 'freelance', 'encargo', 'emprend', 'negocio', 'pyme', 'ahorr'] },
   { id: 'vinculos', nombre: 'Vínculos', color: '#e0317a', colorNombre: 'rosado', raices: ['mama', 'papa', 'padre', 'madre', 'herman', 'abuel', 'tata', 'mami', 'papi', 'mamit', 'papit', 'guagua', 'suegr', 'cunad', 'nieto', 'nieta', 'hijo', 'hija', 'familia', 'tia', 'tio', 'prim', 'sobrin', 'amig', 'pareja', 'polol', 'yunta', 'companer', 'compadre', 'amigui', 'cabros', 'carrete', 'junta', 'perdon', 'disculp', 'convers', 'hablar', 'hable', 'decirle', 'carta', 'llamar', 'llamad', 'relacion', 'amor', 'agradec', 'gracias', 'reencontr', 'visitar', 'escribirle', 'ex'] },
   { id: 'salud', nombre: 'Salud', color: '#0a9a96', colorNombre: 'verde agua', raices: ['salud', 'medic', 'doctor', 'dentist', 'muela', 'kine', 'consultorio', 'cesfam', 'remedio', 'pastilla', 'ejercicio', 'gimnasio', 'gym', 'deporte', 'correr', 'nadar', 'natacion', 'dormir', 'dieta', 'comer', 'terapia', 'psicolog', 'cuerpo', 'peso', 'enferm', 'examenes', 'fumar'] },
-  { id: 'proyectos', nombre: 'Proyectos', color: '#8e3fd6', colorNombre: 'morado', raices: ['proyecto', 'emprend', 'negocio', 'pyme', 'construir', 'crear', 'idioma', 'ingles', 'viaj', 'mochile', 'mudar', 'ahorr', 'portafolio', 'web'] },
-  { id: 'hobbies', nombre: 'Pasatiempos', color: '#2e9d3f', colorNombre: 'verde', raices: ['hobby', 'hobbies', 'pasatiempo', 'dibuj', 'pintar', 'leer', 'lectura', 'novela', 'libro', 'banda', 'musica', 'tocar', 'guitarra', 'piano', 'instrumento', 'cantar', 'cocin', 'ceramica', 'tejer', 'bordar', 'foto', 'jardin', 'plantas', 'juego', 'serie', 'pelicula', 'bailar', 'baile'] },
+  { id: 'hobbies', nombre: 'Pasatiempos', color: '#2e9d3f', colorNombre: 'verde', raices: ['hobby', 'hobbies', 'pasatiempo', 'dibuj', 'pintar', 'leer', 'lectura', 'novela', 'libro', 'banda', 'musica', 'tocar', 'guitarra', 'piano', 'instrumento', 'cantar', 'cocin', 'ceramica', 'tejer', 'bordar', 'foto', 'jardin', 'plantas', 'juego', 'serie', 'pelicula', 'bailar', 'baile', 'proyecto', 'construir', 'crear', 'idioma', 'ingles', 'viaj', 'mochile'] },
 ];
 
 const sinTildes = (texto) => texto.normalize('NFD').replace(/\p{Diacritic}/gu, '');
@@ -124,12 +123,12 @@ export function tematicasDe(texto) {
 }
 
 // Si nada calza, se va a la temática más cercana.
-const TEMATICA_POR_DEFECTO = 'proyectos';
+const TEMATICA_POR_DEFECTO = 'hobbies';
 
 /**
  * Temática más cercana para un texto que no calza con ninguna raíz: la que tenga más palabras que
  * empiecen igual que alguna de sus raíces (las primeras 4 letras: "biblioteca" se acerca a "bibliotec…").
- * Si tampoco hay ninguna, va a Proyectos (al fin y al cabo, todo pendiente es algo por hacer).
+ * Si tampoco hay ninguna, va a Pasatiempos.
  */
 function tematicaMasCercana(palabras) {
   const prefijo = (palabra) => palabra.slice(0, 4);
@@ -150,9 +149,10 @@ function tematicaMasCercana(palabras) {
 export const tematicaDe = (texto) => tematicasDe(texto)[0];
 
 /** Datos de una temática por su id (nombre y color). */
-// Temáticas que ya no existen, por si quedó un registro guardado con ellas: "Sueños y proyectos" pasó a
-// ser "Proyectos", "Familia" se sumó a "Vínculos" y "Uno mismo" y "Otros" se eliminaron (sus registros se vuelven a clasificar por su texto).
-const RENOMBRADAS = { suenos: 'proyectos', familia: 'vinculos' };
+// Temáticas que ya no existen, por si quedó un registro guardado con ellas: "Familia" se sumó a
+// "Vínculos", "Sueños y proyectos" y luego "Proyectos" se sumaron a "Pasatiempos" (sus palabras de negocios
+// y ahorro pasaron a "Trabajo"), y "Uno mismo" y "Otros" se eliminaron.
+const RENOMBRADAS = { suenos: 'hobbies', proyectos: 'hobbies', familia: 'vinculos' };
 const ELIMINADAS = ['uno-mismo', 'otros'];
 
 export const temaPorId = (id) =>

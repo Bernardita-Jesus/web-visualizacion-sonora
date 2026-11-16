@@ -963,8 +963,7 @@ body[data-opcion="2"] .simbologia-telar {
 .tejido[data-tema="trabajo"] .hebra[data-temas~="trabajo"],
 .tejido[data-tema="vinculos"] .hebra[data-temas~="vinculos"],
 .tejido[data-tema="hobbies"] .hebra[data-temas~="hobbies"],
-.tejido[data-tema="salud"] .hebra[data-temas~="salud"],
-.tejido[data-tema="proyectos"] .hebra[data-temas~="proyectos"] {
+.tejido[data-tema="salud"] .hebra[data-temas~="salud"] {
   opacity: 1;
 }
 
