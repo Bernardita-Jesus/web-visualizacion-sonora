@@ -165,7 +165,7 @@ function medidas() {
     lienzo,
     escala,
     bajoCabecera: lienzo.top + cabecera.offsetHeight * escala, // donde termina el rectángulo de arriba
-    margen: 120 * escala, // el mismo margen que el registro y la pregunta
+    margen: 88 * escala, // el mismo margen que el registro y la pregunta
   };
 }
 

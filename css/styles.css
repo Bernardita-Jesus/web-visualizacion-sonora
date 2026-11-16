@@ -85,7 +85,7 @@ body::after {
 .cabecera-pregunta {
   flex: 1 1 auto;
   min-width: 0;
-  margin-left: 96px; /* alineada con el modo registro: 24 de la cabecera + 96 = 120 */
+  margin-left: 64px; /* alineada con el modo registro: 24 de la cabecera + 64 = 88 */
 }
 
 /* La bajada: breve, bajo la pregunta. */
@@ -99,6 +99,9 @@ body::after {
 
 .cabecera-info {
   flex: none;
+  margin-right: 64px; /* la misma distancia al borde que la pregunta a la izquierda: 24 + 64 = 88 */
+  align-self: flex-start; /* arriba, a la altura de la pregunta */
+  margin-top: 10px;
   text-align: right;
 }
 
@@ -1355,7 +1358,7 @@ body[data-opcion="2"] .simbologia-telar {
 .sin-telar .contenido-registro {
   width: 100%;
   max-width: 760px;
-  margin: 36px 0 0 104px; /* un poco más abajo; a la izquierda, 16 de la vista + 104 = 120 */
+  margin: 36px 0 0 72px; /* un poco más abajo; a la izquierda, 16 de la vista + 72 = 88 */
 }
 
 .vista-ovillos {
