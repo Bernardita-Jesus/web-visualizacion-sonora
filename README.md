@@ -102,12 +102,12 @@ instancias:
 1. **El testimonio:** el modo registro, a todo el ancho. La página siempre parte sin simulación.
 2. **La grilla de recorte** (`js/recorte.js`): al enviar un testimonio aparece a pantalla completa una grilla
    en centímetros que dice, por ejemplo, *"Tu pendiente fue clasificado como Vínculos, que corresponde al
-   color rosado. Lo has pospuesto 3 años. Toma un trozo de tela de color rosado, apóyalo sobre la grilla
-   desde el 0 y córtalo de 72 cm"*. Siguiendo la lógica del telar, **dos centímetros de tela son un mes
-   pospuesto** (mínimo 2 cm, máximo 120 cm). La tira se dibuja del color de la temática, de 1 cm de ancho; cada fila
-   es un año (24 cm) y, si es más larga, baja dando la vuelta con una curva, como el hilo del telar. Una
-   tijera marca dónde cortar. Al mostrarse las instrucciones, el rectángulo de arriba sube y la grilla ocupa
-   toda la pantalla; al cerrar, vuelve. El último paso es agregar la tira al telar, junto a los demás pendientes. Se cierra con "Listo, ya la agregué al telar" (o
+   color rosado. Lo has pospuesto 3 meses. Toma un trozo de tela de color rosado, apóyalo sobre la grilla
+   desde la semana 1 y córtalo en 13 cuadrados"*. Cada semana va numerada dentro de la tira, separada de la siguiente por una línea fina. Los **cuadrados de la grilla son la unidad de medida: un cuadrado
+   (1 cm) es una semana pospuesta** (mínimo 1: aunque digan unos días, se marca una semana; máximo 120 cuadrados, unos 2 años y 4 meses). La tira se dibuja del color de la temática, de 1 cm de ancho; cada fila
+   es medio año (26 cuadrados, uno por semana; si no caben, los cuadrados se achican lo justo) y, si es más larga, baja dando la vuelta con una curva, como el hilo del telar. Una
+   tijera marca dónde cortar: *"✂ Línea de corte: ahí se corta la tela · 13 cuadrados"*. Al mostrarse las instrucciones, el rectángulo de arriba sube y la grilla ocupa
+   toda la pantalla; al cerrar, vuelve. El último paso es agregar la tira al telar, junto a los demás pendientes. Se cierra con "Tela recortada y agregada al telar" (o
    sola, a los 4 minutos).
 
 **Ovillos a la derecha** (`js/panel-ovillos.js`): el registro ocupa la pantalla y, a la derecha, se ven
@@ -117,9 +117,10 @@ cada uno va su temática, cuántas veces se repite y cuánto suma. Al cerrar la 
 testimonio recién dado se enrolla en su ovillo.
 
 **Telar en miniatura:** al lado de las instrucciones se ve el telar de la instalación en pequeño (filas de
-48 cm, es decir, dos años de tela por fila; `anchoTelar` en `js/recorte.js`), con las tiras de todos los
+26 cuadrados, es decir, medio año de tela por fila; `anchoTelar` en `js/recorte.js`), con las tiras de todos los
 registros en el orden en que se dieron. La tira nueva parpadea en su lugar y un texto dice dónde va: *"Tu tira
-va en la fila 3, desde los 30 cm"*.
+va en la fila 3, desde el cuadrado 31"*. Al pie de esa columna, una **simbología** breve: *Medidas* (1 cuadrado = 1 semana,
+4 cuadrados = 1 mes, 1 fila = medio año) y *Categorías* (el color de cada temática).
 
 **Calibrar centímetros:** cada pantalla tiene otra densidad de píxeles, así que hay que calibrarla una vez
 (menú Registros, en la esquina inferior derecha → *Calibrar centímetros*): se pone una regla sobre la

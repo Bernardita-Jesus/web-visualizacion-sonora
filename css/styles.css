@@ -1435,19 +1435,19 @@ body[data-opcion="2"] .simbologia-telar {
   flex: none;
   display: grid;
   gap: calc(6px * var(--escala, 1));
-  width: calc(320px * var(--escala, 1));
+  width: calc(270px * var(--escala, 1));
   margin: 0;
 }
 
 .mini-telar svg {
   width: 100%;
   height: auto;
-  max-height: calc(220px * var(--escala, 1));
+  max-height: calc(340px * var(--escala, 1));
 }
 
 .mini-telar figcaption {
   color: var(--ink);
-  font-size: calc(14px * var(--escala, 1));
+  font-size: calc(20px * var(--escala, 1));
   line-height: 1.3;
 }
 
@@ -1486,6 +1486,67 @@ body[data-opcion="2"] .simbologia-telar {
   animation: mini-parpadeo 1.2s ease-in-out infinite;
 }
 
+/* Simbología bajo el telar en miniatura, abajo de la columna y por áreas: medidas, tamaños, telar y
+   categorías. */
+.recorte-simbologia {
+  display: grid;
+  gap: calc(14px * var(--escala, 1));
+  margin-top: auto;
+  padding-top: calc(14px * var(--escala, 1));
+  border-top: 1px dashed var(--line);
+  color: var(--ink);
+  font-size: calc(12.5px * var(--escala, 1));
+  line-height: 1.25;
+}
+
+.simbologia-area h3 {
+  margin: 0 0 calc(6px * var(--escala, 1));
+  color: var(--azul);
+  font-size: calc(12px * var(--escala, 1));
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.simbologia-area ul {
+  display: grid;
+  gap: calc(6px * var(--escala, 1));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.simbologia-area li {
+  display: flex;
+  align-items: center;
+  gap: calc(10px * var(--escala, 1));
+}
+
+.simbologia-medida {
+  justify-content: space-between;
+  max-width: calc(220px * var(--escala, 1));
+  font-size: calc(15px * var(--escala, 1));
+}
+
+.simbologia-area:last-child ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(4px * var(--escala, 1)) calc(12px * var(--escala, 1));
+}
+
+.simbologia-tema {
+  gap: calc(5px * var(--escala, 1)) !important;
+  color: var(--c);
+  font-weight: 600;
+}
+
+.simbologia-tema::before {
+  content: '';
+  width: calc(14px * var(--escala, 1));
+  height: calc(4px * var(--escala, 1));
+  background: var(--c);
+}
+
 @keyframes mini-parpadeo {
   50% {
     opacity: 0.35;
@@ -1495,7 +1556,7 @@ body[data-opcion="2"] .simbologia-telar {
 .recorte-mensaje {
   margin: 0;
   color: var(--azul);
-  font-size: calc(22px * var(--escala, 1)); /* los textos siguen la escala del lienzo, como el resto */
+  font-size: calc(28px * var(--escala, 1)); /* los textos siguen la escala del lienzo, como el resto */
   font-weight: 600;
   line-height: 1.25;
 }
@@ -1506,12 +1567,12 @@ body[data-opcion="2"] .simbologia-telar {
 
 .recorte-pasos {
   display: flex;
-  flex-wrap: wrap;
-  gap: calc(14px * var(--escala, 1)) calc(40px * var(--escala, 1));
-  margin: calc(6px * var(--escala, 1)) 0 0;
+  justify-content: space-between; /* los cuatro pasos en una sola fila, de un lado al otro */
+  gap: calc(20px * var(--escala, 1));
+  margin: calc(10px * var(--escala, 1)) 0 0;
   padding: 0;
   list-style: none;
-  font-size: calc(15px * var(--escala, 1));
+  font-size: calc(18px * var(--escala, 1));
 }
 
 .recorte-pasos li {
@@ -1523,26 +1584,26 @@ body[data-opcion="2"] .simbologia-telar {
 .paso-numero {
   display: grid;
   place-items: center;
-  width: calc(24px * var(--escala, 1));
-  height: calc(24px * var(--escala, 1));
+  width: calc(30px * var(--escala, 1));
+  height: calc(30px * var(--escala, 1));
   border-radius: 50%;
   background: var(--azul);
   color: var(--surface);
-  font-size: calc(13px * var(--escala, 1));
+  font-size: calc(16px * var(--escala, 1));
   font-weight: 700;
 }
 
 /* La muestra de tela: un retazo del color de la temática, con borde picado como tela cortada. */
 .paso-muestra {
-  width: calc(40px * var(--escala, 1));
-  height: calc(28px * var(--escala, 1));
+  width: calc(50px * var(--escala, 1));
+  height: calc(34px * var(--escala, 1));
   border-radius: 2px;
   clip-path: polygon(0 0, 100% 0, 92% 25%, 100% 50%, 92% 75%, 100% 100%, 0 100%);
 }
 
 .paso-icono {
-  width: calc(36px * var(--escala, 1));
-  height: calc(36px * var(--escala, 1));
+  width: calc(46px * var(--escala, 1));
+  height: calc(46px * var(--escala, 1));
   fill: none;
   stroke: var(--ink);
   stroke-width: 2.2;
@@ -1571,7 +1632,8 @@ body[data-opcion="2"] .simbologia-telar {
 .paso-texto small {
   display: block;
   color: var(--muted);
-  font-size: calc(12px * var(--escala, 1));
+  font-size: calc(14px * var(--escala, 1));
+  white-space: nowrap;
 }
 
 .recorte-aviso {
@@ -1588,7 +1650,8 @@ body[data-opcion="2"] .simbologia-telar {
 }
 
 .recorte-cuerpo .mini-telar {
-  align-self: flex-start;
+  display: flex;
+  flex-direction: column; /* el telar arriba y la simbología abajo, al pie de la grilla */
 }
 
 .recorte-grilla {
@@ -1636,9 +1699,15 @@ body[data-opcion="2"] .simbologia-telar {
   stroke-width: 1.5;
 }
 
+/* La división entre una semana y la siguiente, sobre la tela. */
+.recorte-grilla .semana {
+  stroke: rgb(255 255 255 / 0.55);
+  stroke-width: 1;
+}
+
 .recorte-grilla .numero {
-  fill: #ffffff; /* sobre la tela, en blanco */
-  font-size: calc(13px * var(--escala, 1));
+  fill: #ffffff; /* sobre la tela, en blanco: el número de cada semana */
+  font-size: calc(11px * var(--escala, 1));
   font-weight: 700;
   text-anchor: middle;
   dominant-baseline: central;
@@ -1660,8 +1729,8 @@ body[data-opcion="2"] .simbologia-telar {
 
 .recorte-grilla .inicio {
   fill: var(--muted);
-  font-size: calc(11px * var(--escala, 1));
-  text-anchor: end;
+  font-size: calc(12px * var(--escala, 1));
+  text-anchor: start;
   dominant-baseline: central;
 }
 

@@ -205,7 +205,7 @@
             <path class="paso-grilla" d="M4 4h32v32H4zM4 12h32M4 20h32M4 28h32M12 4v32M20 4v32M28 4v32"></path>
             <path class="paso-flecha" d="M6 20h22M22 14l6 6-6 6"></path>
           </svg>
-          <span class="paso-texto">Apóyala sobre la grilla, desde el <strong>0</strong></span>
+          <span class="paso-texto">Apóyala sobre la grilla, desde la <strong>semana 1</strong></span>
         </li>
         <li>
           <span class="paso-numero">3</span>
@@ -235,9 +235,11 @@
       <figure class="mini-telar">
         <svg id="mini-telar" aria-label="Telar en miniatura: dónde agregar tu tira"></svg>
         <figcaption id="mini-telar-texto"></figcaption>
+        <!-- Simbología: qué es cada cosa de la grilla y del telar (las medidas las pone js/recorte.js). -->
+        <div id="recorte-simbologia" class="recorte-simbologia" aria-label="Simbología"></div>
       </figure>
     </div>
-    <button id="btn-recorte-listo" class="boton-modo recorte-listo" type="button">Listo, ya la agregué al telar</button>
+    <button id="btn-recorte-listo" class="boton-modo recorte-listo" type="button">Tela recortada y agregada al telar</button>
   </section>
 
   <!-- Calibración de la grilla: se ajusta la barra hasta que mida 10 cm con una regla. -->

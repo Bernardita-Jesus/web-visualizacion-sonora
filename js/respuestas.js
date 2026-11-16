@@ -94,13 +94,17 @@ export function horaDe(respuesta) {
  * Es una clasificación simple por palabras clave: lo que no calza con ninguna va a la más cercana.
  * Incluye palabras del habla chilena (pega, pituto, pololo, tata, guagua, carrete, la u, solemne…).
  */
-export const TEMATICAS = [
+// En este orden se desempata la clasificación (cuando un texto calza igual con dos temáticas).
+const POR_PRIORIDAD = [
   { id: 'estudios', nombre: 'Estudios', color: '#e4572e', colorNombre: 'naranjo', raices: ['estudi', 'tesis', 'ramo', 'prueb', 'solemne', 'ayudantia', 'facu', 'u', 'examen', 'certamen', 'carrera', 'titul', 'universidad', 'clase', 'curso', 'entrega', 'taller', 'tarea', 'nota', 'semestre', 'profe', 'apunte', 'inform', 'investig', 'portafolio', 'bitacora', 'beca', 'intercambio'] },
   { id: 'trabajo', nombre: 'Trabajo', color: '#1f5fd1', colorNombre: 'azul', raices: ['trabaj', 'pega', 'jef', 'pituto', 'pegita', 'chamba', 'turno', 'boleta', 'honorario', 'empleo', 'sueldo', 'cliente', 'oficina', 'contrato', 'renunci', 'practica', 'postul', 'curriculum', 'freelance', 'encargo', 'emprend', 'negocio', 'pyme', 'ahorr'] },
   { id: 'vinculos', nombre: 'Vínculos', color: '#e0317a', colorNombre: 'rosado', raices: ['mama', 'papa', 'padre', 'madre', 'herman', 'abuel', 'tata', 'mami', 'papi', 'mamit', 'papit', 'guagua', 'suegr', 'cunad', 'nieto', 'nieta', 'hijo', 'hija', 'familia', 'tia', 'tio', 'prim', 'sobrin', 'amig', 'pareja', 'polol', 'yunta', 'companer', 'compadre', 'amigui', 'cabros', 'carrete', 'junta', 'perdon', 'disculp', 'convers', 'hablar', 'hable', 'decirle', 'carta', 'llamar', 'llamad', 'relacion', 'amor', 'agradec', 'gracias', 'reencontr', 'visitar', 'escribirle', 'ex'] },
   { id: 'salud', nombre: 'Salud', color: '#0a9a96', colorNombre: 'verde agua', raices: ['salud', 'medic', 'doctor', 'dentist', 'muela', 'kine', 'consultorio', 'cesfam', 'remedio', 'pastilla', 'ejercicio', 'gimnasio', 'gym', 'deporte', 'correr', 'nadar', 'natacion', 'dormir', 'dieta', 'comer', 'terapia', 'psicolog', 'cuerpo', 'peso', 'enferm', 'examenes', 'fumar'] },
   { id: 'hobbies', nombre: 'Pasatiempos', color: '#2e9d3f', colorNombre: 'verde', raices: ['hobby', 'hobbies', 'pasatiempo', 'dibuj', 'pintar', 'leer', 'lectura', 'novela', 'libro', 'banda', 'musica', 'tocar', 'guitarra', 'piano', 'instrumento', 'cantar', 'cocin', 'ceramica', 'tejer', 'bordar', 'foto', 'jardin', 'plantas', 'juego', 'serie', 'pelicula', 'bailar', 'baile', 'proyecto', 'construir', 'crear', 'idioma', 'ingles', 'viaj', 'mochile'] },
 ];
+
+/** Las temáticas en orden alfabético: así se muestran (ovillos, simbología). */
+export const TEMATICAS = [...POR_PRIORIDAD].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
 
 const sinTildes = (texto) => texto.normalize('NFD').replace(/\p{Diacritic}/gu, '');
 
@@ -112,7 +116,7 @@ export function tematicasDe(texto) {
   const palabras = sinTildes(texto.toLowerCase()).split(/[^a-z0-9ñ]+/).filter(Boolean);
   // "ex" y otras raíces de 2 letras solo cuentan como palabra completa, para no confundir "examen" con "ex".
   const coincide = (palabra, raiz) => (raiz.length <= 2 ? palabra === raiz : palabra.startsWith(raiz));
-  const puntajes = TEMATICAS.map(({ id, raices }) => ({
+  const puntajes = POR_PRIORIDAD.map(({ id, raices }) => ({
     id,
     n: palabras.filter((palabra) => raices.some((raiz) => coincide(palabra, raiz))).length,
   }))
@@ -134,7 +138,7 @@ function tematicaMasCercana(palabras) {
   const prefijo = (palabra) => palabra.slice(0, 4);
   let mejor = TEMATICA_POR_DEFECTO;
   let puntos = 0;
-  for (const { id, raices } of TEMATICAS) {
+  for (const { id, raices } of POR_PRIORIDAD) {
     const largas = raices.filter((raiz) => raiz.length >= 4);
     const n = palabras.filter((palabra) => palabra.length >= 4 && largas.some((raiz) => prefijo(raiz) === prefijo(palabra))).length;
     if (n > puntos) {
