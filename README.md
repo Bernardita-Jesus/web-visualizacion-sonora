@@ -100,27 +100,26 @@ Por ahora **el telar queda escondido** (`MOSTRAR_TELAR = false` en `js/main.js`)
 instancias:
 
 1. **El testimonio:** el modo registro, a todo el ancho. La página siempre parte sin simulación.
-2. **La grilla de recorte** (`js/recorte.js`): al enviar un testimonio aparece a pantalla completa una grilla
-   en centímetros que dice, por ejemplo, *"Tu pendiente fue clasificado como Vínculos, que corresponde al
-   color rosado. Lo has pospuesto 3 meses. Toma un trozo de tela de color rosado, apóyalo sobre la grilla
-   desde la semana 1 y córtalo en 13 cuadrados"*. Cada semana va numerada dentro de la tira, separada de la siguiente por una línea fina. Los **cuadrados de la grilla son la unidad de medida: un cuadrado
-   (1 cm) es una semana pospuesta** (mínimo 1: aunque digan unos días, se marca una semana; máximo 120 cuadrados, unos 2 años y 4 meses). La tira se dibuja del color de la temática, de 1 cm de ancho; cada fila
-   es medio año (26 cuadrados, uno por semana; si no caben, los cuadrados se achican lo justo) y, si es más larga, baja dando la vuelta con una curva, como el hilo del telar. Una
-   tijera marca dónde cortar: *"✂ Línea de corte: ahí se corta la tela · 13 cuadrados"*. Al mostrarse las instrucciones, el rectángulo de arriba sube y la grilla ocupa
-   toda la pantalla; al cerrar, vuelve. El último paso es agregar la tira al telar, junto a los demás pendientes. Se cierra con "Tela recortada y agregada al telar" (o
-   sola, a los 4 minutos).
+2. **Las instrucciones de recorte** (`js/recorte.js`): al enviar un testimonio aparece a pantalla completa
+   un título, por ejemplo *"Tu pendiente de 3 meses fue clasificado como Vínculos, que corresponde al color
+   rosado"*, y debajo la pantalla se divide en dos mitades. A la izquierda, tres pasos (1. toma el ovillo de
+   lana de ese color; 2. apóyalo en la grilla; 3. recorre con la lana hasta tu fecha y luego córtalo) y un
+   dibujo: sobre una mesa, una mano apoya la lana en la grilla y la otra la corta con una tijera. A la
+   derecha, el paso 4 (*"Agrégalo al telar en la fila 10"*, desde qué cuadrado) y el telar. **Un cuadrado es
+   una semana** (mínimo 1: aunque digan unos días, se marca una semana; máximo 120). Al mostrarse, el
+   rectángulo de arriba sube; al cerrar, vuelve. Se cierra con "Lana cortada y agregada al telar" (o sola, a
+   los 4 minutos).
 
 **Ovillos a la derecha** (`js/panel-ovillos.js`): el registro ocupa la pantalla y, a la derecha, se ven
 los ovillos en tres columnas de dos, uno por temática, con todos los testimonios acumulados. Cada testimonio es un tramo del hilo tan largo como el tiempo
 pospuesto (una puntada por día), así que el ovillo más grande es donde más tiempo se ha postergado; bajo
-cada uno va su temática, cuántas veces se repite y cuánto suma. Al cerrar la grilla de recorte, el hilo del
+cada uno va su temática, cuántas veces se repite y cuánto suma. Al cerrar las instrucciones de recorte, el hilo del
 testimonio recién dado se enrolla en su ovillo.
 
-**Telar en miniatura:** al lado de las instrucciones se ve el telar de la instalación en pequeño (filas de
-26 cuadrados, es decir, medio año de tela por fila; `anchoTelar` en `js/recorte.js`), con las tiras de todos los
-registros en el orden en que se dieron. La tira nueva parpadea en su lugar y un texto dice dónde va: *"Tu tira
-va en la fila 3, desde el cuadrado 31"*. Al pie de esa columna, una **simbología** breve: *Medidas* (1 cuadrado = 1 semana,
-4 cuadrados = 1 mes, 1 fila = medio año) y *Categorías* (el color de cada temática).
+**Telar:** en la mitad derecha de las instrucciones se ve el telar de la instalación (filas de 26 cuadrados,
+es decir, medio año por fila; `anchoTelar` en `js/recorte.js`), solo con las filas cercanas a la tira nueva:
+dos antes y una sobrante después. Las tiras que ya están se ven tenues; la nueva, fuerte, con sus semanas
+marcadas, el tiempo escrito encima y parpadeando.
 
 **Calibrar centímetros:** cada pantalla tiene otra densidad de píxeles, así que hay que calibrarla una vez
 (menú Registros, en la esquina inferior derecha → *Calibrar centímetros*): se pone una regla sobre la

@@ -1,25 +1,19 @@
-import { DIAS_SIN_DATO, TEMATICAS, cargarRespuestas, diasDeRespuesta, temaDeRespuesta, temaPorId, tiempoEnPalabras } from './respuestas.js';
+import { DIAS_SIN_DATO, cargarRespuestas, diasDeRespuesta, temaDeRespuesta, temaPorId, tiempoEnPalabras } from './respuestas.js';
 
 /*
- * La instancia de recorte: después de dar su testimonio, la persona ve a pantalla completa una grilla en
- * centímetros reales. Le dice en qué temática quedó su testimonio y de qué color es, y cuánta tela cortar:
- * un cuadrado (1 cm) por cada semana que lleva pospuesto. Apoya la tela sobre la pantalla, desde el 0, y la corta
- * donde marca la tijera, y la agrega al telar físico con el resto de los registros. Si la tira no cabe en una fila, la grilla sigue en la fila de abajo (la tela se
- * corre, como el hilo que da la vuelta en el telar).
- *
- * Para que los centímetros sean reales hay que calibrar la pantalla una vez (menú Registros → Calibrar
- * centímetros): cada pantalla tiene su propia densidad de píxeles.
+ * La instancia de recorte: después de dar su testimonio, la persona ve a pantalla completa en qué temática
+ * quedó su testimonio y de qué color es, y cuánta tela cortar: un cuadrado por cada semana que lleva
+ * pospuesto (la unidad mínima es una semana). Al lado, el telar grande muestra dónde va su tira, junto al
+ * resto de los registros: cada fila del telar es medio año (26 semanas); si la tira no cabe, sigue en la fila
+ * de abajo.
  */
 
 const RECORTE = {
-  diasPorCm: 7, // un cuadrado de la grilla (1 cm) por semana pospuesta: los cuadrados son la unidad de medida
+  diasPorCm: 7, // un cuadrado por semana pospuesta: los cuadrados son la unidad de medida
   maxCm: 120, // la tira más larga (120 semanas, unos 2 años y 4 meses; lo que pase de ahí se corta igual en 120)
   minCm: 1, // la unidad mínima es una semana: aunque digan menos (unos días), se marca una
-  altoTira: 1, // ancho de la tira dibujada, en cm
-  entreFilas: 1.9, // distancia entre una fila y la siguiente, en cm (la curva de la vuelta)
-  transicion: 0.7, // segundos en que el rectángulo de arriba sube y la grilla ocupa la pantalla
-  cerrarSola: 240, // segundos tras los que la grilla se cierra sola, si nadie aprieta "Listo"
-  porFila: 26, // cuadrados (semanas) en cada fila: medio año, en la grilla y en el telar
+  transicion: 0.7, // segundos en que el rectángulo de arriba sube y las instrucciones ocupan la pantalla
+  cerrarSola: 240, // segundos tras los que las instrucciones se cierran solas, si nadie aprieta el botón
   anchoTelar: 26, // ancho del telar, en cuadrados (semanas): cada fila es medio año de tela
 };
 
@@ -51,7 +45,6 @@ const muestra = capa.querySelector('#paso-muestra');
 const pasoTela = capa.querySelector('#paso-tela');
 const pasoCorte = capa.querySelector('#paso-corte');
 const pasoCuenta = capa.querySelector('#paso-cuenta');
-const grilla = capa.querySelector('#recorte-grilla');
 let cierre = null;
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -62,129 +55,6 @@ const el = (name, attrs = {}, parent) => {
   return node;
 };
 
-/**
- * Dibuja la grilla en centímetros reales y, encima, la tira de tela a cortar (`cm` de largo, del color de la
- * temática). Cada fila es medio año (26 cuadrados); si la tira es más larga, sigue en la fila de abajo dando la vuelta
- * con una curva, como el hilo en el telar: la primera fila va de izquierda a derecha, la segunda vuelve, y
- * así. Los centímetros se cuentan por los tramos rectos (la curva es solo la vuelta de la tela).
- */
-function dibujarGrilla(cm, color) {
-  grilla.replaceChildren();
-  const { width, height } = grilla.getBoundingClientRect();
-  // Los cuadrados son la unidad de medida (una semana): miden 1 cm o, si no caben las 26 semanas de una fila
-  // (medio año), se achican lo justo para que siempre quepan.
-  const margenFila = RECORTE.entreFilas + RECORTE.altoTira + 0.5; // la curva a cada lado, en cuadrados
-  const k = Math.min(pxPorCm(), width / (RECORTE.porFila + margenFila));
-  grilla.setAttribute('viewBox', `0 0 ${width} ${height}`);
-
-  // La grilla de fondo: líneas cada 1 cm, más marcadas cada 5 y cada 10.
-  const fondo = el('g', { class: 'grilla-fondo' }, grilla);
-  for (let x = 0; x <= width; x += k) {
-    const n = Math.round(x / k);
-    el('line', { x1: x, x2: x, y1: 0, y2: height, class: n % 10 === 0 ? 'diez' : n % 5 === 0 ? 'cinco' : '' }, fondo);
-  }
-  for (let y = 0; y <= height; y += k) {
-    const n = Math.round(y / k);
-    el('line', { x1: 0, x2: width, y1: y, y2: y, class: n % 10 === 0 ? 'diez' : n % 5 === 0 ? 'cinco' : '' }, fondo);
-  }
-
-  // La tira avanza por filas y da la vuelta en cada borde con una curva (media vuelta). Los centímetros se
-  // cuentan a lo largo de TODA la tira, también en las curvas: cada curva es tela que también se corta.
-  // La tira, pegada a la izquierda: solo el espacio para la curva de las filas que vuelven por ese lado.
-  const izquierda = ((RECORTE.entreFilas + RECORTE.altoTira) / 2 + 0.25) * k;
-  const R = (RECORTE.entreFilas * k) / 2; // radio de la curva (hasta el centro de la tira)
-  // Cada fila es medio año (26 cuadrados); lo que sigue, baja dando la vuelta.
-  const porFila = RECORTE.porFila;
-  const curva = (Math.PI * R) / k; // cm de tela que tiene cada vuelta
-  const paso = 2 * R; // de una fila a la siguiente
-  // Cuántas filas ocupa: cada fila tiene `porFila` cm rectos y, si sigue, una curva.
-  let filas = 1;
-  for (let resto = cm - porFila; resto > 0; resto -= curva + porFila) filas += 1;
-  const arriba = Math.max(1.5 * k, Math.round((height - (filas - 1) * paso) / 2 / k) * k);
-  const yDe = (f) => arriba + f * paso;
-  const xDe = (f, c) => (f % 2 === 0 ? izquierda + c * k : izquierda + (porFila - c) * k); // c: cm rectos en la fila
-
-  /**
-   * Dónde queda el centímetro `s` de la tira: el punto, hacia dónde mira el borde de arriba (la normal, para
-   * las marcas y el corte) y si cae en un tramo recto o en una curva.
-   */
-  function puntoEn(s) {
-    for (let f = 0; ; f++) {
-      if (s <= porFila || f === filas - 1) return { x: xDe(f, s), y: yDe(f), nx: 0, ny: -1, recto: true, fila: f };
-      s -= porFila;
-      if (s <= curva) {
-        const t = s / curva; // cuánto de la media vuelta lleva
-        const derecha = f % 2 === 0; // las filas pares terminan a la derecha y dan la vuelta por ese lado
-        const cx = xDe(f, porFila);
-        const cy = yDe(f) + R;
-        const a = derecha ? -Math.PI / 2 + Math.PI * t : -Math.PI / 2 - Math.PI * t;
-        return { x: cx + R * Math.cos(a), y: cy + R * Math.sin(a), nx: Math.cos(a), ny: Math.sin(a), recto: false, fila: f };
-      }
-      s -= curva;
-    }
-  }
-
-  // El trazo de la tira, hasta los `cm` exactos (puede terminar a mitad de una curva).
-  const fin = puntoEn(cm);
-  let d = `M ${xDe(0, 0)} ${yDe(0)}`;
-  for (let f = 0, s = cm; ; f++) {
-    const recto = Math.min(porFila, s);
-    d += ` L ${xDe(f, recto)} ${yDe(f)}`;
-    s -= recto;
-    if (s <= 0) break;
-    const enCurva = Math.min(curva, s);
-    const p = puntoEn(cm - s + enCurva);
-    d += ` A ${R} ${R} 0 0 ${f % 2 === 0 ? 1 : 0} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`;
-    s -= enCurva;
-    if (s <= 0) break;
-  }
-
-  // El borde de la tira, en línea segmentada: el mismo trazo un poco más ancho, debajo; la tira lo tapa y
-  // solo se ven sus orillas (y una línea en el comienzo).
-  const anchoTira = RECORTE.altoTira * k;
-  const mitad = anchoTira / 2;
-  const borde = el('path', { d, class: 'tira-borde' }, grilla);
-  borde.style.strokeWidth = `${anchoTira + 4}`;
-  const tira = el('path', { d, class: 'tira' }, grilla);
-  tira.style.stroke = color;
-  tira.style.strokeWidth = `${anchoTira}`;
-  el('line', { x1: xDe(0, 0), x2: xDe(0, 0), y1: yDe(0) - mitad - 2, y2: yDe(0) + mitad + 2, class: 'tira-inicio' }, grilla);
-
-  // Las semanas, a lo largo de la tira: cada cuadrado es una semana. Entre una semana y la siguiente, una
-  // línea fina que atraviesa la tela y una marca en el borde de afuera (más larga cada 5, también en las
-  // curvas); dentro de cada semana, su número.
-  for (let c = 0; c <= cm; c++) {
-    const p = puntoEn(c);
-    const largo = (c % 5 === 0 ? 0.45 : 0.22) * k;
-    const bx = p.x + p.nx * mitad;
-    const by = p.y + p.ny * mitad;
-    el('line', { x1: bx, y1: by, x2: bx + p.nx * largo, y2: by + p.ny * largo, class: 'marca' }, grilla);
-    if (c > 0 && c < cm) el('line', { x1: p.x - p.nx * mitad, y1: p.y - p.ny * mitad, x2: bx, y2: by, class: 'semana' }, grilla);
-  }
-  for (let semana = 1; semana <= cm; semana++) {
-    const p = puntoEn(semana - 0.5); // al medio de su cuadrado
-    const numero = el('text', { x: p.x, y: p.y, class: 'numero' }, grilla);
-    numero.style.fontSize = `${Math.min(11 * medidas().escala, 0.5 * k).toFixed(1)}px`; // que quepa en su cuadrado
-    numero.textContent = `${semana}`;
-  }
-
-  // Donde empieza: "apoya aquí"; donde termina: la línea de corte (atravesando la tira) y la tijera.
-  // "apoya aquí", arriba del comienzo (sobre las marcas), para no quitarle ancho a la fila.
-  const inicio = el('text', { x: izquierda, y: yDe(0) - mitad - 1.1 * k, class: 'inicio' }, grilla);
-  inicio.textContent = 'apoya aquí ↓';
-  const largoCorte = mitad + 0.9 * k;
-  el('line', {
-    x1: fin.x - fin.nx * largoCorte, y1: fin.y - fin.ny * largoCorte,
-    x2: fin.x + fin.nx * largoCorte, y2: fin.y + fin.ny * largoCorte,
-    class: 'corte',
-  }, grilla);
-  // La frase va bajo el corte, centrada, pero sin salirse nunca de la grilla.
-  const tijera = el('text', { x: fin.x, y: Math.max(fin.y, fin.y + fin.ny * largoCorte, fin.y - fin.ny * largoCorte) + 0.6 * k, class: 'tijera' }, grilla);
-  tijera.textContent = `✂ Línea de corte: ahí se corta la tela · ${cm} ${cm === 1 ? 'cuadrado' : 'cuadrados'}`;
-  const anchoFrase = tijera.getComputedTextLength();
-  tijera.style.textAnchor = 'middle';
-  tijera.setAttribute('x', Math.min(width - anchoFrase / 2 - 0.4 * k, Math.max(anchoFrase / 2 + 0.4 * k, fin.x)).toFixed(1));
-}
 
 const cabecera = document.querySelector('.cabecera');
 
@@ -241,98 +111,83 @@ function dibujarMiniTelar(respuesta) {
     cm += largo;
     return tira;
   });
-  const filas = Math.max(8, Math.ceil(cm / fila));
+  // Solo las filas cercanas a la tira nueva: un par antes (lo último que se tejió) y una sola fila sobrante
+  // después de donde termina.
+  const nueva = tiras.find((t) => t.nueva);
+  const primeraNueva = Math.floor(nueva.desde / fila);
+  const ultimaNueva = Math.floor((nueva.desde + nueva.largo - 1) / fila);
+  const desdeFila = Math.max(0, primeraNueva - 2);
+  const filas = ultimaNueva + 2 - desdeFila;
 
-  // Medidas del dibujo: el ancho fijo y el alto según cuántas filas hay (cada fila, una franja).
-  const ancho = 240;
-  const altoFila = Math.max(5, Math.min(22, 260 / filas));
-  const alto = filas * altoFila;
-  const k = ancho / fila; // unidades del dibujo por cm
-  const margenNumeros = 22; // a la izquierda, el número de cada fila
+  // Medidas del dibujo: el ancho fijo y cada fila, una franja bien separada de la siguiente.
+  const ancho = 640;
+  const altoFila = 60;
+  const grosor = 22; // alto de cada tira
+  const arriba = 12; // aire arriba, para el tiempo escrito sobre la tira si cae en la primera fila
+  const alto = arriba + filas * altoFila;
+  const k = ancho / fila; // unidades del dibujo por cuadrado
+  const margenNumeros = 34; // a la izquierda, el número de cada fila
+  const yFila = (f) => arriba + (f - desdeFila) * altoFila;
   miniTelar.setAttribute('viewBox', `${-6 - margenNumeros} -6 ${ancho + 12 + margenNumeros} ${alto + 12}`);
   miniTelar.replaceChildren();
   el('rect', { x: -4, y: -4, width: ancho + 8, height: alto + 8, class: 'mini-marco' }, miniTelar);
-  // El número de cada fila, de arriba hacia abajo, para ubicar la tira en el telar real.
-  for (let f = 0; f < filas; f++) {
-    const numero = el('text', { x: -10, y: f * altoFila + altoFila / 2, class: 'mini-numero' }, miniTelar);
-    numero.style.fontSize = `${Math.max(5, Math.min(11, altoFila * 0.8)).toFixed(1)}px`;
+  // El número de cada fila (el real del telar) y, entre una fila y otra, una línea que las separa.
+  for (let f = desdeFila; f < desdeFila + filas; f++) {
+    const numero = el('text', { x: -12, y: yFila(f) + altoFila / 2, class: 'mini-numero' }, miniTelar);
     numero.textContent = String(f + 1);
+    if (f > desdeFila) el('line', { x1: -4, x2: ancho + 4, y1: yFila(f), y2: yFila(f), class: 'mini-separador' }, miniTelar);
   }
 
-  for (const tira of tiras) {
-    // Cada tira, en los tramos de fila que ocupa.
+  // Cada tira, en los tramos de fila que ocupa (solo los de las filas que se ven).
+  const tramos = (tira) => {
+    const lista = [];
     for (let resto = tira.largo, pos = tira.desde; resto > 0; ) {
       const f = Math.floor(pos / fila);
       const enFila = Math.min(resto, (f + 1) * fila - pos);
-      const tramo = el('rect', {
-        x: (pos - f * fila) * k,
-        y: f * altoFila + altoFila * 0.35,
-        width: Math.max(1, enFila * k - 0.6),
-        height: altoFila * 0.3,
-        class: tira.nueva ? 'mini-tira mini-nueva' : 'mini-tira',
-      }, miniTelar);
-      tramo.style.fill = tira.color;
+      if (f >= desdeFila && f < desdeFila + filas) {
+        lista.push({ x: (pos - f * fila) * k, y: yFila(f) + (altoFila - grosor) / 2, width: enFila * k, height: grosor });
+      }
       pos += enFila;
       resto -= enFila;
     }
+    return lista;
+  };
+  // Las tiras que ya están, tenues.
+  for (const tira of tiras.filter((t) => !t.nueva)) {
+    for (const tramo of tramos(tira)) el('rect', { ...tramo, class: 'mini-tira', style: `fill: ${tira.color}` }, miniTelar);
   }
-
-  // Una línea blanca vertical por semana (cada cuadrado), como los hilos del telar: encima de las tiras, para
-  // que también se vean sus semanas.
+  // Una línea blanca vertical por semana (cada cuadrado), como los hilos del telar.
   for (let x = 0; x <= ancho + 0.01; x += k) el('line', { x1: x, x2: x, y1: -4, y2: alto + 4, class: 'mini-urdimbre' }, miniTelar);
-
-  const nueva = tiras.find((t) => t.nueva);
-  const filaNueva = Math.floor(nueva.desde / fila) + 1;
-  const desdeCm = nueva.desde - (filaNueva - 1) * fila;
-  miniTexto.replaceChildren(
-    'Tu tira va en la ',
-    Object.assign(document.createElement('strong'), { textContent: `fila ${filaNueva}` }),
-    desdeCm ? `, desde el cuadrado ${desdeCm + 1}` : ', al comienzo',
-    nueva.desde + nueva.largo > filaNueva * fila ? ' (sigue en la fila de abajo)' : '',
-  );
-}
-
-/* ---------- Simbología, bajo el telar en miniatura ---------- */
-
-function dibujarSimbologia() {
-  const caja = capa.querySelector('#recorte-simbologia');
-  // Cada área, con su título y sus elementos.
-  const area = (titulo, ...items) => {
-    const seccion = document.createElement('section');
-    seccion.className = 'simbologia-area';
-    const h = document.createElement('h3');
-    h.textContent = titulo;
-    const lista = document.createElement('ul');
-    lista.append(...items);
-    seccion.append(h, lista);
-    return seccion;
-  };
-  // Medidas, en corto: cuántos cuadrados (cm) es cada tiempo.
-  const medida = (que, cuanto) => {
-    const li = document.createElement('li');
-    li.className = 'simbologia-medida';
-    li.append(Object.assign(document.createElement('span'), { textContent: que }), Object.assign(document.createElement('strong'), { textContent: cuanto }));
-    return li;
-  };
-  const temas = TEMATICAS.map((tema) => {
-    const li = document.createElement('li');
-    li.className = 'simbologia-tema';
-    li.style.setProperty('--c', tema.color);
-    li.textContent = tema.nombre;
-    return li;
+  // La tira nueva, encima de todo, fuerte y con sus semanas marcadas.
+  const tiempo = diasDeRespuesta(respuesta);
+  tramos(nueva).forEach((tramo, i) => {
+    // Sobre el comienzo de la tira, el tiempo de su registro.
+    if (i === 0) {
+      el('text', { x: tramo.x, y: tramo.y - 8, class: 'mini-tiempo', style: `fill: ${nueva.color}` }, miniTelar).textContent =
+        tiempo == null ? '1 semana' : tiempoEnPalabras(tiempo);
+    }
+    const g = el('g', { class: 'mini-nueva' }, miniTelar);
+    el('rect', { ...tramo, style: `fill: ${nueva.color}` }, g);
+    for (let x = tramo.x + k; x < tramo.x + tramo.width - 0.01; x += k) {
+      el('line', { x1: x, x2: x, y1: tramo.y, y2: tramo.y + tramo.height, class: 'mini-semana' }, g);
+    }
   });
 
-  caja.replaceChildren(
-    area('Medidas',
-      medida('1 cuadrado', '1 semana'),
-      medida(`${cmDeTela(30)} cuadrados`, '1 mes'),
-      medida('1 fila', 'medio año'),
-    ),
-    area('Categorías', ...temas),
-  );
+  const filaNueva = Math.floor(nueva.desde / fila) + 1;
+  const desdeCm = nueva.desde - (filaNueva - 1) * fila;
+  // Arriba, grande, la fila; abajo, desde qué cuadrado.
+  const principal = document.createElement('span');
+  principal.className = 'mini-telar-fila';
+  principal.append('Agrégalo al telar en la ', Object.assign(document.createElement('strong'), { textContent: `fila ${filaNueva}` }));
+  const detalle = document.createElement('span');
+  detalle.className = 'mini-telar-desde';
+  detalle.textContent = (desdeCm ? `desde el cuadrado ${desdeCm + 1}` : 'desde el comienzo de la fila')
+    + (nueva.desde + nueva.largo > filaNueva * fila ? ' (sigue en la fila de abajo)' : '');
+  miniTexto.replaceChildren(principal, detalle);
+
 }
 
-/** Muestra la grilla de recorte para un testimonio recién enviado. */
+/** Muestra las instrucciones de recorte para un testimonio recién enviado. */
 export function mostrarRecorte(respuesta) {
   const tema = temaPorId(temaDeRespuesta(respuesta));
   const dias = diasDeRespuesta(respuesta);
@@ -345,25 +200,26 @@ export function mostrarRecorte(respuesta) {
   nombre.textContent = tema.nombre;
   const color = document.createElement('strong');
   color.textContent = tema.colorNombre;
-  mensaje.append('Tu pendiente fue clasificado como ', nombre, ', que corresponde al color ', color, '.');
+  // Título: el pendiente, con su tiempo, y en qué temática y color quedó.
+  const tiempoTitulo = document.createElement('strong');
+  tiempoTitulo.className = 'recorte-tiempo';
+  tiempoTitulo.textContent = tiempoEnPalabras(dias ?? 0);
+  const deTiempo = dias == null ? [] : [' de ', tiempoTitulo];
+  mensaje.append('Tu pendiente', ...deTiempo, ' fue clasificado como ', nombre, ', que corresponde al color ', color, '.');
 
-  // Los tres pasos: la tela de su color, apoyarla desde el 0 y cortarla en tantos centímetros.
-  muestra.style.background = tema.color;
+  // Los pasos: la tela de su color, cortarla en tantos cuadrados (semanas) y agregarla al telar.
+  muestra.style.backgroundColor = tema.color;
   const negrita = (texto) => Object.assign(document.createElement('strong'), { textContent: texto });
-  pasoTela.replaceChildren('Toma un trozo de tela de color ', negrita(tema.colorNombre));
-  pasoCorte.replaceChildren('Córtala en ', negrita(`${cm} ${cm === 1 ? 'cuadrado' : 'cuadrados'}`));
-  pasoCuenta.textContent = dias == null
-    ? 'no dijiste cuánto lo has pospuesto'
-    : `${tiempoEnPalabras(dias)} · 1 cuadrado por semana`;
+  pasoTela.replaceChildren('Toma el ovillo de lana de color ', negrita(tema.colorNombre));
+  pasoCorte.replaceChildren('Recorre con la lana hasta ', negrita('tu fecha'), ' y luego córtalo');
+  pasoCuenta.textContent = `${dias == null ? '1 semana' : tiempoEnPalabras(dias)} · ${cm} ${cm === 1 ? 'cuadrado' : 'cuadrados'}`;
 
   // Aparece bajo el rectángulo de arriba y, mientras ese rectángulo sube, la capa sube con él hasta ocupar
-  // toda la pantalla; la grilla se dibuja de nuevo cuando termina de subir.
+  // toda la pantalla.
   capa.style.transition = 'none';
   capa.hidden = false;
   dibujarMiniTelar(respuesta);
-  dibujarSimbologia();
   ubicarCapa(medidas().bajoCabecera);
-  dibujarGrilla(cm, tema.color);
   capa.getBoundingClientRect();
   capa.style.transition = `top ${RECORTE.transicion}s ease`;
   document.body.classList.add('instrucciones');
@@ -384,18 +240,12 @@ export function cerrarRecorte() {
 }
 
 capa.querySelector('#btn-recorte-listo').addEventListener('click', cerrarRecorte);
-// Cada vez que la grilla cambia de tamaño (al subir el rectángulo de arriba, o al cambiar la ventana), se
-// vuelve a dibujar para llenarla entera.
-new ResizeObserver(() => {
-  if (!capa.hidden && capa.dataset.cm) dibujarGrilla(+capa.dataset.cm, capa.style.getPropertyValue('--color-tema'));
-}).observe(grilla);
 // Al cambiar el tamaño de la ventana, se vuelve a ubicar después de que el lienzo se reescale.
 window.addEventListener('resize', () => {
   setTimeout(() => {
     if (capa.hidden || !capa.dataset.cm) return;
     capa.style.transition = 'none';
     ubicarCapa();
-    dibujarGrilla(+capa.dataset.cm, capa.style.getPropertyValue('--color-tema'));
   }, 50);
 });
 

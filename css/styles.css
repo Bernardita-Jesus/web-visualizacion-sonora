@@ -1424,35 +1424,139 @@ body[data-opcion="2"] .simbologia-telar {
   gap: calc(32px * var(--escala, 1));
 }
 
-.recorte-instrucciones {
-  display: grid;
-  gap: 6px;
+/* Mitad izquierda: los pasos 1, 2 y 3, uno bajo el otro, y el dibujo de cómo se corta la lana. */
+.recorte-izquierda,
+.recorte-derecha {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  min-height: 0;
 }
 
-/* El telar de la instalación en miniatura, al lado de las instrucciones. */
-.mini-telar {
-  flex: none;
-  display: grid;
-  gap: calc(6px * var(--escala, 1));
-  width: calc(270px * var(--escala, 1));
-  margin: 0;
-}
-
-.mini-telar svg {
+.ilustracion {
+  flex: 1;
+  min-height: 0;
   width: 100%;
-  height: auto;
-  max-height: calc(340px * var(--escala, 1));
+  margin-top: calc(24px * var(--escala, 1));
 }
 
-.mini-telar figcaption {
+.ilu-borde {
+  fill: #a8865c;
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.ilu-mesa {
+  fill: #c9a77c;
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.ilu-papel {
+  fill: #fbf7f0;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.ilu-grilla {
+  fill: none;
+  stroke: rgb(47 55 66 / 0.22);
+  stroke-width: 1;
+}
+
+.ilu-ovillo {
+  fill: var(--color-tema);
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.ilu-ovillo-vueltas {
+  fill: none;
+  stroke: rgb(255 255 255 / 0.45);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.ilu-lana {
+  fill: none;
+  stroke: var(--color-tema);
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+
+.ilu-corte {
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+
+.ilu-mano {
+  fill: #efd2b6;
+  stroke: var(--ink);
+  stroke-width: 2.2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.ilu-tijera {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.ilu-anillo {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 4;
+}
+
+.ilu-eje {
+  fill: #ffffff;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+/* Mitad derecha, paso 4: en qué fila del telar va; abajo, el telar. */
+.paso-telar {
+  display: flex;
+  align-items: center;
+  gap: calc(14px * var(--escala, 1));
+}
+
+.paso-telar .paso-numero {
+  flex: none;
+}
+
+.mini-telar-texto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: calc(6px * var(--escala, 1)) calc(16px * var(--escala, 1));
+  margin: 0;
   color: var(--ink);
-  font-size: calc(20px * var(--escala, 1));
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
-.mini-telar figcaption strong {
+.mini-telar-fila {
+  font-size: calc(32px * var(--escala, 1));
+  font-weight: 600;
+}
+
+.mini-telar-desde {
+  font-size: calc(20px * var(--escala, 1));
+}
+
+.mini-telar-texto strong {
   color: var(--color-tema);
+}
+
+/* El telar de la instalación, grande: ocupa todo el espacio de las instrucciones. */
+.telar-grande {
+  flex: 1;
+  margin-top: calc(24px * var(--escala, 1)); /* el telar, bajo el paso 4 */
+  width: 100%;
+  min-height: 0;
 }
 
 .mini-marco {
@@ -1469,87 +1573,43 @@ body[data-opcion="2"] .simbologia-telar {
 
 .mini-numero {
   fill: var(--muted);
+  font-size: 18px;
   font-weight: 600;
   text-anchor: end;
   dominant-baseline: central;
 }
 
+/* Entre una fila del telar y la siguiente. */
+.mini-separador {
+  stroke: rgb(47 55 66 / 0.25);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 5;
+}
+
+/* Las tiras que ya están en el telar: tenues, para que se destaque la nueva. */
 .mini-tira {
-  opacity: 0.85;
+  opacity: 0.25;
 }
 
-/* La tira nueva: parpadea con un borde, para que se vea dónde va. */
-.mini-nueva {
-  opacity: 1;
+/* La tira nueva: fuerte, con borde y sus semanas marcadas, y parpadea suave. */
+.mini-nueva rect {
   stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.mini-nueva {
+  animation: mini-parpadeo 1.4s ease-in-out infinite;
+  filter: drop-shadow(0 2px 3px rgb(47 55 66 / 0.35));
+}
+
+.mini-semana {
+  stroke: rgb(255 255 255 / 0.7);
   stroke-width: 1.2;
-  animation: mini-parpadeo 1.2s ease-in-out infinite;
-}
-
-/* Simbología bajo el telar en miniatura, abajo de la columna y por áreas: medidas, tamaños, telar y
-   categorías. */
-.recorte-simbologia {
-  display: grid;
-  gap: calc(14px * var(--escala, 1));
-  margin-top: auto;
-  padding-top: calc(14px * var(--escala, 1));
-  border-top: 1px dashed var(--line);
-  color: var(--ink);
-  font-size: calc(12.5px * var(--escala, 1));
-  line-height: 1.25;
-}
-
-.simbologia-area h3 {
-  margin: 0 0 calc(6px * var(--escala, 1));
-  color: var(--azul);
-  font-size: calc(12px * var(--escala, 1));
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.simbologia-area ul {
-  display: grid;
-  gap: calc(6px * var(--escala, 1));
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.simbologia-area li {
-  display: flex;
-  align-items: center;
-  gap: calc(10px * var(--escala, 1));
-}
-
-.simbologia-medida {
-  justify-content: space-between;
-  max-width: calc(220px * var(--escala, 1));
-  font-size: calc(15px * var(--escala, 1));
-}
-
-.simbologia-area:last-child ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: calc(4px * var(--escala, 1)) calc(12px * var(--escala, 1));
-}
-
-.simbologia-tema {
-  gap: calc(5px * var(--escala, 1)) !important;
-  color: var(--c);
-  font-weight: 600;
-}
-
-.simbologia-tema::before {
-  content: '';
-  width: calc(14px * var(--escala, 1));
-  height: calc(4px * var(--escala, 1));
-  background: var(--c);
 }
 
 @keyframes mini-parpadeo {
   50% {
-    opacity: 0.35;
+    opacity: 0.6;
   }
 }
 
@@ -1567,43 +1627,52 @@ body[data-opcion="2"] .simbologia-telar {
 
 .recorte-pasos {
   display: flex;
-  justify-content: space-between; /* los cuatro pasos en una sola fila, de un lado al otro */
-  gap: calc(20px * var(--escala, 1));
-  margin: calc(10px * var(--escala, 1)) 0 0;
+  flex-direction: column; /* los tres pasos, uno bajo el otro */
+  gap: calc(22px * var(--escala, 1));
+  margin: 0;
   padding: 0;
   list-style: none;
-  font-size: calc(18px * var(--escala, 1));
+  font-size: calc(24px * var(--escala, 1));
 }
 
 .recorte-pasos li {
   display: flex;
   align-items: center;
-  gap: calc(10px * var(--escala, 1));
+  gap: calc(14px * var(--escala, 1));
 }
 
 .paso-numero {
   display: grid;
   place-items: center;
-  width: calc(30px * var(--escala, 1));
-  height: calc(30px * var(--escala, 1));
+  width: calc(40px * var(--escala, 1));
+  height: calc(40px * var(--escala, 1));
   border-radius: 50%;
   background: var(--azul);
   color: var(--surface);
-  font-size: calc(16px * var(--escala, 1));
+  font-size: calc(20px * var(--escala, 1));
   font-weight: 700;
 }
 
-/* La muestra de tela: un retazo del color de la temática, con borde picado como tela cortada. */
+/* El ovillo de lana del color de la temática: un círculo con sus vueltas de hilo. */
 .paso-muestra {
+  flex: none;
   width: calc(50px * var(--escala, 1));
-  height: calc(34px * var(--escala, 1));
-  border-radius: 2px;
-  clip-path: polygon(0 0, 100% 0, 92% 25%, 100% 50%, 92% 75%, 100% 100%, 0 100%);
+  height: calc(50px * var(--escala, 1));
+  border-radius: 50%;
+  background-image: repeating-linear-gradient(35deg, transparent 0 5px, rgb(255 255 255 / 0.35) 5px 6.5px),
+    repeating-linear-gradient(-55deg, transparent 0 7px, rgb(0 0 0 / 0.12) 7px 8.5px);
+  box-shadow: inset -4px -5px 8px rgb(0 0 0 / 0.2);
+}
+
+/* En el telar, sobre la tira nueva: el tiempo de su registro. */
+.mini-tiempo {
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .paso-icono {
-  width: calc(46px * var(--escala, 1));
-  height: calc(46px * var(--escala, 1));
+  width: calc(60px * var(--escala, 1));
+  height: calc(60px * var(--escala, 1));
   fill: none;
   stroke: var(--ink);
   stroke-width: 2.2;
@@ -1632,7 +1701,7 @@ body[data-opcion="2"] .simbologia-telar {
 .paso-texto small {
   display: block;
   color: var(--muted);
-  font-size: calc(14px * var(--escala, 1));
+  font-size: calc(17px * var(--escala, 1));
   white-space: nowrap;
 }
 
@@ -1643,99 +1712,18 @@ body[data-opcion="2"] .simbologia-telar {
 }
 
 .recorte-cuerpo {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* mitad y mitad */
   flex: 1;
-  gap: calc(28px * var(--escala, 1));
+  gap: calc(56px * var(--escala, 1));
+  margin-top: calc(28px * var(--escala, 1));
   min-height: 0;
-}
-
-.recorte-cuerpo .mini-telar {
-  display: flex;
-  flex-direction: column; /* el telar arriba y la simbología abajo, al pie de la grilla */
-}
-
-.recorte-grilla {
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
-  border: 1px solid var(--line);
-  background: #fbf7f0;
-}
-
-.grilla-fondo line {
-  stroke: rgb(47 55 66 / 0.12);
-  stroke-width: 1;
-}
-
-.grilla-fondo line.cinco {
-  stroke: rgb(47 55 66 / 0.25);
-}
-
-.grilla-fondo line.diez {
-  stroke: rgb(47 55 66 / 0.45);
-}
-
-/* El borde de la tira a recortar, en línea segmentada. */
-.recorte-grilla .tira-borde {
-  fill: none;
-  stroke: var(--ink);
-  stroke-dasharray: 6 4;
-  stroke-linecap: butt;
-}
-
-.recorte-grilla .tira-inicio {
-  stroke: var(--ink);
-  stroke-width: 2;
-  stroke-dasharray: 4 3;
-}
-
-.recorte-grilla .tira {
-  fill: none;
-  stroke-linecap: butt;
-}
-
-.recorte-grilla .marca {
-  stroke: var(--ink);
-  stroke-width: 1.5;
-}
-
-/* La división entre una semana y la siguiente, sobre la tela. */
-.recorte-grilla .semana {
-  stroke: rgb(255 255 255 / 0.55);
-  stroke-width: 1;
-}
-
-.recorte-grilla .numero {
-  fill: #ffffff; /* sobre la tela, en blanco: el número de cada semana */
-  font-size: calc(11px * var(--escala, 1));
-  font-weight: 700;
-  text-anchor: middle;
-  dominant-baseline: central;
-}
-
-.recorte-grilla .corte {
-  stroke: var(--ink);
-  stroke-width: 2.5;
-  stroke-dasharray: 8 5;
-}
-
-.recorte-grilla .tijera,
-.recorte-grilla .sigue {
-  fill: var(--ink);
-  font-size: calc(15px * var(--escala, 1));
-  font-weight: 600;
-  dominant-baseline: central;
-}
-
-.recorte-grilla .inicio {
-  fill: var(--muted);
-  font-size: calc(12px * var(--escala, 1));
-  text-anchor: start;
-  dominant-baseline: central;
 }
 
 .recorte-listo {
   align-self: flex-end;
+  white-space: nowrap;
+  margin-top: calc(18px * var(--escala, 1));
   font-size: calc(15px * var(--escala, 1));
 }
 

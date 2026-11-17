@@ -1,4 +1,4 @@
-import { MOSTRAR_TELAR, lanzarRespuesta } from './main.js';
+import { lanzarRespuesta } from './main.js';
 import { abrirCalibracion, mostrarRecorte } from './recorte.js';
 import { diasPospuesto, guardarBorrador, guardarRespuesta, leerBorrador, limpiarDictado, temaPorId, tematicasDe, tiempoEnPalabras } from './respuestas.js';
 
@@ -30,13 +30,11 @@ function enviar() {
   if (reconocimiento) reconocimiento.onresult = null;
   detenerDictado();
   // Recién al enviar (ya registrado) se limpia lo dictado, para la siguiente persona.
-  const nombres = nombreTemas(temasDelCampo(texto));
   limpiarCampo();
   estado.textContent = 'Aprieta el botón y cuenta tu pendiente.';
-  aviso.textContent = MOSTRAR_TELAR
-    ? `¡Gracias! Tu testimonio quedó en ${nombres}. Mira cómo se teje en el telar →`
-    : `¡Gracias! Tu testimonio quedó en ${nombres}.`;
-  // La segunda instancia: la grilla para cortar la tela del largo de lo pospuesto.
+  // Sin mensaje de agradecimiento: el registro queda limpio para la siguiente persona.
+  aviso.textContent = '';
+  // La segunda instancia: las instrucciones para cortar la lana del largo de lo pospuesto.
   mostrarRecorte(respuesta);
 }
 
@@ -187,7 +185,6 @@ try {
 
 /** Temática del pendiente que se está dictando (la detectada en el texto). */
 const temasDelCampo = (texto) => tematicasDe(texto).map(temaPorId);
-const nombreTemas = (temas) => temas.map((tema) => tema.nombre).join(' y ');
 
 // El texto toma el color de su temática (el mismo con que se tejerá) y se muestra en cuál quedará.
 function colorearSegunTema() {

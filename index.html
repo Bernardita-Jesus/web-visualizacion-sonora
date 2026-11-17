@@ -190,56 +190,71 @@
        centímetros sean reales). Ver js/recorte.js. -->
   <section id="recorte" class="recorte" hidden aria-live="polite">
     <header class="recorte-cabecera">
-      <div class="recorte-instrucciones">
       <p id="recorte-mensaje" class="recorte-mensaje"></p>
-      <!-- Las instrucciones, en tres pasos con íconos (los textos los pone js/recorte.js). -->
-      <ol class="recorte-pasos">
-        <li>
-          <span class="paso-numero">1</span>
-          <span id="paso-muestra" class="paso-muestra" aria-hidden="true"></span>
-          <span class="paso-texto"><span id="paso-tela"></span></span>
-        </li>
-        <li>
-          <span class="paso-numero">2</span>
-          <svg class="paso-icono" viewBox="0 0 40 40" aria-hidden="true">
-            <path class="paso-grilla" d="M4 4h32v32H4zM4 12h32M4 20h32M4 28h32M12 4v32M20 4v32M28 4v32"></path>
-            <path class="paso-flecha" d="M6 20h22M22 14l6 6-6 6"></path>
-          </svg>
-          <span class="paso-texto">Apóyala sobre la grilla, desde la <strong>semana 1</strong></span>
-        </li>
-        <li>
-          <span class="paso-numero">3</span>
-          <svg class="paso-icono" viewBox="0 0 40 40" aria-hidden="true">
-            <circle cx="11" cy="29" r="5"></circle>
-            <circle cx="11" cy="11" r="5"></circle>
-            <path d="M15 14l20 13M15 26l20-13"></path>
-          </svg>
-          <span class="paso-texto"><span id="paso-corte"></span><small id="paso-cuenta"></small></span>
-        </li>
-        <li>
+    </header>
+    <!-- Mitad y mitad: a la izquierda los pasos 1, 2 y 3 y un dibujo de cómo se corta la lana; a la derecha el
+         paso 4 y el telar (los textos los pone js/recorte.js). -->
+    <div class="recorte-cuerpo">
+      <div class="recorte-izquierda">
+        <ol class="recorte-pasos">
+          <li>
+            <span class="paso-numero">1</span>
+            <span id="paso-muestra" class="paso-muestra" aria-hidden="true"></span>
+            <span class="paso-texto"><span id="paso-tela"></span></span>
+          </li>
+          <li>
+            <span class="paso-numero">2</span>
+            <svg class="paso-icono" viewBox="0 0 40 40" aria-hidden="true">
+              <path class="paso-grilla" d="M4 4h32v32H4zM4 12h32M4 20h32M4 28h32M12 4v32M20 4v32M28 4v32"></path>
+              <path class="paso-flecha" d="M6 20h22M22 14l6 6-6 6"></path>
+            </svg>
+            <span class="paso-texto">Apóyalo en la <strong>grilla</strong></span>
+          </li>
+          <li>
+            <span class="paso-numero">3</span>
+            <svg class="paso-icono" viewBox="0 0 40 40" aria-hidden="true">
+              <circle cx="11" cy="29" r="5"></circle>
+              <circle cx="11" cy="11" r="5"></circle>
+              <path d="M15 14l20 13M15 26l20-13"></path>
+            </svg>
+            <span class="paso-texto"><span id="paso-corte"></span><small id="paso-cuenta"></small></span>
+          </li>
+        </ol>
+        <!-- Dibujo: sobre una mesa, una mano apoya la lana en la grilla y la otra la corta con una tijera. -->
+        <svg class="ilustracion" viewBox="0 0 520 300" aria-label="Una mano apoya la lana en la grilla sobre la mesa y la otra la corta con una tijera">
+          <rect class="ilu-borde" x="14" y="44" width="492" height="244" rx="14"></rect>
+          <rect class="ilu-mesa" x="14" y="30" width="492" height="244" rx="14"></rect>
+          <rect class="ilu-papel" x="70" y="70" width="380" height="170"></rect>
+          <path class="ilu-grilla" d="M87 70V240M104 70V240M121 70V240M138 70V240M155 70V240M172 70V240M189 70V240M206 70V240M223 70V240M240 70V240M257 70V240M274 70V240M291 70V240M308 70V240M325 70V240M342 70V240M359 70V240M376 70V240M393 70V240M410 70V240M427 70V240M444 70V240M70 87H450M70 104H450M70 121H450M70 138H450M70 155H450M70 172H450M70 189H450M70 206H450M70 223H450"></path>
+          <circle class="ilu-ovillo" cx="56" cy="222" r="28"></circle>
+          <path class="ilu-ovillo-vueltas" d="M34 210q22 -14 44 4M30 226q26 -16 52 2M36 242q20 -12 40 -2M48 196q-8 26 6 54M64 196q10 24 -4 54"></path>
+          <path class="ilu-lana" d="M80 208C100 190 96 160 118 155L332 155"></path>
+          <path class="ilu-lana" d="M342 155C370 155 380 168 392 160"></path>
+          <path class="ilu-corte" d="M337 128V182"></path>
+          <path class="ilu-mano" d="M120 300L126 232C127 216 132 202 140 192L142 162C142 152 156 152 156 162L156 186L160 154C160 144 174 144 174 154L172 188L178 160C179 151 192 152 191 162L186 194L192 174C194 166 206 168 204 177L196 212C192 232 186 252 184 300Z"></path>
+          <path class="ilu-mano" d="M140 204C128 198 114 192 106 198C100 204 110 212 124 216L136 222"></path>
+          <path class="ilu-tijera" d="M362 155L314 140M362 155L314 170"></path>
+          <path class="ilu-mano" d="M520 118C472 112 432 120 408 128C394 133 394 149 408 151L422 150C410 160 411 176 426 178L442 176C433 189 442 202 457 198C478 194 498 190 520 194Z"></path>
+          <circle class="ilu-anillo" cx="398" cy="140" r="11"></circle>
+          <circle class="ilu-anillo" cx="398" cy="172" r="11"></circle>
+          <path class="ilu-tijera" d="M362 155L390 146M362 155L390 166"></path>
+          <circle class="ilu-eje" cx="362" cy="155" r="3.5"></circle>
+        </svg>
+      </div>
+      <div class="recorte-derecha">
+        <div class="paso-telar">
           <span class="paso-numero">4</span>
           <svg class="paso-icono" viewBox="0 0 40 40" aria-hidden="true">
             <path class="paso-grilla" d="M8 4v32M14 4v32M20 4v32M26 4v32M32 4v32"></path>
             <path d="M5 10q3-2 6 0t6 0 6 0 6 0 6 0M5 16q3-2 6 0t6 0 6 0 6 0 6 0M5 22q3-2 6 0t6 0 6 0 6 0 6 0"></path>
             <path class="paso-flecha" d="M5 29q3-2 6 0t6 0 6 0"></path>
           </svg>
-          <span class="paso-texto">Agrégala al <strong>telar</strong>, junto a los demás pendientes</span>
-        </li>
-      </ol>
+          <p id="mini-telar-texto" class="mini-telar-texto"></p>
+        </div>
+        <svg id="mini-telar" class="telar-grande" preserveAspectRatio="xMidYMin meet" aria-label="Telar: dónde agregar tu tira"></svg>
+        <button id="btn-recorte-listo" class="boton-modo recorte-listo" type="button">Lana cortada y agregada al telar</button>
       </div>
-    </header>
-    <!-- La grilla, pegada a la izquierda, y a su lado el telar en miniatura con el lugar de la tira. -->
-    <div class="recorte-cuerpo">
-      <svg id="recorte-grilla" class="recorte-grilla" aria-label="Grilla en centímetros para cortar la tela"></svg>
-      <!-- El telar que se arma en la instalación, en miniatura: las tiras ya agregadas y dónde va la nueva. -->
-      <figure class="mini-telar">
-        <svg id="mini-telar" aria-label="Telar en miniatura: dónde agregar tu tira"></svg>
-        <figcaption id="mini-telar-texto"></figcaption>
-        <!-- Simbología: qué es cada cosa de la grilla y del telar (las medidas las pone js/recorte.js). -->
-        <div id="recorte-simbologia" class="recorte-simbologia" aria-label="Simbología"></div>
-      </figure>
     </div>
-    <button id="btn-recorte-listo" class="boton-modo recorte-listo" type="button">Tela recortada y agregada al telar</button>
   </section>
 
   <!-- Calibración de la grilla: se ajusta la barra hasta que mida 10 cm con una regla. -->
