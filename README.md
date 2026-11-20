@@ -115,6 +115,7 @@ instancias:
 
 **Simular interacción** (`js/simulacion.js`): arriba a la derecha de las instrucciones, el botón *Simular
 interacción* achica las instrucciones (se ven completas, arriba) y abajo muestra, sin textos, la mesa de corte
+(una **tabla de corte verde**, cuadriculada y con regla, bajo los ovillos, el papel con la grilla y la tijera)
 y el telar:
 
 - **Los ovillos de colores:** a la izquierda de la mesa, un ovillo por temática, con el nombre de la temática

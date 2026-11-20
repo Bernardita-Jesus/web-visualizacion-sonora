@@ -163,6 +163,12 @@ function caminoLana(hasta) {
   return d;
 }
 
+/** Un color (#rrggbb) más oscuro: `cuanto` de 0 (igual) a 1 (negro). */
+function oscurecer(color, cuanto) {
+  const canal = (i) => Math.round(parseInt(color.slice(i, i + 2), 16) * (1 - cuanto)).toString(16).padStart(2, '0');
+  return `#${canal(1)}${canal(3)}${canal(5)}`;
+}
+
 /** Texto sobre la grilla, girado según el camino (y nunca cabeza abajo). */
 function textoEnGrilla(s, desvio, texto, clase, padre) {
   const c = enCamino(s);
@@ -216,9 +222,9 @@ function dibujar() {
   el('rect', { width: 1, height: 3, fill: '#e7dfce' }, tela);
   svg.append(texturas);
 
-  // La mesa de madera y, encima, el papel con la grilla.
-  el('rect', { x: -300, y: -290, width: 690, height: 580, rx: 10, class: 'sim-mesa', fill: 'url(#sim-madera)' }, svg);
-  el('rect', { x: -282, y: -272, width: 564, height: 544, rx: 4, class: 'sim-papel', filter: 'url(#sim-sombra)' }, svg);
+  // La tabla de corte verde (bajo los ovillos, la grilla y la tijera) y, encima, el papel con la grilla.
+  dibujarTablaDeCorte();
+  el('rect', { x: -326, y: -274, width: 628, height: 548, rx: 4, class: 'sim-papel', filter: 'url(#sim-sombra)' }, svg);
 
   // La grilla: cuatro filas en zigzag, unidas por curvas. Cada casilla es una semana (también en las curvas),
   // con su número, y del tono de su mes.
@@ -230,8 +236,10 @@ function dibujar() {
   };
   for (let i = 0; i < ANO; i++) {
     const puntos = [...borde(i, i + 1, m), ...borde(i + 1, i, -m)];
+    // El tono de su mes: una semana más clara y la siguiente más oscura.
     const mes = Math.min(11, Math.floor(((i + 0.5) * 12) / ANO));
-    el('path', { d: `M${puntos.map(([x, y]) => `${f(x)} ${f(y)}`).join('L')}Z`, class: 'sim-casilla', style: `fill: ${TONOS_MES[mes]}` }, grilla);
+    const tono = i % 2 ? oscurecer(TONOS_MES[mes], 0.12) : TONOS_MES[mes];
+    el('path', { d: `M${puntos.map(([x, y]) => `${f(x)} ${f(y)}`).join('L')}Z`, class: 'sim-casilla', style: `fill: ${tono}` }, grilla);
     textoEnGrilla(i + 0.5, -haciaAfuera(i + 0.5) * m * 0.6, String(i + 1), 'sim-texto-semana', grilla);
   }
   // Mes a mes: una línea más marcada y, por fuera, "1 mes", "2 meses"… hasta "1 año", donde se cumple cada uno.
@@ -277,7 +285,7 @@ function dibujar() {
     el('circle', { cx: ovillo.x, cy: ovillo.y, r: ovillo.r, style: `fill: ${ovillo.tema.color}` }, lanaOvillo);
     el('circle', { cx: ovillo.x, cy: ovillo.y, r: ovillo.r, fill: 'url(#sim-hebras)', opacity: 0.6 }, lanaOvillo);
     el('circle', { cx: ovillo.x, cy: ovillo.y, r: ovillo.r, fill: 'url(#sim-ovillo)' }, g);
-    el('text', { x: ovillo.x, y: ovillo.y + ovillo.r + 15, class: 'sim-texto-ovillo' }, g).textContent = ovillo.tema.nombre;
+    el('text', { x: ovillo.x, y: ovillo.y + ovillo.r + 22, class: 'sim-texto-ovillo' }, g).textContent = ovillo.tema.nombre;
   }
 
   // La punta de la lana: de ahí se toma para arrastrarla.
@@ -299,6 +307,43 @@ function dibujar() {
   ponerTijera(MESA_TIJERA.x, MESA_TIJERA.y);
 
   actualizar();
+}
+
+/* ---------- La tabla de corte ---------- */
+
+// La tabla de corte verde, como las de las mesas de costura: cuadriculada (una línea fina cada 10, una más
+// marcada cada 50), con una regla numerada en los bordes y diagonales a 45°.
+const TABLA = { x: -425, y: -292, ancho: 818, alto: 584, margen: 18 };
+
+function dibujarTablaDeCorte() {
+  const { x, y, ancho, alto, margen } = TABLA;
+  const g = el('g', { class: 'sim-tabla' }, svg);
+  el('rect', { x, y, width: ancho, height: alto, rx: 12, class: 'sim-tabla-fondo', filter: 'url(#sim-sombra)' }, g);
+  const x0 = x + margen;
+  const y0 = y + margen;
+  const x1 = x + ancho - margen;
+  const y1 = y + alto - margen;
+  let fina = '';
+  let marcada = '';
+  let marcas = '';
+  for (let i = 0, xi = x0; xi <= x1 + 0.01; i++, xi += 10) {
+    if (i % 5) fina += `M${f(xi)} ${y0}V${y1}`;
+    else marcada += `M${f(xi)} ${y0}V${y1}`;
+    marcas += `M${f(xi)} ${y0}v${i % 5 ? -4 : -8}M${f(xi)} ${y1}v${i % 5 ? 4 : 8}`;
+    if (i % 5 === 0 && i) el('text', { x: f(xi), y: f(y0 - 10), class: 'sim-tabla-numero' }, g).textContent = String(i);
+  }
+  for (let i = 0, yi = y0; yi <= y1 + 0.01; i++, yi += 10) {
+    if (i % 5) fina += `M${x0} ${f(yi)}H${x1}`;
+    else marcada += `M${x0} ${f(yi)}H${x1}`;
+    marcas += `M${x0} ${f(yi)}h${i % 5 ? -4 : -8}M${x1} ${f(yi)}h${i % 5 ? 4 : 8}`;
+    if (i % 5 === 0 && i) el('text', { x: f(x0 - 9), y: f(yi), class: 'sim-tabla-numero sim-tabla-numero-lado' }, g).textContent = String(i);
+  }
+  el('path', { d: fina, class: 'sim-tabla-fina' }, g);
+  el('path', { d: marcada, class: 'sim-tabla-marcada' }, g);
+  el('path', { d: marcas, class: 'sim-tabla-regla' }, g);
+  // Las diagonales a 45°, desde las esquinas.
+  const lado = Math.min(x1 - x0, y1 - y0);
+  el('path', { d: `M${x0} ${y1}l${lado} ${-lado}M${x1} ${y1}l${-lado} ${-lado}`, class: 'sim-tabla-diagonal' }, g);
 }
 
 /* ---------- El telar con velcros ---------- */
