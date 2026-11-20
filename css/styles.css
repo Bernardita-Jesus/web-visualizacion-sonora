@@ -1523,18 +1523,17 @@ body[data-opcion="2"] .simbologia-telar {
   stroke-dasharray: 5 4;
 }
 
-/* Las manos, como siluetas de infografía: proporciones reales, rosado fuerte (fantasía) plano, sin sombras. */
+/* Las manos, como siluetas de infografía: rosado fuerte (fantasía) plano, sin sombras, con un contorno fino. */
 .ilu-mano path {
   fill: #f2559d;
-  stroke: #f2559d;
-  stroke-width: 1;
+  stroke: #c93a7c;
+  stroke-width: 2.4;
   stroke-linejoin: round;
 }
 
-/* Cada dedo, un trazo grueso con la punta redondeada. */
-.ilu-mano .ilu-dedo {
-  fill: none;
-  stroke-linecap: round;
+/* La capa de arriba de la mano derecha, sin contorno: tapa las líneas donde los dedos se juntan con la mano. */
+.ilu-mano-relleno path {
+  stroke: none;
 }
 
 .ilu-hoja {
