@@ -126,16 +126,19 @@ function dibujarMiniTelar(respuesta) {
   const arriba = 12; // aire arriba, para el tiempo escrito sobre la tira si cae en la primera fila
   const alto = arriba + filas * altoFila;
   const k = ancho / fila; // unidades del dibujo por cuadrado
-  const margenNumeros = 34; // a la izquierda, el número de cada fila
+  const vuelta = altoFila / 2 + grosor / 2 + 4; // lo que sobresale la vuelta de la lana en los bordes
+  const margenNumeros = 34 + vuelta; // a la izquierda, el número de cada fila (por fuera de las vueltas)
+  const margenCuadrados = 24; // arriba, el número de cada cuadrado (1 a 26)
   const yFila = (f) => arriba + (f - desdeFila) * altoFila;
-  miniTelar.setAttribute('viewBox', `${-6 - margenNumeros} -6 ${ancho + 12 + margenNumeros} ${alto + 12}`);
+  miniTelar.setAttribute('viewBox', `${-6 - margenNumeros} ${-6 - margenCuadrados} ${ancho + 12 + margenNumeros + vuelta} ${alto + 12 + margenCuadrados}`);
   miniTelar.replaceChildren();
   // La textura de lana: hebras torcidas en diagonal (oscuras y claras) y una pelusa en los bordes.
   const defs = el('defs', {}, miniTelar);
   const hebras = el('pattern', { id: 'telar-hebras', patternUnits: 'userSpaceOnUse', width: 7, height: 7, patternTransform: 'rotate(-55)' }, defs);
   el('rect', { width: 2.6, height: 7, fill: 'rgb(0 0 0 / 0.28)' }, hebras);
   el('rect', { x: 3.6, width: 1.3, height: 7, fill: 'rgb(255 255 255 / 0.35)' }, hebras);
-  const pelusa = el('filter', { id: 'telar-pelusa', x: '-5%', y: '-30%', width: '110%', height: '160%' }, defs);
+  // (con espacio de sobra, para que no recorte el grosor de las vueltas de lana en los bordes)
+  const pelusa = el('filter', { id: 'telar-pelusa', x: '-60%', y: '-60%', width: '220%', height: '220%' }, defs);
   el('feTurbulence', { type: 'fractalNoise', baseFrequency: 0.9, numOctaves: 2, result: 'ruido' }, pelusa);
   el('feDisplacementMap', { in: 'SourceGraphic', in2: 'ruido', scale: 3 }, pelusa);
   // Una hebra de lana: el color, redondeada en las puntas, con sus hebras torcidas encima.
@@ -149,11 +152,21 @@ function dibujarMiniTelar(respuesta) {
   el('rect', { x: -4, y: -4, width: ancho + 8, height: alto + 8, class: 'mini-marco' }, miniTelar);
   // El número de cada fila (el real del telar) y, entre una fila y otra, una línea que las separa.
   for (let f = desdeFila; f < desdeFila + filas; f++) {
-    const numero = el('text', { x: -12, y: yFila(f) + altoFila / 2, class: 'mini-numero' }, miniTelar);
+    const numero = el('text', { x: -12 - vuelta, y: yFila(f) + altoFila / 2, class: 'mini-numero' }, miniTelar);
     numero.textContent = String(f + 1);
     if (f > desdeFila) el('line', { x1: -4, x2: ancho + 4, y1: yFila(f), y2: yFila(f), class: 'mini-separador' }, miniTelar);
   }
 
+  // Arriba, el número de cada cuadrado (cada semana de la fila), del 1 al 26.
+  for (let c = 0; c < fila; c++) {
+    const numero = el('text', { x: (c + 0.5) * k, y: -16, class: 'mini-numero mini-numero-cuadrado' }, miniTelar);
+    numero.textContent = String(c + 1);
+  }
+
+  // El telar se teje en zigzag, como la trama de un telar de verdad: las filas impares (1, 3, 5…) van de
+  // izquierda a derecha y las pares de derecha a izquierda. Así, al llegar al borde, la lana da la vuelta y
+  // sigue en la fila de abajo sin cortarse, y los trazos largos quedan unidos.
+  const haciaLaDerecha = (f) => f % 2 === 0;
   // Cada tira, en los tramos de fila que ocupa (solo los de las filas que se ven).
   const tramos = (tira) => {
     const lista = [];
@@ -161,33 +174,70 @@ function dibujarMiniTelar(respuesta) {
       const f = Math.floor(pos / fila);
       const enFila = Math.min(resto, (f + 1) * fila - pos);
       if (f >= desdeFila && f < desdeFila + filas) {
-        lista.push({ x: (pos - f * fila) * k, y: yFila(f) + (altoFila - grosor) / 2, width: enFila * k, height: grosor });
+        const inicio = pos - f * fila; // cuadrados desde el comienzo de la fila (según su sentido)
+        const x = haciaLaDerecha(f) ? inicio * k : ancho - (inicio + enFila) * k;
+        // Si la tira sigue en la fila de abajo (y esa fila se ve), al final de este tramo da la vuelta.
+        const sigue = resto > enFila && f + 1 < desdeFila + filas;
+        lista.push({ x, y: yFila(f) + (altoFila - grosor) / 2, width: enFila * k, height: grosor, f, sigue });
       }
       pos += enFila;
       resto -= enFila;
     }
     return lista;
   };
+  // La vuelta de la lana en el borde, de una fila a la de abajo: media curva por fuera del telar.
+  const curvaVuelta = (f) => {
+    const y1 = yFila(f) + altoFila / 2;
+    const y2 = y1 + altoFila;
+    // Parte un poco antes del borde, encima de la punta redondeada de cada tramo, para que se vean unidos.
+    const r = altoFila / 2;
+    const e = grosor / 2;
+    return haciaLaDerecha(f)
+      ? `M${ancho - e} ${y1}L${ancho} ${y1}A${r} ${r} 0 0 1 ${ancho} ${y2}L${ancho - e} ${y2}`
+      : `M${e} ${y1}L0 ${y1}A${r} ${r} 0 0 0 0 ${y2}L${e} ${y2}`;
+  };
+  const vueltaDeLana = (tramo, color, padre, clase) => {
+    const g = el('g', { class: clase, filter: 'url(#telar-pelusa)' }, padre);
+    const d = curvaVuelta(tramo.f);
+    el('path', { d, class: 'lana-vuelta', style: `stroke: ${color}; stroke-width: ${grosor}` }, g);
+    el('path', { d, class: 'lana-vuelta', stroke: 'url(#telar-hebras)', style: `stroke-width: ${grosor}` }, g);
+  };
   // Las tiras que ya están, tenues.
   for (const tira of tiras.filter((t) => !t.nueva)) {
-    for (const tramo of tramos(tira)) lana(tramo, tira.color, miniTelar, 'mini-tira');
+    for (const tramo of tramos(tira)) {
+      lana(tramo, tira.color, miniTelar, 'mini-tira');
+    }
+    for (const tramo of tramos(tira)) {
+      if (tramo.sigue) vueltaDeLana(tramo, tira.color, miniTelar, 'mini-tira');
+    }
   }
   // Una línea blanca vertical por semana (cada cuadrado), como los hilos del telar.
   for (let x = 0; x <= ancho + 0.01; x += k) el('line', { x1: x, x2: x, y1: -4, y2: alto + 4, class: 'mini-urdimbre' }, miniTelar);
   // La tira nueva, encima de todo, fuerte y con sus semanas marcadas.
   const tiempo = diasDeRespuesta(respuesta);
+  const gNueva = el('g', { class: 'mini-nueva' }, miniTelar);
   tramos(nueva).forEach((tramo, i) => {
     // Sobre el comienzo de la tira, el tiempo de su registro.
     if (i === 0) {
-      el('text', { x: tramo.x, y: tramo.y - 8, class: 'mini-tiempo', style: `fill: ${nueva.color}` }, miniTelar).textContent =
+      const derecha = haciaLaDerecha(tramo.f);
+      el('text', {
+        x: derecha ? tramo.x : tramo.x + tramo.width,
+        y: tramo.y - 8,
+        class: 'mini-tiempo',
+        style: `fill: ${nueva.color}; text-anchor: ${derecha ? 'start' : 'end'}`,
+      }, miniTelar).textContent =
         tiempo == null ? '1 semana' : tiempoEnPalabras(tiempo);
     }
-    const g = el('g', { class: 'mini-nueva' }, miniTelar);
-    lana(tramo, nueva.color, g, 'mini-lana');
+    lana(tramo, nueva.color, gNueva, 'mini-lana');
     for (let x = tramo.x + k; x < tramo.x + tramo.width - 0.01; x += k) {
-      el('line', { x1: x, x2: x, y1: tramo.y, y2: tramo.y + tramo.height, class: 'mini-semana' }, g);
+      el('line', { x1: x, x2: x, y1: tramo.y, y2: tramo.y + tramo.height, class: 'mini-semana' }, gNueva);
     }
   });
+  // Sus vueltas en los bordes, encima de las puntas de los tramos: el borde oscuro y, encima, la lana.
+  for (const tramo of tramos(nueva).filter((t) => t.sigue)) {
+    el('path', { d: curvaVuelta(tramo.f), class: 'lana-vuelta-borde', style: `stroke-width: ${grosor + 3}` }, gNueva);
+    vueltaDeLana(tramo, nueva.color, gNueva, 'mini-lana');
+  }
 
   const filaNueva = Math.floor(nueva.desde / fila) + 1;
   const desdeCm = nueva.desde - (filaNueva - 1) * fila;
@@ -197,8 +247,13 @@ function dibujarMiniTelar(respuesta) {
   principal.append('Agrégalo al telar en la ', Object.assign(document.createElement('strong'), { textContent: `fila ${filaNueva}` }));
   const detalle = document.createElement('span');
   detalle.className = 'mini-telar-desde';
-  detalle.textContent = (desdeCm ? `desde el cuadrado ${desdeCm + 1}` : 'desde el comienzo de la fila')
-    + (nueva.desde + nueva.largo > filaNueva * fila ? ' (sigue en la fila de abajo)' : '');
+  // El cuadrado se cuenta con los números de arriba del telar (1 a 26, de izquierda a derecha); en las filas
+  // que van de derecha a izquierda, el comienzo queda a la derecha.
+  const derecha = haciaLaDerecha(filaNueva - 1);
+  detalle.append('desde ', Object.assign(document.createElement('strong'), {
+    textContent: `el cuadrado ${derecha ? desdeCm + 1 : fila - desdeCm}`,
+  }), derecha ? ', hacia la derecha' : ', hacia la izquierda');
+  if (nueva.desde + nueva.largo > filaNueva * fila) detalle.append(' (da la vuelta y sigue en la fila de abajo)');
   miniTexto.replaceChildren(principal, detalle);
 
 }

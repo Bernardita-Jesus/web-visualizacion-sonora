@@ -1531,6 +1531,12 @@ body[data-opcion="2"] .simbologia-telar {
   stroke-linejoin: round;
 }
 
+/* Cada dedo, un trazo grueso con la punta redondeada. */
+.ilu-mano .ilu-dedo {
+  fill: none;
+  stroke-linecap: round;
+}
+
 .ilu-hoja {
   fill: url(#ilu-metal);
   stroke: #5f6870;
@@ -1583,8 +1589,10 @@ body[data-opcion="2"] .simbologia-telar {
   font-weight: 600;
 }
 
+/* "desde el cuadrado…", del mismo tamaño que la fila. */
 .mini-telar-desde {
-  font-size: calc(20px * var(--escala, 1));
+  font-size: calc(32px * var(--escala, 1));
+  font-weight: 600;
 }
 
 .mini-telar-texto strong {
@@ -1611,12 +1619,28 @@ body[data-opcion="2"] .simbologia-telar {
   stroke-width: 0.8;
 }
 
+/* La vuelta de la lana en el borde del telar, al pasar de una fila a la de abajo. */
+.lana-vuelta,
+.lana-vuelta-borde {
+  fill: none;
+}
+
+.lana-vuelta-borde {
+  stroke: var(--ink);
+}
+
 .mini-numero {
   fill: var(--muted);
   font-size: 18px;
   font-weight: 600;
   text-anchor: end;
   dominant-baseline: central;
+}
+
+/* Los números de los cuadrados, arriba del telar: centrados en cada uno. */
+.mini-numero-cuadrado {
+  font-size: 13px;
+  text-anchor: middle;
 }
 
 /* Entre una fila del telar y la siguiente. */

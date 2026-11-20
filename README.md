@@ -120,8 +120,11 @@ testimonio recién dado se enrolla en su ovillo.
 
 **Telar:** en la mitad derecha de las instrucciones se ve el telar de la instalación (filas de 26 cuadrados,
 es decir, medio año por fila; `anchoTelar` en `js/recorte.js`), solo con las filas cercanas a la tira nueva:
-dos antes y una sobrante después. Las tiras que ya están se ven tenues; la nueva, fuerte, con sus semanas
-marcadas, el tiempo escrito encima y parpadeando.
+dos antes y una sobrante después. Arriba van los números de los cuadrados (1 a 26). Se teje **en zigzag**:
+las filas impares van de izquierda a derecha y las pares de derecha a izquierda, así que al llegar al borde
+la lana da la vuelta y sigue en la fila de abajo sin cortarse (los trazos largos quedan unidos). El paso 4
+dice desde qué cuadrado y hacia qué lado. Las tiras que ya están se ven tenues; la nueva, fuerte, con sus
+semanas marcadas, el tiempo escrito encima y parpadeando.
 
 **Calibrar centímetros:** cada pantalla tiene otra densidad de píxeles, así que hay que calibrarla una vez
 (menú Registros, en la esquina inferior derecha → *Calibrar centímetros*): se pone una regla sobre la
