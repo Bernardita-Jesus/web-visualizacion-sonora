@@ -130,6 +130,22 @@ function dibujarMiniTelar(respuesta) {
   const yFila = (f) => arriba + (f - desdeFila) * altoFila;
   miniTelar.setAttribute('viewBox', `${-6 - margenNumeros} -6 ${ancho + 12 + margenNumeros} ${alto + 12}`);
   miniTelar.replaceChildren();
+  // La textura de lana: hebras torcidas en diagonal (oscuras y claras) y una pelusa en los bordes.
+  const defs = el('defs', {}, miniTelar);
+  const hebras = el('pattern', { id: 'telar-hebras', patternUnits: 'userSpaceOnUse', width: 7, height: 7, patternTransform: 'rotate(-55)' }, defs);
+  el('rect', { width: 2.6, height: 7, fill: 'rgb(0 0 0 / 0.28)' }, hebras);
+  el('rect', { x: 3.6, width: 1.3, height: 7, fill: 'rgb(255 255 255 / 0.35)' }, hebras);
+  const pelusa = el('filter', { id: 'telar-pelusa', x: '-5%', y: '-30%', width: '110%', height: '160%' }, defs);
+  el('feTurbulence', { type: 'fractalNoise', baseFrequency: 0.9, numOctaves: 2, result: 'ruido' }, pelusa);
+  el('feDisplacementMap', { in: 'SourceGraphic', in2: 'ruido', scale: 3 }, pelusa);
+  // Una hebra de lana: el color, redondeada en las puntas, con sus hebras torcidas encima.
+  const lana = (tramo, color, padre, clase) => {
+    const g = el('g', { class: clase, filter: 'url(#telar-pelusa)' }, padre);
+    const forma = { ...tramo, rx: tramo.height / 2 };
+    el('rect', { ...forma, class: 'lana-color', style: `fill: ${color}` }, g);
+    el('rect', { ...forma, class: 'lana-hebras', fill: 'url(#telar-hebras)' }, g);
+    return g;
+  };
   el('rect', { x: -4, y: -4, width: ancho + 8, height: alto + 8, class: 'mini-marco' }, miniTelar);
   // El número de cada fila (el real del telar) y, entre una fila y otra, una línea que las separa.
   for (let f = desdeFila; f < desdeFila + filas; f++) {
@@ -154,7 +170,7 @@ function dibujarMiniTelar(respuesta) {
   };
   // Las tiras que ya están, tenues.
   for (const tira of tiras.filter((t) => !t.nueva)) {
-    for (const tramo of tramos(tira)) el('rect', { ...tramo, class: 'mini-tira', style: `fill: ${tira.color}` }, miniTelar);
+    for (const tramo of tramos(tira)) lana(tramo, tira.color, miniTelar, 'mini-tira');
   }
   // Una línea blanca vertical por semana (cada cuadrado), como los hilos del telar.
   for (let x = 0; x <= ancho + 0.01; x += k) el('line', { x1: x, x2: x, y1: -4, y2: alto + 4, class: 'mini-urdimbre' }, miniTelar);
@@ -167,7 +183,7 @@ function dibujarMiniTelar(respuesta) {
         tiempo == null ? '1 semana' : tiempoEnPalabras(tiempo);
     }
     const g = el('g', { class: 'mini-nueva' }, miniTelar);
-    el('rect', { ...tramo, style: `fill: ${nueva.color}` }, g);
+    lana(tramo, nueva.color, g, 'mini-lana');
     for (let x = tramo.x + k; x < tramo.x + tramo.width - 0.01; x += k) {
       el('line', { x1: x, x2: x, y1: tramo.y, y2: tramo.y + tramo.height, class: 'mini-semana' }, g);
     }

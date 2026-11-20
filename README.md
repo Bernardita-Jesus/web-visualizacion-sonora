@@ -99,7 +99,9 @@ Para ajustar la visualización (`js/main.js`):
 Por ahora **el telar queda escondido** (`MOSTRAR_TELAR = false` en `js/main.js`) y la página tiene dos
 instancias:
 
-1. **El testimonio:** el modo registro, a todo el ancho. La página siempre parte sin simulación.
+1. **El testimonio:** el modo registro, a todo el ancho. La página siempre parte sin simulación. Si el testimonio no
+   dice hace cuánto se pospone, no se incluye: aparece *"No se puede incluir el registro porque falta el tiempo
+   pospuesto"* y lo dictado se queda en el campo para completarlo.
 2. **Las instrucciones de recorte** (`js/recorte.js`): al enviar un testimonio aparece a pantalla completa
    un título, por ejemplo *"Tu pendiente de 3 meses fue clasificado como Vínculos, que corresponde al color
    rosado"*, y debajo la pantalla se divide en dos mitades. A la izquierda, tres pasos (1. toma el ovillo de

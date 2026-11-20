@@ -8,6 +8,7 @@
   --line: #a9b3bf;
   --accent: #c4673f;
   --title: #b04e22; /* naranjo oscuro del título */
+  --turquesa: #1a9a96; /* el botón de grabar audio */
   --azul: #2b4a7e; /* textos del telar de testimonios, de la simbología y títulos de cada modo */
   --patio-fill: var(--bg); /* el telar también va en el mismo tono */
   --font: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -445,9 +446,9 @@ body::after {
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1.5rem 0.75rem 0.75rem;
-  border: 1.5px solid var(--title);
+  border: 1.5px solid var(--turquesa);
   border-radius: 999px;
-  background: var(--title); /* el naranjo oscuro de la pregunta */
+  background: var(--turquesa); /* turquesa: el botón para grabar el audio */
   color: var(--surface);
   font-size: 1.15rem;
 }
@@ -462,18 +463,19 @@ body::after {
 }
 
 .boton-dictar rect {
-  fill: var(--title);
+  fill: var(--turquesa);
 }
 
 .boton-dictar path {
   fill: none;
-  stroke: var(--title);
+  stroke: var(--turquesa);
   stroke-width: 2;
   stroke-linecap: round;
 }
 
 .boton-dictar:hover {
-  background: #93401b; /* un poco más oscuro al pasar el mouse */
+  border-color: #137a76;
+  background: #137a76; /* un poco más oscuro al pasar el mouse */
   color: var(--surface);
 }
 
@@ -1437,84 +1439,122 @@ body[data-opcion="2"] .simbologia-telar {
   flex: 1;
   min-height: 0;
   width: 100%;
-  margin-top: calc(24px * var(--escala, 1));
+  margin-top: calc(48px * var(--escala, 1)); /* separado de los pasos */
 }
 
-.ilu-borde {
-  fill: #a8865c;
-  stroke: var(--ink);
-  stroke-width: 2;
+.ilu-canto {
+  fill: #9c7650;
 }
 
 .ilu-mesa {
-  fill: #c9a77c;
-  stroke: var(--ink);
-  stroke-width: 2;
+  stroke: #8a6a48;
+  stroke-width: 1.5;
+}
+
+.ilu-veta {
+  fill: none;
+  stroke: #8f6a44;
+  stroke-width: 1;
+  opacity: 0.45;
+}
+
+/* Las uniones entre las tablas de la mesa. */
+.ilu-tablas {
+  fill: none;
+  stroke: #7a5734;
+  stroke-width: 1.6;
+  opacity: 0.6;
+}
+
+.ilu-nudo {
+  fill: none;
+  stroke: #7a5734;
+  stroke-width: 1.2;
+  opacity: 0.55;
 }
 
 .ilu-papel {
   fill: #fbf7f0;
-  stroke: var(--ink);
-  stroke-width: 1.5;
+  stroke: #cfc4b2;
+  stroke-width: 1;
 }
 
 .ilu-grilla {
   fill: none;
-  stroke: rgb(47 55 66 / 0.22);
-  stroke-width: 1;
+  stroke: rgb(47 55 66 / 0.2);
+  stroke-width: 0.8;
+}
+
+.ilu-sombra-suelo {
+  fill: #3b2a1a;
+  opacity: 0.25;
 }
 
 .ilu-ovillo {
   fill: var(--color-tema);
-  stroke: var(--ink);
-  stroke-width: 2;
 }
 
+/* Las vueltas de lana del ovillo: hebras claras y oscuras que se cruzan. */
 .ilu-ovillo-vueltas {
   fill: none;
-  stroke: rgb(255 255 255 / 0.45);
-  stroke-width: 2;
+  stroke: rgb(255 255 255 / 0.35);
+  stroke-width: 2.2;
   stroke-linecap: round;
 }
 
 .ilu-lana {
   fill: none;
   stroke: var(--color-tema);
-  stroke-width: 6;
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+/* Las hebras torcidas de la lana, encima de su color. */
+.ilu-lana-hebras {
+  fill: none;
+  stroke: url(#ilu-hebras);
+  stroke-width: 8;
   stroke-linecap: round;
 }
 
 .ilu-corte {
   stroke: var(--ink);
-  stroke-width: 2;
+  stroke-width: 1.8;
   stroke-dasharray: 5 4;
 }
 
-.ilu-mano {
-  fill: #efd2b6;
-  stroke: var(--ink);
-  stroke-width: 2.2;
+/* Las manos, como siluetas de infografía: proporciones reales, rosado fuerte (fantasía) plano, sin sombras. */
+.ilu-mano path {
+  fill: #f2559d;
+  stroke: #f2559d;
+  stroke-width: 1;
   stroke-linejoin: round;
-  stroke-linecap: round;
 }
 
-.ilu-tijera {
+.ilu-hoja {
+  fill: url(#ilu-metal);
+  stroke: #5f6870;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+
+.ilu-mango {
   fill: none;
-  stroke: var(--ink);
-  stroke-width: 5;
+  stroke: var(--azul);
+  stroke-width: 7;
   stroke-linecap: round;
 }
 
 .ilu-anillo {
   fill: none;
-  stroke: var(--ink);
-  stroke-width: 4;
+  stroke: var(--azul);
+  stroke-width: 6;
 }
 
 .ilu-eje {
-  fill: #ffffff;
-  stroke: var(--ink);
-  stroke-width: 1.5;
+  fill: #d7dde2;
+  stroke: #5f6870;
+  stroke-width: 1.2;
 }
 
 /* Mitad derecha, paso 4: en qué fila del telar va; abajo, el telar. */
@@ -1592,9 +1632,9 @@ body[data-opcion="2"] .simbologia-telar {
 }
 
 /* La tira nueva: fuerte, con borde y sus semanas marcadas, y parpadea suave. */
-.mini-nueva rect {
+.mini-nueva .lana-color {
   stroke: var(--ink);
-  stroke-width: 2;
+  stroke-width: 1.5;
 }
 
 .mini-nueva {
@@ -1627,8 +1667,8 @@ body[data-opcion="2"] .simbologia-telar {
 
 .recorte-pasos {
   display: flex;
-  flex-direction: column; /* los tres pasos, uno bajo el otro */
-  gap: calc(22px * var(--escala, 1));
+  flex-direction: column; /* los tres pasos, uno bajo el otro, bien separados */
+  gap: calc(40px * var(--escala, 1));
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1716,7 +1756,7 @@ body[data-opcion="2"] .simbologia-telar {
   grid-template-columns: 1fr 1fr; /* mitad y mitad */
   flex: 1;
   gap: calc(56px * var(--escala, 1));
-  margin-top: calc(28px * var(--escala, 1));
+  margin-top: calc(64px * var(--escala, 1)); /* los pasos, más abajo del título */
   min-height: 0;
 }
 

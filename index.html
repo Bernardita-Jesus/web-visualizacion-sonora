@@ -220,25 +220,78 @@
             <span class="paso-texto"><span id="paso-corte"></span><small id="paso-cuenta"></small></span>
           </li>
         </ol>
-        <!-- Dibujo: sobre una mesa, una mano apoya la lana en la grilla y la otra la corta con una tijera. -->
-        <svg class="ilustracion" viewBox="0 0 520 300" aria-label="Una mano apoya la lana en la grilla sobre la mesa y la otra la corta con una tijera">
-          <rect class="ilu-borde" x="14" y="44" width="492" height="244" rx="14"></rect>
-          <rect class="ilu-mesa" x="14" y="30" width="492" height="244" rx="14"></rect>
-          <rect class="ilu-papel" x="70" y="70" width="380" height="170"></rect>
-          <path class="ilu-grilla" d="M87 70V240M104 70V240M121 70V240M138 70V240M155 70V240M172 70V240M189 70V240M206 70V240M223 70V240M240 70V240M257 70V240M274 70V240M291 70V240M308 70V240M325 70V240M342 70V240M359 70V240M376 70V240M393 70V240M410 70V240M427 70V240M444 70V240M70 87H450M70 104H450M70 121H450M70 138H450M70 155H450M70 172H450M70 189H450M70 206H450M70 223H450"></path>
-          <circle class="ilu-ovillo" cx="56" cy="222" r="28"></circle>
-          <path class="ilu-ovillo-vueltas" d="M34 210q22 -14 44 4M30 226q26 -16 52 2M36 242q20 -12 40 -2M48 196q-8 26 6 54M64 196q10 24 -4 54"></path>
-          <path class="ilu-lana" d="M80 208C100 190 96 160 118 155L332 155"></path>
-          <path class="ilu-lana" d="M342 155C370 155 380 168 392 160"></path>
-          <path class="ilu-corte" d="M337 128V182"></path>
-          <path class="ilu-mano" d="M120 300L126 232C127 216 132 202 140 192L142 162C142 152 156 152 156 162L156 186L160 154C160 144 174 144 174 154L172 188L178 160C179 151 192 152 191 162L186 194L192 174C194 166 206 168 204 177L196 212C192 232 186 252 184 300Z"></path>
-          <path class="ilu-mano" d="M140 204C128 198 114 192 106 198C100 204 110 212 124 216L136 222"></path>
-          <path class="ilu-tijera" d="M362 155L314 140M362 155L314 170"></path>
-          <path class="ilu-mano" d="M520 118C472 112 432 120 408 128C394 133 394 149 408 151L422 150C410 160 411 176 426 178L442 176C433 189 442 202 457 198C478 194 498 190 520 194Z"></path>
-          <circle class="ilu-anillo" cx="398" cy="140" r="11"></circle>
-          <circle class="ilu-anillo" cx="398" cy="172" r="11"></circle>
-          <path class="ilu-tijera" d="M362 155L390 146M362 155L390 166"></path>
-          <circle class="ilu-eje" cx="362" cy="155" r="3.5"></circle>
+        <!-- Dibujo: sobre una mesa de madera, una mano apoya la lana en la grilla y la otra la corta con una
+             tijera. La lana y el ovillo toman el color de la temática. -->
+        <svg class="ilustracion" viewBox="0 0 560 340" aria-label="Una mano apoya la lana en la grilla sobre la mesa y la otra la corta con una tijera">
+          <defs>
+            <linearGradient id="ilu-madera" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#dcbb93"></stop>
+              <stop offset="1" stop-color="#b98f63"></stop>
+            </linearGradient>
+            <linearGradient id="ilu-metal" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#f4f6f8"></stop>
+              <stop offset="0.5" stop-color="#c3cad1"></stop>
+              <stop offset="1" stop-color="#8d969f"></stop>
+            </linearGradient>
+            <radialGradient id="ilu-ovillo" cx="0.35" cy="0.3" r="0.75">
+              <stop offset="0" stop-color="#ffffff" stop-opacity="0.45"></stop>
+              <stop offset="0.45" stop-color="#ffffff" stop-opacity="0"></stop>
+              <stop offset="1" stop-color="#000000" stop-opacity="0.35"></stop>
+            </radialGradient>
+            <!-- Textura de lana: hebras torcidas en diagonal y pelusa en los bordes. -->
+            <pattern id="ilu-hebras" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(-55)">
+              <rect width="1.9" height="5" fill="rgb(0 0 0 / 0.3)"></rect>
+              <rect x="2.7" width="0.9" height="5" fill="rgb(255 255 255 / 0.4)"></rect>
+            </pattern>
+            <filter id="ilu-pelusa" x="-10%" y="-40%" width="120%" height="180%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="2" result="ruido"></feTurbulence>
+              <feDisplacementMap in="SourceGraphic" in2="ruido" scale="2.6"></feDisplacementMap>
+            </filter>
+            <filter id="ilu-sombra" x="-20%" y="-20%" width="140%" height="150%">
+              <feDropShadow dx="3" dy="5" stdDeviation="4" flood-color="#3b2a1a" flood-opacity="0.35"></feDropShadow>
+            </filter>
+          </defs>
+          <!-- La mesa, en perspectiva, con sus vetas. -->
+          <path class="ilu-canto" d="M6 300L554 300L554 324L6 324Z"></path>
+          <path fill="url(#ilu-madera)" class="ilu-mesa" d="M44 88L516 88L554 300L6 300Z"></path>
+          <path class="ilu-veta" d="M42.6 95.1Q82.1 94.3 121.7 96.8Q161.3 93.9 200.9 96.2Q240.4 95.3 280.0 93.8Q319.6 96.0 359.1 93.7Q398.7 95.7 438.3 93.8Q477.9 94.0 517.4 95.6M41.2 105.1Q81.0 101.6 120.8 102.1Q160.6 104.1 200.4 105.7Q240.2 103.9 280.0 103.0Q319.8 105.9 359.6 101.2Q399.4 105.3 439.2 102.4Q479.0 101.7 518.8 101.6M39.9 110.0Q79.9 112.6 119.9 109.4Q159.9 111.4 200.0 111.7Q240.0 110.4 280.0 111.2Q320.0 108.8 360.0 108.8Q400.1 109.5 440.1 111.9Q480.1 110.6 520.1 110.1M38.5 118.9Q78.8 118.3 119.0 117.5Q159.3 120.0 199.5 119.5Q239.8 117.2 280.0 118.9Q320.2 118.6 360.5 120.4Q400.7 119.6 441.0 117.4Q481.2 120.9 521.5 116.6M37.2 125.6Q77.7 127.3 118.1 124.3Q158.6 125.9 199.1 123.7Q239.5 126.8 280.0 127.3Q320.5 126.4 360.9 127.9Q401.4 125.1 441.9 127.0Q482.3 126.5 522.8 126.4M35.8 133.3Q76.5 135.2 117.2 135.7Q157.9 133.4 198.6 134.3Q239.3 131.3 280.0 134.5Q320.7 134.2 361.4 136.0Q402.1 135.1 442.8 132.4Q483.5 132.9 524.2 134.3M34.5 138.6Q75.4 140.8 116.3 139.3Q157.2 139.1 198.2 138.8Q239.1 142.3 280.0 139.1Q320.9 139.7 361.8 140.5Q402.8 142.9 443.7 138.9Q484.6 140.7 525.5 141.2M33.2 150.4Q74.3 150.1 115.4 150.3Q156.6 147.4 197.7 148.1Q238.9 147.8 280.0 150.4Q321.1 150.8 362.3 146.8Q403.4 146.9 444.6 147.2Q485.7 147.2 526.8 148.4M31.8 156.4Q73.2 154.8 114.5 153.5Q155.9 155.6 197.3 155.3Q238.6 156.3 280.0 158.3Q321.4 157.0 362.7 156.1Q404.1 156.6 445.5 156.9Q486.8 153.8 528.2 158.0M30.5 164.9Q72.1 165.4 113.6 165.0Q155.2 163.0 196.8 163.0Q238.4 161.5 280.0 164.2Q321.6 161.3 363.2 161.3Q404.8 162.0 446.4 161.8Q487.9 162.7 529.5 161.3M29.1 168.5Q70.9 169.3 112.7 169.0Q154.6 170.3 196.4 168.6Q238.2 172.9 280.0 171.6Q321.8 169.2 363.6 169.8Q405.4 170.2 447.3 170.3Q489.1 169.1 530.9 172.7M27.8 181.0Q69.8 178.3 111.9 178.4Q153.9 176.4 195.9 176.5Q238.0 177.7 280.0 177.3Q322.0 180.1 364.1 176.8Q406.1 176.1 448.1 180.8Q490.2 178.6 532.2 176.7M26.4 186.2Q68.7 183.6 111.0 186.1Q153.2 188.4 195.5 187.8Q237.7 187.0 280.0 184.8Q322.3 185.3 364.5 184.3Q406.8 187.4 449.0 186.2Q491.3 187.4 533.6 185.1M25.1 192.1Q67.6 195.1 110.1 195.9Q152.5 195.3 195.0 195.0Q237.5 195.1 280.0 194.7Q322.5 192.1 365.0 193.6Q407.5 192.8 449.9 191.1Q492.4 191.1 534.9 192.4M23.7 199.8Q66.5 202.0 109.2 203.3Q151.9 200.7 194.6 203.2Q237.3 203.4 280.0 203.3Q322.7 200.3 365.4 199.6Q408.1 199.6 450.8 199.5Q493.5 199.5 536.3 201.6M22.4 210.5Q65.3 210.2 108.3 208.4Q151.2 209.3 194.1 210.0Q237.1 206.4 280.0 209.3Q322.9 210.5 365.9 209.9Q408.8 209.8 451.7 208.4Q494.7 206.9 537.6 209.9M21.1 215.2Q64.2 217.5 107.4 218.4Q150.5 215.5 193.7 215.5Q236.8 218.2 280.0 217.1Q323.2 214.4 366.3 214.1Q409.5 214.3 452.6 218.0Q495.8 217.5 538.9 214.2M19.7 225.1Q63.1 225.9 106.5 224.3Q149.9 222.8 193.2 223.7Q236.6 221.7 280.0 221.1Q323.4 225.9 366.8 224.2Q410.1 223.6 453.5 225.7Q496.9 223.2 540.3 225.4M18.4 232.6Q62.0 229.6 105.6 229.8Q149.2 230.0 192.8 229.7Q236.4 231.4 280.0 229.8Q323.6 230.6 367.2 229.2Q410.8 233.1 454.4 230.3Q498.0 230.8 541.6 231.4M17.0 240.5Q60.9 238.1 104.7 240.6Q148.5 238.5 192.3 238.7Q236.2 238.6 280.0 236.1Q323.8 238.2 367.7 236.9Q411.5 236.0 455.3 240.0Q499.1 236.9 543.0 238.4M15.7 247.1Q59.7 246.3 103.8 245.1Q147.8 246.1 191.9 246.3Q235.9 247.4 280.0 244.0Q324.1 246.3 368.1 244.7Q412.2 244.9 456.2 247.4Q500.3 246.0 544.3 246.3M14.3 254.8Q58.6 255.6 102.9 253.2Q147.2 254.1 191.4 253.5Q235.7 253.6 280.0 254.5Q324.3 253.3 368.6 253.7Q412.8 253.4 457.1 255.7Q501.4 254.5 545.7 255.4M13.0 263.2Q57.5 259.8 102.0 261.3Q146.5 263.2 191.0 262.7Q235.5 259.2 280.0 259.1Q324.5 260.7 369.0 258.9Q413.5 259.7 458.0 258.9Q502.5 261.8 547.0 262.4M11.6 270.5Q56.4 266.8 101.1 269.6Q145.8 269.3 190.5 266.7Q235.3 270.4 280.0 270.8Q324.7 267.1 369.5 270.8Q414.2 268.0 458.9 268.4Q503.6 270.9 548.4 270.2M10.3 274.3Q55.3 275.7 100.2 276.1Q145.2 275.2 190.1 274.5Q235.1 275.1 280.0 277.1Q324.9 273.6 369.9 276.3Q414.8 275.7 459.8 273.6Q504.7 275.2 549.7 276.6M9.0 283.6Q54.1 281.3 99.3 285.9Q144.5 284.9 189.7 285.9Q234.8 281.5 280.0 282.3Q325.2 281.2 370.3 284.9Q415.5 282.4 460.7 281.6Q505.9 283.1 551.0 285.6M7.6 292.6Q53.0 289.8 98.4 289.2Q143.8 293.1 189.2 291.4Q234.6 292.0 280.0 288.9Q325.4 288.8 370.8 291.9Q416.2 290.6 461.6 288.9Q507.0 293.2 552.4 291.7M6.3 300.0Q51.9 296.4 97.5 300.3Q143.1 296.3 188.8 300.3Q234.4 298.3 280.0 297.7Q325.6 298.8 371.2 300.6Q416.9 297.3 462.5 296.6Q508.1 298.6 553.7 297.2"></path>
+          <path class="ilu-tablas" d="M34.5 141L525.5 141M25.0 194L535.0 194M15.5 247L544.5 247"></path>
+          <path class="ilu-nudo" d="M120 120a14 5 0 1 0 28 0a14 5 0 1 0 -28 0M118 120a18 8 0 1 0 32 0M470 228a12 4 0 1 0 24 0a12 4 0 1 0 -24 0M466 228a16 7 0 1 0 32 0"></path>
+          <!-- La grilla, apoyada sobre la mesa. -->
+          <path class="ilu-papel" filter="url(#ilu-sombra)" d="M118 112L442 112L464 272L96 272Z"></path>
+          <path class="ilu-grilla" d="M136.0 112.0L116.4 272.0M154.0 112.0L136.9 272.0M172.0 112.0L157.3 272.0M190.0 112.0L177.8 272.0M208.0 112.0L198.2 272.0M226.0 112.0L218.7 272.0M244.0 112.0L239.1 272.0M262.0 112.0L259.6 272.0M280.0 112.0L280.0 272.0M298.0 112.0L300.4 272.0M316.0 112.0L320.9 272.0M334.0 112.0L341.3 272.0M352.0 112.0L361.8 272.0M370.0 112.0L382.2 272.0M388.0 112.0L402.7 272.0M406.0 112.0L423.1 272.0M424.0 112.0L443.6 272.0M115.6 129.8L444.4 129.8M113.1 147.6L446.9 147.6M110.7 165.3L449.3 165.3M108.2 183.1L451.8 183.1M105.8 200.9L454.2 200.9M103.3 218.7L456.7 218.7M100.9 236.4L459.1 236.4M98.4 254.2L461.6 254.2"></path>
+          <!-- La lana parte a la izquierda, al comienzo de la grilla, y va hacia la derecha hasta la fecha, donde se
+               corta; después sigue hasta el ovillo, a la derecha. -->
+          <g filter="url(#ilu-pelusa)">
+            <path class="ilu-lana" d="M126 195L372 195"></path>
+            <path class="ilu-lana-hebras" d="M126 195L372 195"></path>
+            <path class="ilu-lana" d="M386 195C408 196 414 252 478 270"></path>
+            <path class="ilu-lana-hebras" d="M386 195C408 196 414 252 478 270"></path>
+          </g>
+          <ellipse class="ilu-sombra-suelo" cx="508" cy="312" rx="36" ry="7"></ellipse>
+          <g filter="url(#ilu-pelusa)">
+            <circle class="ilu-ovillo" cx="506" cy="280" r="32"></circle>
+            <circle cx="506" cy="280" r="32" fill="url(#ilu-hebras)" opacity="0.6"></circle>
+          </g>
+          <path class="ilu-ovillo-vueltas" d="M480 266C494 252 520 250 536 264M476 282C494 266 526 266 540 282M480 298C496 284 522 284 536 300M492 252C484 272 486 294 498 310M508 248C500 268 502 294 514 312M524 254C518 272 520 294 530 306"></path>
+          <circle cx="506" cy="280" r="32" fill="url(#ilu-ovillo)"></circle>
+          <path class="ilu-corte" d="M379 168V224"></path>
+          <!-- La mano izquierda (silueta) apoya la lana al comienzo de la grilla. -->
+          <g class="ilu-mano">
+            <path d="M178 345C176 332 174 324 172 318C160 306 146 290 136 276C130 268 134 258 142 260C152 266 160 276 168 286C169 278 170 272 170 266L171 210C171 200 185 200 186 210L187 262L188 262L189 200C189 188 204 188 205 200L205 258L207 258L208 206C208 195 222 195 223 206L222 262L224 264L227 226C228 216 241 217 240 228L238 274C239 290 238 312 234 326C232 334 230 340 228 345Z"></path>
+          </g>
+          <!-- La tijera, abierta sobre la lana, y la mano derecha (silueta) que la sostiene. -->
+          <g filter="url(#ilu-sombra)">
+            <path class="ilu-hoja" d="M402 191L346 177L352 186L402 199Z"></path>
+            <path class="ilu-hoja" d="M402 199L346 214L352 205L402 191Z"></path>
+            <path class="ilu-mango" d="M402 195L430 176M402 195L430 216"></path>
+            <ellipse class="ilu-anillo" cx="446" cy="170" rx="17" ry="12"></ellipse>
+            <ellipse class="ilu-anillo" cx="446" cy="222" rx="17" ry="12"></ellipse>
+            <circle class="ilu-eje" cx="402" cy="195" r="4.5"></circle>
+          </g>
+          <g class="ilu-mano">
+            <path d="M560 176C540 174 520 172 504 172C492 170 474 164 460 162C450 161 446 168 452 174C464 178 480 180 492 184C486 192 482 200 478 206C470 210 460 214 452 218C444 222 446 232 454 230C466 226 478 222 488 222C482 230 476 238 472 244C468 250 476 256 482 250C490 242 500 236 510 234C528 236 544 236 560 236Z"></path>
+          </g>
         </svg>
       </div>
       <div class="recorte-derecha">

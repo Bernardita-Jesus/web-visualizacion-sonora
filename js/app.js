@@ -17,6 +17,12 @@ function enviar() {
     aviso.textContent = 'Dicta tu pendiente antes de enviar.';
     return;
   }
+  // Sin el tiempo pospuesto no hay largo de lana que cortar: el registro no se incluye (y lo dictado se queda,
+  // para que lo complete).
+  if (diasPospuesto(texto) == null) {
+    aviso.textContent = 'No se puede incluir el registro porque falta el tiempo pospuesto. Cuenta hace cuánto lo pospones (por ejemplo, "hace dos meses").';
+    return;
+  }
 
   // Anónimo: solo se guarda el texto y la hora, nunca quién habla. La temática se detecta del texto.
   const respuesta = guardarRespuesta(texto);
@@ -207,10 +213,10 @@ function colorearSegunTema() {
     nombre.style.color = tema.color;
     temaPrevioNombre.append(nombre);
   });
-  // Cuánto lleva pospuesto (el largo de su hilo); si no se dice, se teje un hilo corto.
+  // Cuánto lleva pospuesto (el largo de su lana); si no se dice, el registro no se puede incluir.
   const dias = diasPospuesto(texto);
   tiempoPrevio.textContent = dias == null
-    ? 'No dijiste cuánto tiempo lo has pospuesto: cuéntalo (por ejemplo, "hace dos meses") para que su hilo tenga ese largo.'
+    ? 'Falta el tiempo pospuesto: sin él no se puede incluir el registro. Cuéntalo (por ejemplo, "hace dos meses").'
     : `Lo has pospuesto ${tiempoEnPalabras(dias)}.`;
   temaPrevio.hidden = false;
 }
