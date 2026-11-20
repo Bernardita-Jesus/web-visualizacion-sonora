@@ -1,3 +1,4 @@
+import { prepararSimulacion } from './simulacion.js';
 import { DIAS_SIN_DATO, cargarRespuestas, diasDeRespuesta, temaDeRespuesta, temaPorId, tiempoEnPalabras } from './respuestas.js';
 
 /*
@@ -255,6 +256,7 @@ function dibujarMiniTelar(respuesta) {
   }), derecha ? ', hacia la derecha' : ', hacia la izquierda');
   if (nueva.desde + nueva.largo > filaNueva * fila) detalle.append(' (da la vuelta y sigue en la fila de abajo)');
   miniTexto.replaceChildren(principal, detalle);
+  return tiras;
 
 }
 
@@ -289,7 +291,10 @@ export function mostrarRecorte(respuesta) {
   // toda la pantalla.
   capa.style.transition = 'none';
   capa.hidden = false;
-  dibujarMiniTelar(respuesta);
+  const tiras = dibujarMiniTelar(respuesta);
+  // La simulación de la mesa de corte y el telar, lista para este pendiente (se parte en las instrucciones).
+  prepararSimulacion(tiras, dias == null ? '1 semana' : tiempoEnPalabras(dias));
+  mostrarSimulacion(false);
   ubicarCapa(medidas().bajoCabecera);
   capa.getBoundingClientRect();
   capa.style.transition = `top ${RECORTE.transicion}s ease`;
@@ -311,6 +316,27 @@ export function cerrarRecorte() {
 }
 
 capa.querySelector('#btn-recorte-listo').addEventListener('click', cerrarRecorte);
+
+/* ---------- Simular la interacción: la mesa de corte con la grilla en zigzag y el telar ---------- */
+
+const botonSimular = capa.querySelector('#btn-simular-interaccion');
+
+/** Cambia entre las instrucciones y la simulación. */
+function mostrarSimulacion(activa) {
+  // Las instrucciones no se esconden: se achican arriba y la mesa de corte queda abajo.
+  capa.classList.toggle('simulando', activa);
+  capa.querySelector('#simulacion').hidden = !activa;
+  botonSimular.textContent = activa ? 'Cerrar la simulación' : 'Simular interacción';
+  botonSimular.setAttribute('aria-pressed', String(activa));
+}
+
+botonSimular.addEventListener('click', () => {
+  const activa = !capa.classList.contains('simulando');
+  mostrarSimulacion(activa);
+  // Mientras se simula, no se cierra sola.
+  clearTimeout(cierre);
+  cierre = setTimeout(cerrarRecorte, RECORTE.cerrarSola * 1000);
+});
 // Al cambiar el tamaño de la ventana, se vuelve a ubicar después de que el lienzo se reescale.
 window.addEventListener('resize', () => {
   setTimeout(() => {

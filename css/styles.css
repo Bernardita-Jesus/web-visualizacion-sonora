@@ -1523,6 +1523,37 @@ body[data-opcion="2"] .simbologia-telar {
   stroke-dasharray: 5 4;
 }
 
+/* El papel sobre la grilla que marca las semanas (1 semana, 2 semanas…) y dónde cortar. */
+.ilu-huincha-papel {
+  fill: #fffdf7;
+  stroke: #b9ad99;
+  stroke-width: 0.8;
+}
+
+.ilu-huincha-division {
+  stroke: #b9ad99;
+  stroke-width: 0.8;
+}
+
+.ilu-huincha-marca {
+  stroke: rgb(47 55 66 / 0.45);
+  stroke-width: 0.8;
+  stroke-dasharray: 2 2;
+}
+
+.ilu-huincha-texto {
+  fill: var(--ink);
+  font-size: 8.5px;
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+/* La semana de tu fecha, en el color de tu lana. */
+.ilu-huincha-fecha {
+  fill: var(--color-tema);
+  font-weight: 800;
+}
+
 /* Las manos, como siluetas de infografía: rosado fuerte (fantasía) plano, sin sombras, con un contorno fino. */
 .ilu-mano path {
   fill: #f2559d;
@@ -1686,6 +1717,325 @@ body[data-opcion="2"] .simbologia-telar {
 
 .recorte-mensaje strong {
   color: var(--color-tema);
+}
+
+/* "Simular interacción", arriba a la derecha de las instrucciones. */
+.boton-interaccion {
+  flex: none;
+  padding: calc(12px * var(--escala, 1)) calc(24px * var(--escala, 1));
+  border-color: var(--turquesa);
+  background: var(--turquesa);
+  color: #ffffff;
+  font-size: calc(18px * var(--escala, 1));
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.boton-interaccion:hover {
+  border-color: #137a76;
+  background: #137a76;
+}
+
+.simulacion[hidden] {
+  display: none;
+}
+
+/* Mientras se simula, las instrucciones se ven completas pero más chicas, arriba: conservan su tamaño de
+   siempre (690 px de alto) y se achican a menos de la mitad; el espacio que dejan lo ocupa la mesa de corte. */
+.simulando .recorte-cuerpo {
+  flex: none;
+  height: calc(690px * var(--escala, 1));
+  margin-top: calc(8px * var(--escala, 1));
+  margin-bottom: calc(690px * var(--escala, 1) * -0.58);
+  transform: scale(0.42);
+  transform-origin: top center;
+}
+
+/* La simulación: la mesa con la grilla en zigzag y, al lado, el telar con velcros, a todo el ancho. */
+.simulacion {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  margin-top: calc(12px * var(--escala, 1));
+  padding-top: calc(12px * var(--escala, 1));
+  border-top: 1.5px dashed rgb(47 55 66 / 0.3);
+}
+
+.mesa-de-corte {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  touch-action: none; /* para arrastrar la lana con el dedo sin mover la página */
+  user-select: none;
+}
+
+.sim-mesa {
+  stroke: #7a5634;
+  stroke-width: 2;
+}
+
+.sim-papel {
+  fill: #fbf7f0;
+  stroke: #cfc4b2;
+}
+
+/* Las semanas de la grilla: el color cambia de una semana a la siguiente. */
+.sim-casilla {
+  stroke: rgb(47 55 66 / 0.3);
+  stroke-width: 0.8;
+}
+
+.sim-casilla-0 {
+  fill: #fbf7f0;
+}
+
+.sim-casilla-1 {
+  fill: #e3d3b6;
+}
+
+/* La vuelta de la banda de la grilla en los bordes (sin casillas: no cuenta semanas). */
+.sim-vuelta-grilla {
+  fill: #efe7d8;
+  stroke: rgb(47 55 66 / 0.3);
+  stroke-width: 0.8;
+}
+
+/* Arriba de la grilla, mes a mes ("1 mes", "2 meses"… "1 año"). */
+.sim-texto-mes {
+  fill: var(--azul);
+  font-size: 11px;
+  font-weight: 800;
+  text-anchor: middle;
+}
+
+.sim-texto-semana {
+  fill: var(--ink);
+  font-size: 8.5px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  opacity: 0.75;
+}
+
+.sim-mes {
+  stroke: rgb(47 55 66 / 0.6);
+  stroke-width: 1.6;
+}
+
+.sim-ano {
+  stroke: var(--ink);
+  stroke-width: 2.6;
+}
+
+.sim-cero {
+  fill: var(--ink);
+}
+
+.sim-texto-cero {
+  fill: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.sim-corte {
+  stroke: var(--ink);
+  stroke-width: 2.4;
+  stroke-dasharray: 4 3;
+}
+
+.sim-texto-fecha {
+  fill: var(--color-tema);
+  font-size: 12px;
+  font-weight: 800;
+  dominant-baseline: central;
+  text-anchor: middle;
+}
+
+.sim-lana,
+.sim-lana-hebras {
+  fill: none;
+  stroke-width: 11;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sim-lana-hebras {
+  stroke: url(#sim-hebras);
+}
+
+.sim-suelta {
+  stroke-width: 8;
+}
+
+/* La punta de la lana: se toma para arrastrarla (late para que se note). */
+.sim-punta {
+  fill: rgb(255 255 255 / 0.35);
+  stroke-width: 3;
+  stroke-dasharray: 5 4;
+  cursor: grab;
+  animation: sim-latido 1.2s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.sim-arrastrando,
+.sim-arrastrando .sim-punta {
+  cursor: grabbing;
+}
+
+/* El aviso en el borde de afuera: ahí la lana da la vuelta si el pendiente es de más de un año. */
+.sim-texto-vuelta {
+  fill: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* La tijera: se arrastra hasta la lana para cortarla. */
+.sim-tijera {
+  cursor: grab;
+}
+
+.sim-tijera-zona {
+  fill: transparent;
+}
+
+.sim-hoja {
+  fill: url(#sim-metal);
+  stroke: #5f6870;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+
+.sim-mango {
+  fill: none;
+  stroke: var(--azul);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.sim-anillo {
+  fill: none;
+  stroke: var(--azul);
+  stroke-width: 6;
+}
+
+.sim-eje {
+  fill: #d7dde2;
+  stroke: #5f6870;
+  stroke-width: 1.2;
+}
+
+.sim-cortada .sim-tijera {
+  cursor: default;
+}
+
+/* "Volver a empezar", abajo a la derecha de la simulación. */
+.simulacion-reiniciar {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: calc(8px * var(--escala, 1)) calc(18px * var(--escala, 1));
+  font-size: calc(16px * var(--escala, 1));
+}
+
+/* La lana cortada se toma para llevarla al telar. */
+.sim-cortada .sim-pieza {
+  cursor: grab;
+}
+
+/* El tablero de tela del telar y sus filas de velcro (claro, con la costura punteada). */
+.sim-tablero {
+  stroke: #ddd3c1;
+  stroke-width: 1;
+}
+
+.sim-velcro {
+  fill: url(#sim-velcro);
+  stroke: #d2c7b3;
+  stroke-width: 1;
+  filter: drop-shadow(0 1px 0.6px rgb(47 55 66 / 0.18));
+}
+
+.sim-costura {
+  fill: none;
+  stroke: #c4b8a2;
+  stroke-width: 0.7;
+  stroke-dasharray: 2 2;
+}
+
+/* Semana a semana en el telar: una línea por semana sobre el velcro y, arriba, su número. */
+.sim-semana-telar {
+  fill: none;
+  stroke: rgb(47 55 66 / 0.28);
+  stroke-width: 0.8;
+}
+
+.sim-numero-semana {
+  fill: var(--azul);
+  font-size: 11px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.sim-numero-fila {
+  fill: var(--azul);
+  font-weight: 800;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* El nudo donde empieza cada lana (donde se une con la anterior). */
+.sim-nudo {
+  stroke: rgb(0 0 0 / 0.35);
+  stroke-width: 0.8;
+}
+
+.sim-vuelta {
+  fill: none;
+}
+
+.sim-tira-vieja {
+  opacity: 0.9;
+}
+
+/* Dónde va la lana nueva: punteado, latiendo hasta que se pegue. */
+.sim-destino rect,
+.sim-destino-vuelta {
+  fill: rgb(255 255 255 / 0.25);
+  stroke-width: 2.5;
+  stroke-dasharray: 6 4;
+}
+
+.sim-destino-vuelta {
+  fill: none;
+}
+
+.sim-destino:not(.sim-destino-listo) {
+  animation: sim-destello 1.2s ease-in-out infinite;
+}
+
+@keyframes sim-destello {
+  50% { opacity: 0.35; }
+}
+
+.sim-tira-nueva rect:not([fill]) {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+@keyframes sim-latido {
+  50% { transform: scale(1.25); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sim-punta,
+  .sim-destino { animation: none !important; }
 }
 
 .recorte-pasos {

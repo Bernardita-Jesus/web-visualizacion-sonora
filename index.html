@@ -191,6 +191,8 @@
   <section id="recorte" class="recorte" hidden aria-live="polite">
     <header class="recorte-cabecera">
       <p id="recorte-mensaje" class="recorte-mensaje"></p>
+      <!-- Cambia entre las instrucciones y la simulación de la mesa de corte. -->
+      <button id="btn-simular-interaccion" class="boton-modo boton-interaccion" type="button" aria-pressed="false">Simular interacción</button>
     </header>
     <!-- Mitad y mitad: a la izquierda los pasos 1, 2 y 3 y un dibujo de cómo se corta la lana; a la derecha el
          paso 4 y el telar (los textos los pone js/recorte.js). -->
@@ -275,7 +277,24 @@
           </g>
           <path class="ilu-ovillo-vueltas" d="M480 266C494 252 520 250 536 264M476 282C494 266 526 266 540 282M480 298C496 284 522 284 536 300M492 252C484 272 486 294 498 310M508 248C500 268 502 294 514 312M524 254C518 272 520 294 530 306"></path>
           <circle cx="506" cy="280" r="32" fill="url(#ilu-ovillo)"></circle>
-          <path class="ilu-corte" d="M379 168V224"></path>
+          <!-- Un papel sobre la grilla, como una huincha: cada tramo es una semana, desde donde parte la lana.
+               La línea de corte marca dónde cortar (aquí, a las 5 semanas). -->
+          <g class="ilu-huincha">
+            <rect class="ilu-huincha-papel" filter="url(#ilu-sombra)" x="126" y="150" width="303.6" height="18" rx="1.5"></rect>
+            <text class="ilu-huincha-texto" x="151.3" y="162">1 semana</text>
+            <path class="ilu-huincha-division" d="M176.6 150V168"></path>
+            <text class="ilu-huincha-texto" x="201.9" y="162">2 semanas</text>
+            <path class="ilu-huincha-division" d="M227.2 150V168"></path>
+            <text class="ilu-huincha-texto" x="252.5" y="162">3 semanas</text>
+            <path class="ilu-huincha-division" d="M277.8 150V168"></path>
+            <text class="ilu-huincha-texto" x="303.1" y="162">4 semanas</text>
+            <path class="ilu-huincha-division" d="M328.4 150V168"></path>
+            <text class="ilu-huincha-texto ilu-huincha-fecha" x="353.7" y="162">5 semanas</text>
+            <path class="ilu-huincha-division" d="M379.0 150V168"></path>
+            <text class="ilu-huincha-texto" x="404.3" y="162">6 semanas</text>
+            <path class="ilu-huincha-marca" d="M126.0 168V190M176.6 168V190M227.2 168V190M277.8 168V190M328.4 168V190M429.6 168V190"></path>
+          </g>
+          <path class="ilu-corte" d="M379.0 150V226"></path>
           <!-- La mano izquierda (silueta) apoya la lana al comienzo de la grilla. -->
           <g class="ilu-mano">
             <path d="M178 345C176 332 174 324 172 318C160 306 146 290 136 276C130 268 134 258 142 260C152 266 160 276 168 286C169 278 170 272 170 266L171 210C171 200 185 200 186 210L187 262L188 262L189 200C189 188 204 188 205 200L205 258L207 258L208 206C208 195 222 195 223 206L222 262L224 264L227 226C228 216 241 217 240 228L238 274C239 290 238 312 234 326C232 334 230 340 228 345Z"></path>
@@ -326,6 +345,13 @@
         <svg id="mini-telar" class="telar-grande" preserveAspectRatio="xMidYMin meet" aria-label="Telar: dónde agregar tu tira"></svg>
         <button id="btn-recorte-listo" class="boton-modo recorte-listo" type="button">Lana cortada y agregada al telar</button>
       </div>
+    </div>
+    <!-- La simulación (bajo las instrucciones, que se achican): la mesa de corte con la grilla en zigzag (de 0 a
+         un año), donde se arrastra la lana y se corta con la tijera, y al lado el telar con velcros, donde se pega
+         la lana cortada (la dibuja js/simulacion.js). -->
+    <div id="simulacion" class="simulacion" hidden>
+      <svg id="mesa-de-corte" class="mesa-de-corte" aria-label="Mesa de corte con una grilla en zigzag, de 0 a un año, y al lado el telar con velcros"></svg>
+      <button id="btn-simulacion-reiniciar" class="boton-modo simulacion-reiniciar" type="button">Volver a empezar</button>
     </div>
   </section>
 

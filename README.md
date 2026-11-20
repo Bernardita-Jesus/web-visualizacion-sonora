@@ -106,11 +106,31 @@ instancias:
    un título, por ejemplo *"Tu pendiente de 3 meses fue clasificado como Vínculos, que corresponde al color
    rosado"*, y debajo la pantalla se divide en dos mitades. A la izquierda, tres pasos (1. toma el ovillo de
    lana de ese color; 2. apóyalo en la grilla; 3. recorre con la lana hasta tu fecha y luego córtalo) y un
-   dibujo: sobre una mesa, una mano apoya la lana en la grilla y la otra la corta con una tijera. A la
+   dibujo: sobre una mesa, una mano apoya la lana en la grilla y la otra la corta con una tijera; sobre la
+   grilla, un papel marca las semanas ("1 semana", "2 semanas"…) y, con la línea de corte, dónde cortar. A la
    derecha, el paso 4 (*"Agrégalo al telar en la fila 10"*, desde qué cuadrado) y el telar. **Un cuadrado es
    una semana** (mínimo 1: aunque digan unos días, se marca una semana; máximo 120). Al mostrarse, el
    rectángulo de arriba sube; al cerrar, vuelve. Se cierra con "Lana cortada y agregada al telar" (o sola, a
    los 4 minutos).
+
+**Simular interacción** (`js/simulacion.js`): arriba a la derecha de las instrucciones, el botón *Simular
+interacción* achica las instrucciones (se ven completas, arriba) y abajo muestra, sin textos, la mesa de corte
+y el telar:
+
+- **La grilla en zigzag:** de 0 a 1 año, en cuatro filas de 13 semanas (tres meses cada una), la primera de
+  izquierda a derecha, la segunda de vuelta, y así, dando la vuelta en los bordes. Cada casilla es una semana,
+  con su número (1 a 52) y un color que cambia de una semana a la siguiente; sobre cada fila dice qué meses
+  son. Si el pendiente es más largo, al llegar al año la lana **da la vuelta** y recorre la grilla de regreso
+  (y otra vez, hasta 3 años), cada pasada por su propio carril. Está marcada *tu fecha*.
+- **Arrastrar y cortar:** se toma la punta de la lana en el 0 y se arrastra por la grilla (con el mouse o el
+  dedo), hacia adelante o hacia atrás: **se vale equivocarse**. Para cortar, se arrastra la **tijera** hasta
+  la lana; corta en la semana más cercana.
+- **El telar con velcros:** al lado de la mesa, un tablero de tela con las **últimas 10 filas** de velcro
+  (numeradas, hasta una sobrante bajo la lana nueva), de 26 semanas cada una, marcadas semana a semana. La lana va en zigzag, dando la vuelta por fuera del borde, con todas las tiras que ya
+  están una tras otra (cada una empieza con un nudo) y, punteado y latiendo, dónde va la nueva. Se toma la lana cortada y se
+  lleva al telar: se pega en su lugar con el largo que se cortó (si se cortó de menos, se ve lo que faltó).
+
+*Volver a empezar* reinicia y *Cerrar la simulación* vuelve a las instrucciones.
 
 **Ovillos a la derecha** (`js/panel-ovillos.js`): el registro ocupa la pantalla y, a la derecha, se ven
 los ovillos en tres columnas de dos, uno por temática, con todos los testimonios acumulados. Cada testimonio es un tramo del hilo tan largo como el tiempo
