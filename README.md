@@ -117,14 +117,21 @@ instancias:
 interacción* achica las instrucciones (se ven completas, arriba) y abajo muestra, sin textos, la mesa de corte
 y el telar:
 
-- **La grilla en zigzag:** de 0 a 1 año, en cuatro filas de 13 semanas (tres meses cada una), la primera de
-  izquierda a derecha, la segunda de vuelta, y así, dando la vuelta en los bordes. Cada casilla es una semana,
-  con su número (1 a 52) y un color que cambia de una semana a la siguiente; sobre cada fila dice qué meses
-  son. Si el pendiente es más largo, al llegar al año la lana **da la vuelta** y recorre la grilla de regreso
-  (y otra vez, hasta 3 años), cada pasada por su propio carril. Está marcada *tu fecha*.
+- **Los ovillos de colores:** a la izquierda de la mesa, un ovillo por temática, con el nombre de la temática
+  abajo. Se toma el de tu temática (arrastrándolo a la mesa, o solo tocándolo) y queda al lado del 0, desde
+  donde sale la lana. Se vale tomar otro: la lana sale de ese color (y se puede cambiar mientras no se corte).
+  En el telar, el lugar punteado siempre muestra el color correcto.
+- **La grilla en zigzag:** de 0 a 1 año, en cuatro filas unidas por curvas (la primera de izquierda a
+  derecha, la segunda de vuelta, y así). Las 52 semanas se reparten parejo por todo el camino, **también por
+  las curvas**: cada casilla es una semana, con su número, y **cada mes tiene su tono**. Arriba (o por fuera
+  de las curvas) dice dónde se cumple cada mes ("1 mes", "2 meses"… "1 año"). Si el pendiente es más largo, al
+  llegar al año la lana **da la vuelta** y recorre la grilla de regreso (y otra vez, hasta 3 años), cada
+  pasada por su propio carril. Está marcada *tu fecha*.
 - **Arrastrar y cortar:** se toma la punta de la lana en el 0 y se arrastra por la grilla (con el mouse o el
   dedo), hacia adelante o hacia atrás: **se vale equivocarse**. Para cortar, se arrastra la **tijera** hasta
-  la lana; corta en la semana más cercana.
+  la lana (con margen, no hay que atinarle exacto): la tijera se **cierra** y recién ahí corta, y vuelve a su
+  lugar. Cortar un poquito antes o después de la marca (hasta semana y media) vale como cortar justo en tu
+  fecha; más lejos, corta donde se soltó.
 - **El telar con velcros:** al lado de la mesa, un tablero de tela con las **últimas 10 filas** de velcro
   (numeradas, hasta una sobrante bajo la lana nueva), de 26 semanas cada una, marcadas semana a semana. La lana va en zigzag, dando la vuelta por fuera del borde, con todas las tiras que ya
   están una tras otra (cada una empieza con un nudo) y, punteado y latiendo, dónde va la nueva. Se toma la lana cortada y se

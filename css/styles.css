@@ -1414,6 +1414,45 @@ body[data-opcion="2"] .simbologia-telar {
   color: var(--ink);
 }
 
+/* Mientras se simula, el título se achica junto con las instrucciones (a la misma escala, 0,42, y centrado
+   sobre ellas); el botón queda arriba a la derecha, de su tamaño. */
+.simulando .recorte-cabecera {
+  position: relative;
+  justify-content: center;
+}
+
+.simulando .recorte-mensaje {
+  width: 42%;
+  font-size: calc(28px * var(--escala, 1) * 0.42);
+}
+
+.simulando .boton-interaccion {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+/* En la simulación, el margen punteado encierra solo la segunda pantalla (las instrucciones achicadas, con su
+   título), no toda la pantalla. Como esa parte está a 0,42 de su tamaño, sus medidas van divididas por 0,42
+   para que la línea se vea igual que siempre. */
+.simulando::before {
+  display: none;
+}
+
+.simulando .recorte-cuerpo {
+  position: relative;
+}
+
+.simulando .recorte-cuerpo::before {
+  content: "";
+  position: absolute;
+  inset: calc(-104px * var(--escala, 1)) calc(-36px * var(--escala, 1)) calc(-20px * var(--escala, 1));
+  border: calc(3px * var(--escala, 1) / 0.42) dashed var(--ink);
+  border-radius: calc(16px * var(--escala, 1));
+  opacity: 0.85;
+  pointer-events: none;
+}
+
 .recorte[hidden],
 .calibrar[hidden] {
   display: none;
@@ -1781,23 +1820,8 @@ body[data-opcion="2"] .simbologia-telar {
   stroke: #cfc4b2;
 }
 
-/* Las semanas de la grilla: el color cambia de una semana a la siguiente. */
+/* Las semanas de la grilla (el tono de cada mes lo pone js/simulacion.js). */
 .sim-casilla {
-  stroke: rgb(47 55 66 / 0.3);
-  stroke-width: 0.8;
-}
-
-.sim-casilla-0 {
-  fill: #fbf7f0;
-}
-
-.sim-casilla-1 {
-  fill: #e3d3b6;
-}
-
-/* La vuelta de la banda de la grilla en los bordes (sin casillas: no cuenta semanas). */
-.sim-vuelta-grilla {
-  fill: #efe7d8;
   stroke: rgb(47 55 66 / 0.3);
   stroke-width: 0.8;
 }
@@ -1894,6 +1918,42 @@ body[data-opcion="2"] .simbologia-telar {
   font-weight: 700;
   text-anchor: middle;
   dominant-baseline: central;
+}
+
+/* Los ovillos de colores, en la canasta: se toca uno para tomar su lana. */
+.sim-ovillo-marca {
+  fill: rgb(255 255 255 / 0.35);
+  stroke: var(--ink);
+  stroke-width: 2.5;
+  stroke-dasharray: 5 4;
+  opacity: 0;
+}
+
+/* Mientras no se elige ninguno, todos laten un poco para invitar a tomar uno. */
+.sim-sin-ovillo .sim-ovillo-marca {
+  opacity: 0.45;
+  animation: sim-destello 1.2s ease-in-out infinite;
+}
+
+.sim-ovillo-elegido .sim-ovillo-marca {
+  opacity: 1;
+  stroke-dasharray: none;
+}
+
+/* Bajo cada ovillo, su temática; el que está al lado del 0 no la muestra (taparía la grilla). */
+.sim-texto-ovillo {
+  fill: var(--azul);
+  font-size: 13px;
+  font-weight: 800;
+  text-anchor: middle;
+}
+
+.sim-ovillo-elegido .sim-texto-ovillo {
+  display: none;
+}
+
+.sim-ovillo {
+  cursor: grab;
 }
 
 /* La tijera: se arrastra hasta la lana para cortarla. */
@@ -2035,7 +2095,8 @@ body[data-opcion="2"] .simbologia-telar {
 
 @media (prefers-reduced-motion: reduce) {
   .sim-punta,
-  .sim-destino { animation: none !important; }
+  .sim-destino,
+  .sim-ovillo-marca { animation: none !important; }
 }
 
 .recorte-pasos {
@@ -2198,6 +2259,7 @@ body[data-opcion="2"] .simbologia-telar {
 }
 
 .recorte::before {
-  inset: calc(7px * var(--escala, 1));
-  border-width: calc(2px * var(--escala, 1));
+  inset: calc(10px * var(--escala, 1));
+  border-width: calc(3px * var(--escala, 1));
+  opacity: 0.85; /* el margen de las instrucciones, bien marcado */
 }
